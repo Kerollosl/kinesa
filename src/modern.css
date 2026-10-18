@@ -1625,3 +1625,591 @@ input:focus-visible {
     transform: none;
   }
 }
+
+/* Setup is a short, visible journey from players to companions to play. */
+.setup-progress {
+  margin: 6px auto 36px;
+  max-width: 550px;
+}
+.setup-progress ol {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  gap: 16px;
+}
+.setup-progress li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #9b96a6;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.setup-progress li > svg {
+  margin-left: 8px;
+  color: #ccc6d7;
+}
+.setup-step-number {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border: 1px solid #e6e0ee;
+  border-radius: 50%;
+  font-size: 10px;
+  color: #a69bb7;
+}
+.setup-progress .is-current {
+  color: #6047a4;
+  font-weight: 650;
+}
+.is-current .setup-step-number {
+  color: white;
+  background: #7961c5;
+  border-color: #7961c5;
+  box-shadow: 0 0 0 4px #eee9fa;
+}
+.is-complete .setup-step-number {
+  color: #82709d;
+  background: #eee9f6;
+  border-color: transparent;
+}
+.lobby-workspace {
+  max-width: 1080px;
+  margin: auto;
+}
+.lobby-workspace.with-context {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 64px;
+  align-items: start;
+}
+.lobby-main {
+  min-width: 0;
+}
+.with-context .lobby-heading {
+  text-align: left;
+  margin-bottom: 25px;
+}
+.with-context .lobby-heading p {
+  margin: 0;
+  max-width: 440px;
+  font-size: 13px;
+}
+.with-context .lobby-heading h1 {
+  font-size: 34px;
+  line-height: 1.15;
+  margin: 10px 0 13px;
+}
+.with-context .lobby-entry-panel,
+.with-context .room-panel {
+  margin: 0;
+  max-width: none;
+  padding: 28px;
+}
+.with-context .lobby-mode-emblem {
+  display: none;
+}
+.lobby-context {
+  position: sticky;
+  top: 28px;
+  background: #f0edf8;
+  padding: 34px 30px 24px;
+  border-radius: 24px;
+  overflow: hidden;
+}
+.lobby-random .lobby-context {
+  background: #ecf1fa;
+}
+.lobby-context-label {
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+  color: #8e7fa6;
+}
+.lobby-context h2 {
+  font-size: 34px;
+  line-height: 1.12;
+  margin: 15px 0 14px;
+  color: #453953;
+  font-weight: 600;
+}
+.lobby-context > p {
+  font-size: 13px;
+  line-height: 1.7;
+  max-width: 280px;
+  color: #7c7188;
+}
+.lobby-crew-art {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  margin: 34px -8px 31px;
+}
+.lobby-crew-art > span {
+  display: block;
+  min-width: 0;
+  height: 90px;
+  position: relative;
+}
+.lobby-crew-art > span::before {
+  content: "";
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  bottom: 0;
+  height: 75%;
+  background: var(--crew-bg);
+  border: 2px solid #ffffff70;
+  border-radius: 50% 50% 35% 35%;
+}
+.lobby-crew-art svg {
+  width: 125%;
+  max-width: none;
+  height: 110px;
+  position: absolute;
+  left: -12%;
+  top: -7px;
+  animation: lobby-welcome 5s ease-in-out infinite;
+  animation-delay: var(--crew-delay);
+}
+.lobby-rules {
+  display: grid;
+  gap: 22px;
+}
+.lobby-rules > span {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  column-gap: 10px;
+  row-gap: 4px;
+}
+.lobby-rules svg {
+  grid-row: span 2;
+  color: #9380b2;
+  margin-top: 2px;
+}
+.lobby-rules strong {
+  font-size: 12px;
+  font-weight: 650;
+  color: #655770;
+}
+.lobby-rules small {
+  font-size: 11px;
+  color: #908599;
+}
+.lobby-context-footnote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  border-top: 1px solid #ddd4ea;
+  margin-top: 28px;
+  padding-top: 20px;
+  color: #91829f;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.lobby-context-footnote svg {
+  margin-top: 1px;
+}
+.room-players-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 0 13px;
+}
+.room-players-heading h2 {
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.room-players-heading > span {
+  color: #91869f;
+  font-size: 11px;
+}
+.friend-seat input {
+  font-size: 14px;
+}
+.lobby-main > section {
+  animation: setup-arrive 0.35s ease-out both;
+}
+.assignment-front {
+  background: var(--slot-color);
+}
+.assignment-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+.assignment-actions .secondary-button,
+.assignment-actions .primary-button {
+  min-height: 49px;
+  padding: 13px 23px;
+  font-size: 13px;
+}
+.assignment-front .gospel-label {
+  font-size: 9px;
+  letter-spacing: 0.8px;
+  color: #827589;
+}
+.assignment-front p {
+  color: #8a7d91;
+}
+.assignment-front .assigned-player {
+  font-weight: 650;
+}
+.nickname-input {
+  min-height: 49px;
+}
+.room-tabs > button {
+  min-height: 43px;
+}
+.form-error {
+  line-height: 1.6;
+}
+.lobby-toolbar .text-button,
+.game-top .text-button {
+  min-height: 44px;
+}
+
+/* A saved match should feel ready to re-enter, with its actual companion. */
+.resume-banner {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  padding: 18px 23px;
+  text-align: left;
+  background: #f1edf9;
+  border: 1px solid #e1d8f2;
+  border-radius: 18px;
+  margin-bottom: 26px;
+}
+.resume-banner:hover {
+  background: #ece6f8;
+  border-color: #cec0e9;
+}
+.resume-banner > .resume-companion {
+  display: block;
+  width: 65px;
+  height: 65px;
+  flex-shrink: 0;
+  background: #e6dff3;
+  border-radius: 18px;
+  overflow: hidden;
+}
+.resume-companion svg {
+  width: 80px;
+  height: 80px;
+  margin: -3px -8px;
+}
+.resume-banner > .resume-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.resume-eyebrow {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: #9684ac;
+  font-weight: 650;
+}
+.resume-copy strong {
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  color: #584074;
+  font-weight: 650;
+}
+.resume-copy > span:last-child {
+  font-size: 11px;
+  color: #927fa2;
+}
+.resume-banner > .resume-rounds {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  width: 140px;
+  margin-left: auto;
+  margin-right: 26px;
+}
+.resume-rounds i {
+  display: block;
+  height: 5px;
+  background: #e2d9ee;
+  border-radius: 4px;
+  width: 100%;
+}
+.resume-rounds i.reached {
+  background: #b3a0cf;
+}
+.resume-banner > .resume-action {
+  flex-direction: row;
+  gap: 9px;
+  color: #795a9d;
+  font-size: 12px;
+  font-weight: 600;
+}
+@keyframes lobby-welcome {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-5px) rotate(2deg);
+  }
+}
+@keyframes setup-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 1000px) {
+  .lobby-workspace.with-context {
+    gap: 30px;
+  }
+  .lobby-context {
+    padding: 28px 23px 23px;
+  }
+  .lobby-context h2 {
+    font-size: 30px;
+  }
+  .lobby-crew-art {
+    margin-left: -16px;
+    margin-right: -16px;
+  }
+  .lobby-crew-art svg {
+    height: 94px;
+  }
+  .with-context .lobby-entry-panel,
+  .with-context .room-panel {
+    padding: 24px;
+  }
+}
+@media (max-width: 760px) {
+  .lobby-workspace.with-context {
+    display: block;
+    max-width: 540px;
+  }
+  .lobby-context {
+    display: none;
+  }
+  .setup-progress {
+    margin-bottom: 28px;
+  }
+  .resume-banner > .resume-rounds {
+    display: none;
+  }
+  .resume-banner > .resume-action {
+    margin-left: auto;
+  }
+}
+@media (max-width: 620px) {
+  .setup-progress {
+    margin: 4px 0 25px;
+  }
+  .setup-progress ol {
+    justify-content: space-between;
+    gap: 5px;
+  }
+  .setup-progress li {
+    gap: 5px;
+    font-size: 9px;
+  }
+  .setup-progress li > svg {
+    width: 12px;
+    margin-left: 3px;
+  }
+  .setup-step-number {
+    width: 21px;
+    height: 21px;
+    font-size: 9px;
+  }
+  .with-context .lobby-heading h1 {
+    font-size: 29px;
+  }
+  .with-context .lobby-heading p {
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .with-context .lobby-heading {
+    margin-bottom: 22px;
+  }
+  .with-context .lobby-entry-panel,
+  .with-context .room-panel {
+    padding: 22px 19px;
+  }
+  .lobby-toolbar {
+    margin-bottom: 15px;
+  }
+  .field-label {
+    font-size: 12px;
+  }
+  .friend-seat input,
+  .nickname-input {
+    font-size: 16px;
+  }
+  .room-tabs > button {
+    font-size: 12px;
+  }
+  .room-players-heading {
+    margin-top: 23px;
+  }
+  .assignment-note p {
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  .assignment-note strong {
+    font-weight: 550;
+  }
+  .lobby-heading p {
+    font-size: 12px;
+  }
+  .assignment-grid {
+    margin-top: 22px;
+  }
+  .assignment-front .gospel-label {
+    font-size: 8px;
+    letter-spacing: 0.4px;
+    margin-bottom: 7px;
+  }
+  .assignment-actions {
+    gap: 10px;
+  }
+  .assignment-actions .secondary-button,
+  .assignment-actions .primary-button {
+    padding: 13px 19px;
+    font-size: 12px;
+  }
+  .assignment-stage .rules-mini {
+    font-size: 9px;
+    line-height: 1.6;
+  }
+  .assignment-confirmation {
+    font-size: 11px;
+  }
+  .mobile-home-title p {
+    font-size: 12px;
+  }
+  .mode-card p {
+    font-size: 11px;
+    line-height: 1.55;
+  }
+  .mode-meta {
+    font-size: 9px;
+  }
+  .mode-preview-note {
+    font-size: 10px;
+  }
+  .feature-copy p {
+    font-size: 12px;
+  }
+  .feature-bottom {
+    font-size: 10px;
+  }
+  .feature-bottom button {
+    font-size: 10px;
+    min-height: 31px;
+  }
+  .topic-name {
+    font-size: 11px;
+  }
+  .topics-heading p {
+    font-size: 11px;
+  }
+  .topics-heading .text-button {
+    font-size: 11px;
+    min-height: 44px;
+  }
+  .companions-copy > span {
+    font-size: 11px;
+  }
+  .companions-link {
+    font-size: 11px;
+  }
+  .resume-banner {
+    gap: 11px;
+    padding: 14px;
+  }
+  .resume-banner > .resume-companion {
+    width: 49px;
+    height: 49px;
+    border-radius: 14px;
+  }
+  .resume-companion svg {
+    width: 63px;
+    height: 63px;
+    margin: -3px -7px;
+  }
+  .resume-copy strong {
+    font-size: 16px;
+  }
+  .resume-eyebrow {
+    font-size: 7px;
+    letter-spacing: 0.6px;
+  }
+  .resume-copy > span:last-child {
+    font-size: 10px;
+  }
+  .resume-banner > .resume-action {
+    flex-shrink: 0;
+    font-size: 0;
+    gap: 0;
+  }
+  .resume-action > svg:first-child {
+    display: none;
+  }
+}
+@media (max-width: 370px) {
+  .setup-progress li {
+    font-size: 8px;
+    gap: 4px;
+  }
+  .setup-progress li > svg {
+    margin-left: 0;
+    width: 10px;
+  }
+  .setup-step-number {
+    width: 20px;
+    height: 20px;
+  }
+  .with-context .lobby-entry-panel,
+  .with-context .room-panel {
+    padding: 20px 16px;
+  }
+  .mode-card h3 {
+    font-size: 17px;
+  }
+  .mode-meta {
+    font-size: 8px;
+  }
+  .topic-name {
+    font-size: 10px;
+  }
+  .companions-link {
+    font-size: 10px;
+  }
+  .resume-eyebrow {
+    font-size: 6.5px;
+  }
+  .resume-copy strong {
+    font-size: 15px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lobby-crew-art svg,
+  .lobby-main > section {
+    animation: none;
+  }
+}

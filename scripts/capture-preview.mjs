@@ -17,6 +17,9 @@ await page.screenshot({ path: "docs/kinesa-desktop.png", fullPage: true });
 await page.setViewportSize({ width: 390, height: 844 });
 await page.screenshot({ path: "docs/kinesa-mobile.png", fullPage: true });
 await page.getByRole("button", { name: /Play with friends/ }).click();
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.screenshot({ path: "docs/kinesa-setup.png", fullPage: true });
+await page.setViewportSize({ width: 390, height: 844 });
 await page.getByLabel("What should we call you?").fill("Mina");
 await page.getByRole("button", { name: "Create room", exact: true }).click();
 await page.getByRole("button", { name: /Add a friend/ }).click();
@@ -25,6 +28,7 @@ for (let i = 1; i < 4; i++)
   await page
     .getByRole("textbox", { name: `Player ${i + 1} name` })
     .fill(["Mina", "Mary", "John", "Mariam"][i]);
+await page.screenshot({ path: "docs/kinesa-room.png", fullPage: true });
 await page.getByRole("button", { name: "Deal our companions" }).click();
 await expect(
   page.getByRole("button", { name: "Game on", exact: true }),
@@ -37,6 +41,9 @@ await page.setViewportSize({ width: 1440, height: 1000 });
 await page.screenshot({ path: "docs/kinesa-gameplay.png", fullPage: true });
 await page.setViewportSize({ width: 390, height: 844 });
 await page.locator(".answer-option").first().click();
+await page.getByRole("button", { name: "Back to play", exact: true }).click();
+await page.screenshot({ path: "docs/kinesa-resume.png", fullPage: true });
+await page.getByRole("button", { name: /Resume your game/ }).click();
 await page.getByRole("button", { name: "Pass to Mary", exact: true }).click();
 await page.screenshot({ path: "docs/kinesa-handoff.png", fullPage: true });
 await context.close();

@@ -349,3 +349,53 @@ test("matches survive refresh without reshuffling companions or scoring an answe
     ).correct,
   ).toBe(1);
 });
+
+test("players can revise the room after a companion reveal and start with the revised roster", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /Play with friends/ }).click();
+  await expect(
+    page.getByRole("navigation", { name: "Game setup progress" }),
+  ).toContainText("Set up");
+  await page.getByLabel("What should we call you?").fill("Mina");
+  await page.getByRole("button", { name: "Create room", exact: true }).click();
+  await page.getByRole("textbox", { name: "Player 2 name" }).fill("Mary");
+  await page.getByRole("button", { name: "Deal our companions" }).click();
+  await expect(
+    page.locator('.setup-progress [aria-current="step"]'),
+  ).toContainText("Meet your companions");
+  await page.getByRole("button", { name: "Edit players", exact: true }).click();
+  await expect(
+    page.locator('.setup-progress [aria-current="step"]'),
+  ).toContainText("Set up");
+  await expect(
+    page.getByRole("textbox", { name: "Player 2 name" }),
+  ).toHaveValue("Mary");
+  await page.getByRole("button", { name: /Add a friend/ }).click();
+  await page.getByRole("textbox", { name: "Player 3 name" }).fill("John");
+  await page.getByRole("button", { name: "Deal our companions" }).click();
+  const dealt = await page
+    .locator(".assignment-slot")
+    .evaluateAll((nodes) => nodes.map((n) => n.dataset.companion));
+  expect(new Set(dealt).size).toBe(3);
+  await expect(page.locator(".assigned-player")).toHaveText([
+    "Mina",
+    "Mary",
+    "John",
+  ]);
+  await page.getByRole("button", { name: "Game on", exact: true }).click();
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("kinesa-match")),
+  );
+  expect(saved.game.players.map((p) => p.kind)).toEqual(dealt);
+  expect(saved.game.players.map((p) => p.name)).toEqual([
+    "Mina",
+    "Mary",
+    "John",
+  ]);
+  await page.getByRole("button", { name: "Back to play", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: /Resume your game/ }),
+  ).toContainText("Mina’s turn");
+});

@@ -195,7 +195,13 @@ export default function Game({
               ? `${player.name} is up!`
               : `${player.name}, you’re up!`}
           </h1>
-          <p>Give the wheel a spin. Let’s see where we’re headed.</p>
+          <p role="status">
+            {spinning
+              ? "Choosing your next category…"
+              : player.isBot
+                ? "Your practice opponent will spin and answer automatically."
+                : "Spin for a category, then choose one of four answers."}
+          </p>
           <div className="game-wheel-scene">
             <div className="game-companion">
               <Mascot kind={player.kind} />
@@ -210,7 +216,7 @@ export default function Game({
             onClick={spin}
           >
             <RotateCcw size={20} />
-            {spinning ? "Round and round…" : "Spin the wheel"}
+            {spinning ? "Choosing a category…" : "Spin the wheel"}
           </button>
           <div className="wheel-legend">
             {categories.map((c) => (

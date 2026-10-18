@@ -12,6 +12,11 @@ import { CategoryIcon } from "./Wheel.jsx";
 import { categories } from "../data.js";
 
 export default function Home({ game, navigate, openLobby, setModal }) {
+  const ongoing = game && game.phase !== "finished";
+  const activePlayer = ongoing
+    ? game.players[game.turn % game.players.length]
+    : null;
+  const round = ongoing ? Math.floor(game.turn / game.players.length) + 1 : 1;
   return (
     <>
       <div className="play-heading">
@@ -30,15 +35,29 @@ export default function Home({ game, navigate, openLobby, setModal }) {
         </button>
       </div>
 
-      {game && game.phase !== "finished" && (
+      {ongoing && (
         <button className="resume-banner" onClick={() => navigate("game")}>
-          <Play size={20} />
-          <span>
-            <strong>Resume your game</strong>
-            {game.players[game.turn % game.players.length].name}’s turn · Round{" "}
-            {Math.floor(game.turn / game.players.length) + 1}
+          <span className="resume-companion" aria-hidden="true">
+            <Mascot kind={activePlayer.kind} />
           </span>
-          <ArrowRight size={20} />
+          <span className="resume-copy">
+            <span className="resume-eyebrow">
+              GAME IN PROGRESS · ROUND {round} OF 3
+            </span>
+            <strong>Resume your game</strong>
+            <span>
+              {activePlayer.name}’s turn · {game.players.length} players
+            </span>
+          </span>
+          <span className="resume-rounds" aria-hidden="true">
+            {[1, 2, 3].map((r) => (
+              <i key={r} className={r <= round ? "reached" : ""} />
+            ))}
+          </span>
+          <span className="resume-action">
+            <Play size={15} fill="currentColor" /> Keep playing{" "}
+            <ArrowRight size={18} />
+          </span>
         </button>
       )}
 
