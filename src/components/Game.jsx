@@ -91,7 +91,7 @@ export default function Game({
     <div className="game-page">
       <div className="game-top">
         <button className="text-button" onClick={onExit}>
-          <ArrowLeft size={17} /> Back to the club
+          <ArrowLeft size={17} /> Back to play
         </button>
         <span className="round-tag">
           {finished
@@ -377,7 +377,7 @@ export default function Game({
               <RotateCcw size={18} /> One more round?
             </button>
             <button className="secondary-button" onClick={onHome}>
-              Back to the club
+              Back to play
             </button>
           </div>
         </section>

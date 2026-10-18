@@ -211,7 +211,9 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [game?.phase, game?.turn, page, spinning, modal]);
   return (
-    <div className={`app-shell ${page === "game" ? "in-match" : ""}`}>
+    <div
+      className={`app-shell ${page === "game" ? "in-match" : page === "lobby" ? "in-lobby" : ""}`}
+    >
       <header className="app-header">
         <button
           className="brand"
@@ -221,9 +223,7 @@ export default function App() {
           <span className="brand-emblem">
             <CrossMark />
           </span>
-          <span>
-            kinesa<span className="brand-dot">!</span>
-          </span>
+          <span>kinesa</span>
         </button>
         <nav className="main-nav" aria-label="Main navigation">
           {[
@@ -241,6 +241,12 @@ export default function App() {
                   : ""
               }
               aria-label={label}
+              aria-current={
+                page === id ||
+                (id === "home" && ["game", "lobby"].includes(page))
+                  ? "page"
+                  : undefined
+              }
             >
               <Icon size={19} />
               {label}
@@ -294,9 +300,9 @@ export default function App() {
         {page === "categories" && (
           <>
             <PageIntro
-              eyebrow="KNOW YOUR WAY AROUND THE WHEEL"
-              title="Pick up a little wisdom."
-              description="Six categories. Thousands of stories to tell. Here’s what’s in the mix."
+              eyebrow="EXPLORE KINESA"
+              title="A world of stories."
+              description="From the pages of the Bible to the traditions we share. Discover all six categories."
             />
             <div className="explore-grid">
               {categories.map((c, i) => (
@@ -333,7 +339,7 @@ export default function App() {
         {page === "collection" && (
           <>
             <PageIntro
-              eyebrow="PROOF YOU KNOW YOUR STUFF"
+              eyebrow="YOUR COLLECTION"
               title="The trophy shelf."
               description="Correct answers earn category badges. Get all six and make yourself at home."
             />

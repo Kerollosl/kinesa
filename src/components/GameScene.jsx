@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { BookOpen, Cross, Sparkles, Zap } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { BookOpen, Cross } from "lucide-react";
 import Mascot from "./Mascot.jsx";
 import Wheel from "./Wheel.jsx";
 import "./game-scene.css";
@@ -8,21 +8,23 @@ const crew = [
   {
     kind: "human",
     name: "Mattie",
-    line: "Oh, it’s ON!",
+    line: "Good to see you!",
     className: "gs-mattie",
   },
-  { kind: "eagle", name: "Juno", line: "Born to soar!", className: "gs-juno" },
-  { kind: "ox", name: "Lou", line: "Let’s do this!", className: "gs-lou" },
-  { kind: "lion", name: "Leo", line: "Bring it on!", className: "gs-leo" },
+  { kind: "eagle", name: "Juno", line: "Ready to soar?", className: "gs-juno" },
+  { kind: "ox", name: "Lou", line: "You’ve got this.", className: "gs-lou" },
+  { kind: "lion", name: "Leo", line: "Let’s play!", className: "gs-leo" },
 ];
 
 export default function GameScene({ compact = false }) {
+  const id = useId().replaceAll(":", "");
   const [reaction, setReaction] = useState(null);
   const [rotation, setRotation] = useState(-16);
   const [spinning, setSpinning] = useState(false);
   const [party, setParty] = useState(0);
   const timer = useRef(null);
   const spinTimer = useRef(null);
+  const reactionId = useRef(0);
   useEffect(
     () => () => {
       clearTimeout(timer.current);
@@ -33,84 +35,90 @@ export default function GameScene({ compact = false }) {
 
   function cheer(member) {
     clearTimeout(timer.current);
-    setReaction({ ...member, id: Date.now() });
+    setReaction({ ...member, id: ++reactionId.current });
     timer.current = setTimeout(() => setReaction(null), 1900);
   }
-
   function spin() {
     if (spinning) return;
+    clearTimeout(timer.current);
+    setReaction(null);
     setSpinning(true);
-    setRotation((value) => value + 720 + 60);
+    setRotation((value) => value + 780);
     setParty((value) => value + 1);
-    spinTimer.current = setTimeout(() => setSpinning(false), 2800);
+    const reduced = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    spinTimer.current = setTimeout(
+      () => setSpinning(false),
+      reduced ? 180 : 2800,
+    );
   }
 
   return (
     <div
       className={`game-scene ${compact ? "game-scene-compact" : ""} ${spinning ? "gs-party" : ""}`}
     >
-      <div className="gs-backdrop" aria-hidden="true">
-        <div className="gs-backdrop-circle" />
-        <div className="gs-orbit gs-orbit-one" />
-        <div className="gs-orbit gs-orbit-two" />
-      </div>
-      <div className="gs-sticker">
-        <Zap size={16} fill="currentColor" /> SMALL CREW. BIG ENERGY.
-      </div>
+      <div className="gs-floor-shadow" aria-hidden="true" />
       <svg
         className="gs-platform"
         viewBox="0 0 600 190"
         fill="none"
         aria-hidden="true"
       >
-        <ellipse
-          cx="300"
-          cy="124"
-          rx="272"
-          ry="57"
-          fill="#182D42"
-          opacity=".15"
-        />
+        <defs>
+          <linearGradient
+            id={`stage-side-${id}`}
+            x1="30"
+            y1="120"
+            x2="570"
+            y2="120"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#B5A5EC" />
+            <stop offset=".4" stopColor="#D1C5F8" />
+            <stop offset="1" stopColor="#9485D5" />
+          </linearGradient>
+          <linearGradient
+            id={`stage-top-${id}`}
+            x1="300"
+            y1="12"
+            x2="300"
+            y2="145"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop stopColor="#FCFBFF" />
+            <stop offset="1" stopColor="#DDD6F9" />
+          </linearGradient>
+        </defs>
         <path
-          d="M30 80V106C30 146 151 177 300 177C449 177 570 146 570 106V80"
-          fill="#497BB4"
-          stroke="#182D42"
-          strokeWidth="5"
-        />
-        <path
-          d="M91 121V146M163 140V163M251 149V175M348 149V175M437 140V163M510 121V146"
-          stroke="#182D42"
-          strokeWidth="4"
+          d="M30 80V103C30 142 151 173 300 173C449 173 570 142 570 103V80"
+          fill={`url(#stage-side-${id})`}
         />
         <ellipse
           cx="300"
           cy="80"
           rx="270"
           ry="70"
-          fill="#D7F960"
-          stroke="#182D42"
-          strokeWidth="5"
+          fill={`url(#stage-top-${id})`}
+        />
+        <path
+          d="M31 83C38 119 155 149 300 149C444 149 560 120 569 84"
+          stroke="white"
+          strokeWidth="2"
+          opacity=".75"
         />
         <ellipse
           cx="300"
-          cy="79"
-          rx="239"
-          ry="54"
-          stroke="#182D42"
-          strokeWidth="2.5"
-          strokeDasharray="9 9"
-          opacity=".6"
-        />
-        <ellipse cx="300" cy="79" rx="200" ry="38" fill="#C0E64D" />
-        <path
-          d="M49 77Q73 48 118 41M478 119Q523 109 546 90"
-          stroke="#F2FFAD"
-          strokeWidth="6"
-          strokeLinecap="round"
+          cy="81"
+          rx="185"
+          ry="39"
+          fill="#C6BBEC"
+          opacity=".24"
         />
       </svg>
       <div className="gs-wheel-support" aria-hidden="true" />
       <button
+        type="button"
         className="gs-wheel-button"
         onClick={spin}
         aria-label="Give the trivia wheel a practice spin"
@@ -118,27 +126,22 @@ export default function GameScene({ compact = false }) {
       >
         <Wheel rotation={rotation} spinning={spinning} decorative />
         <span className="gs-wheel-caption">
-          {spinning ? "WOOHOO!" : "SPIN ME"}
+          {spinning ? "Spinning…" : "Practice spin"}
         </span>
       </button>
-
       <div className="gs-token gs-token-book" aria-hidden="true">
-        <BookOpen size={28} strokeWidth={2.5} />
-        <i />
+        <BookOpen size={25} strokeWidth={1.8} />
       </div>
       <div className="gs-token gs-token-cross" aria-hidden="true">
-        <Cross size={26} strokeWidth={2.5} />
-        <i />
+        <Cross size={24} strokeWidth={1.8} />
       </div>
-      <div className="gs-token gs-token-star" aria-hidden="true">
-        <Sparkles size={26} strokeWidth={2.5} />
-        <i />
-      </div>
-
+      <span className="gs-pebble gs-pebble-one" aria-hidden="true" />
+      <span className="gs-pebble gs-pebble-two" aria-hidden="true" />
       {crew.map((member) => {
         const active = reaction?.kind === member.kind;
         return (
           <button
+            type="button"
             key={member.kind}
             className={`gs-character ${member.className} ${active ? "gs-cheering" : ""}`}
             onClick={() => cheer(member)}
@@ -154,45 +157,11 @@ export default function GameScene({ compact = false }) {
             {active && (
               <span className="gs-reaction" key={`bubble-${reaction.id}`}>
                 {member.line}
-                <span>✦</span>
               </span>
             )}
           </button>
         );
       })}
-
-      <svg
-        className="gs-spark gs-spark-a"
-        viewBox="0 0 40 40"
-        aria-hidden="true"
-      >
-        <path
-          d="M20 2L25 15L38 20L25 25L20 38L15 25L2 20L15 15Z"
-          fill="#FF8168"
-          stroke="#182D42"
-          strokeWidth="2.5"
-        />
-      </svg>
-      <svg
-        className="gs-spark gs-spark-b"
-        viewBox="0 0 40 40"
-        aria-hidden="true"
-      >
-        <path
-          d="M20 2L25 15L38 20L25 25L20 38L15 25L2 20L15 15Z"
-          fill="#D7F960"
-          stroke="#182D42"
-          strokeWidth="2.5"
-        />
-      </svg>
-      <div className="gs-confetti gs-confetti-one" aria-hidden="true" />
-      <div className="gs-confetti gs-confetti-two" aria-hidden="true" />
-      <div className="gs-confetti gs-confetti-three" aria-hidden="true" />
-      <div className="gs-footer-sticker" aria-hidden="true">
-        <span>4</span> GOSPELS.
-        <br />
-        <span>1</span> GOOD TIME.
-      </div>
       <span className="gs-screen-reader" role="status">
         {reaction
           ? `${reaction.name}: ${reaction.line}`

@@ -150,7 +150,7 @@ test("matchmaking can be cancelled without starting a stale game", async ({
   await page.getByRole("button", { name: "Back to play", exact: true }).click();
   await page.waitForTimeout(2800);
   await expect(
-    page.getByRole("heading", { name: "How are we playing?" }),
+    page.getByRole("heading", { name: "Start a game" }),
   ).toBeVisible();
   await expect(page.locator(".assignment-slot")).toHaveCount(0);
 });
