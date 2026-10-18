@@ -1,67 +1,74 @@
 # Kinesa ✦
 
-**A little faith. A lot of fun.**
+**Ready, set, amen.** A colorful Coptic and Bible trivia game frontend for up to four players.
 
-Kinesa is a playful Coptic and Bible trivia frontend for one to four people. Gather around a single device, choose your Gospel companion, and let the wheel decide your next adventure.
+![Kinesa game lobby](docs/kinesa-desktop.png)
 
-![Kinesa desktop home screen](docs/kinesa-desktop.png)
+## Run locally
 
-## Play locally
-
-Requires Node.js 20.19+ or 22.12+ (Node.js 24 recommended).
+Node.js 20.19+ or 22.12+ is required; Node.js 24 is recommended.
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Open the URL printed by Vite. For a production build:
+Open the address printed by Vite. To build and serve the production version:
 
 ```sh
 npm run build
 npm run preview
 ```
 
-The `dist/` folder can be deployed to any static host. The app uses in-memory navigation, so no server-side routing or rewrite rules are required. It is configured for deployment at the origin root.
+Deploy `dist/` to any static host at the origin root. The app uses in-memory navigation and needs no routing rewrites or API keys.
 
-## What’s included
+## The experience
 
-- Original animated SVG companions: **Leo the lion / Mark**, **Lou the ox / Luke**, **Juno the eagle / John**, and **Mattie the human / Matthew**. These are playful Gospel-symbol companions, not portraits of the evangelists.
-- One to four players, editable names, and unique companion assignments. Choosing an occupied companion swaps assignments.
-- An animated six-category wheel, four-choice questions, answer explanations and source notes, turn rotation, and three-round matches.
-- 100 points per correct answer; shared victories for ties; winner celebrations and immediate rematches.
-- Six explorable categories: Bible Stories, Coptic History, Saints & Heroes, Church Traditions, Feasts & Fasts, and Signs & Symbols.
-- Local category badges, game totals, and correct-answer totals. Optional synthesized sound effects, off by default.
-- Responsive desktop and mobile layouts, keyboard-operable dialogs, focus restoration, reduced-motion support, and untimed questions.
-- Self-hosted fonts and original vector art; no external runtime services, API keys, trackers, or image requests.
+- **Random game:** enter a name, preview matchmaking with three explicitly labeled practice bots, reveal the companions, and play. Bots spin and answer on their own turns; the player advances after reading each explanation. Bot points do not inflate the player's collection.
+- **Play with friends:** preview creating a room for two to four people or joining a room. Fill the seats, then deal companions and play locally. The sample join code is `AMEN24`; the most recently created room code also works in this browser. These preview codes do not connect separate devices.
+- **Random companion assignment:** players never choose their Gospel figure. Each new match uses a fresh Fisher–Yates shuffle of the lion, ox, eagle, and human, dealing without replacement. There can be no duplicate companions in a match. Rematches shuffle again.
+- **Animated reveal:** each player's companion appears on a flipping card before gameplay begins.
+- **Interactive game scene:** a raised illustrated stage, floating category tokens, character high-fives, squash-and-stretch celebrations, a practice wheel, and distinct idle movement for the four companions.
+- **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during matches so it cannot cover answers.
+- **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
+- **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. Invalid saves are rejected.
+- **Keyboard controls:** answer with A–D or 1–4 when a human question is active; shortcuts ignore text fields and dialogs.
+- **Complete local match:** six-category wheel, questions, explanations, 100 points per correct answer, three rounds per player, shared wins, and rematches.
+- **Collection:** local category badges, correct-answer totals, and completed-match counts. Sound is optional and off by default.
+- **Responsive interface:** desktop navigation, a mobile game dock, keyboard-operable dialogs, visible focus, and reduced-motion support.
 
-## Deliberate scope
+The original Gospel-symbol companions are **Leo the lion / Mark**, **Lou the ox / Luke**, **Juno the eagle / John**, and **Mattie the human / Matthew**. They are fictional companions inspired by traditional Gospel symbols, not portraits of the evangelists.
 
-This is a **frontend prototype with local pass-and-play**, not online multiplayer. Players share one device. There is no account system, remote room/join service, production question database, or backend.
+## Frontend scope
 
-The 12 questions in `src/data.js` are an illustrative sample deck with short source notes. They demonstrate the experience and are not a reviewed production curriculum. Questions avoid repeats within a category until its sample pool is exhausted. A full four-player match can repeat questions when the wheel revisits a category. Content expansion and Coptic subject-matter review belong to the next phase.
+This edition is an interactive **frontend preview**, not a live multiplayer service. Random matchmaking uses bots; friends play on one device. Online matchmaking, real remote rooms, invitations, accounts, and backend persistence are not implemented. The interface labels the preview before entry and identifies all bots.
 
-Matches remain in memory while navigating the app and reset on a page reload. Collection progress and sound preferences use this browser’s local storage. If storage is unavailable, play continues in memory. No player information leaves the device.
+The 12 source-noted sample questions demonstrate the experience. There is no production question database. Within a category, unseen questions are preferred until the small sample pool is exhausted. Content expansion and Coptic subject-matter review belong to a later phase.
+
+Unfinished matches, collection progress, sound preference, nickname, and the latest preview room use browser local storage. Matches restore safely after a page reload and completed matches clear the resume slot. If storage is unavailable, play continues in memory. No player information leaves the device. Fonts and illustrations are self-hosted.
 
 ## Project structure
 
 ```text
 src/
-  App.jsx                  App shell, home, setup, exploration, collection, game views
-  components/Mascot.jsx    Four original SVG companions and character metadata
-  components/Wheel.jsx     Six-segment wheel and category icons
-  data.js                  Category definitions and source-noted sample questions
-  engine.js                Pure match, scoring, turn and question-selection functions
-  styles.css               Responsive visual system, illustrations and motion
-public/
-  fonts/                   Self-hosted fonts and OFL licenses
-  favicon.svg              Kinesa cross mark
- tests/
-  engine.test.js           Match rules and sample-deck checks
-  e2e/game.spec.js         Browser coverage for complete multiplayer and solo games
+  App.jsx                  Navigation, exploration, collection, match state
+  components/
+    Home.jsx               Responsive home hierarchy and game-mode entry
+    GameScene.jsx          Interactive animated hero arena
+    game-scene.css         Scoped arena motion and layout
+    Lobby.jsx              Game modes, room previews, matching and assignment reveal
+    Game.jsx               Wheel, answers, scores and results
+    Mascot.jsx             Four original SVG companions and metadata
+    Wheel.jsx              Six-category wheel and icons
+  engine.js                Random assignment, scoring, turns, sample selection
+  session.js               Safe local match persistence and restoration
+  data.js                  Category definitions and sample deck
+  styles.css               Responsive visual system and app motion
+public/fonts/              Self-hosted fonts and OFL licenses
+tests/                     Unit and browser tests
 ```
 
-For a future question API, replace the sample selection behind `getQuestion` and adapt the spin action to asynchronous loading/error states. For real online multiplayer, move authoritative match state, turn validation, and scoring to a server and add a room/session transport. The current frontend intentionally makes neither a network request nor an online-play claim.
+To add real multiplayer, replace the local lobby with a server-backed matchmaking/room service and move authoritative assignment, turns, scoring, and validation to the server. Companions must still be shuffled and dealt **once per match** by the authority, never picked by clients. Replace sample selection with a reviewed question provider and appropriate loading/error states.
 
 ## Verification
 
@@ -72,20 +79,20 @@ npm run test:e2e
 npm run build
 ```
 
-The browser suite covers complete four-player and solo matches, unique companion assignment, correct/incorrect answer feedback, scoring, shared wins, rematches, mobile overflow, keyboard dialog dismissal/focus restoration, persisted collection totals, and blocked local storage. To use an installed Chromium:
+Unit coverage enumerates all 24 four-player companion permutations, verifies no duplicates, proves submitted character choices are ignored, and checks fresh rematches, scoring, shared wins, turns, and the sample deck.
+
+Browser coverage includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, and blocked local storage.
+
+Use an existing Chromium installation if desired:
 
 ```sh
 PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 ```
 
-Format source with `npm run format`. A GitHub Actions workflow runs unit tests, browser tests, and the production build on pushes and pull requests.
+`npm run format` formats the source. GitHub Actions is configured to run tests and the production build when the repository is eventually pushed; GitHub publication remains deferred.
 
-## Design & attribution
+## Credits
 
-An original visual identity inspired by the friendly, category-wheel trivia genre, with a Coptic and biblical focus. It does not use Trivia Crack or Muse assets or branding.
+Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). Fredoka and DM Sans are bundled under the SIL Open Font Licenses in `public/fonts/`.
 
-- UI: React 19, Vite, Lucide icons (ISC license).
-- Typography: Fredoka and DM Sans, bundled under their SIL Open Font Licenses in `public/fonts/`.
-- Mascots and Kinesa visual artwork: original SVG illustrations created for this project.
-
-[Mobile preview](docs/kinesa-mobile.png) · [Gameplay preview](docs/kinesa-gameplay.png)
+[Mobile preview](docs/kinesa-mobile.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)
