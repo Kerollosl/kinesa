@@ -280,6 +280,11 @@ test("mobile mode actions are visible immediately and the game dock cannot cover
     .locator(".mode-card")
     .evaluateAll((nodes) => nodes.map((n) => n.getBoundingClientRect().bottom));
   expect(Math.max(...bounds)).toBeLessThan(650);
+  const dock = await page
+    .getByRole("navigation", { name: "Main navigation" })
+    .boundingBox();
+  expect(dock.y).toBeGreaterThan(700);
+  expect(dock.y + dock.height).toBeLessThanOrEqual(844);
   await friendsLobby(page, 4);
   await expect(
     page.getByRole("navigation", { name: "Main navigation" }),

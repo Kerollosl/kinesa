@@ -62,7 +62,11 @@ export default function Home({ game, navigate, openLobby, setModal }) {
       )}
 
       <div className="play-layout">
-        <section className="play-feature" aria-labelledby="feature-heading">
+        <section
+          data-glass
+          className="play-feature"
+          aria-labelledby="feature-heading"
+        >
           <div className="feature-copy">
             <span className="feature-label">
               <span /> THE KINESA ORIGINAL
@@ -98,6 +102,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
           </div>
           <div className="mode-grid">
             <button
+              data-glass
               className="mode-card random-mode"
               onClick={() => openLobby("random")}
             >
@@ -120,6 +125,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
               </span>
             </button>
             <button
+              data-glass
               className="mode-card friends-mode"
               onClick={() => openLobby("friends")}
             >
@@ -164,6 +170,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
         <div className="topic-grid">
           {categories.map((c, i) => (
             <button
+              data-glass
               className="topic-card"
               key={c.id}
               style={{ "--topic-color": c.color, "--topic-pale": c.pale }}

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Mascot, { MASCOTS } from "./components/Mascot.jsx";
 import Home from "./components/Home.jsx";
+import useGlassLight from "./useGlassLight.js";
 import { loadMatch, persistMatch } from "./session.js";
 import { CategoryIcon } from "./components/Wheel.jsx";
 import Game from "./components/Game.jsx";
@@ -55,6 +56,7 @@ function CrossMark() {
   );
 }
 export default function App() {
+  useGlassLight();
   const [savedMatch] = useState(loadMatch);
   const [matchMode, setMatchMode] = useState(savedMatch?.mode || "random");
   const [page, setPage] = useState("home");
@@ -308,6 +310,7 @@ export default function App() {
               {categories.map((c, i) => (
                 <button
                   className="explore-card"
+                  data-glass
                   key={c.id}
                   style={{
                     "--category-color": c.color,

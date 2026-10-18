@@ -183,7 +183,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
         className={`lobby-workspace ${stage === "entry" || stage === "room" ? "with-context" : ""}`}
       >
         {(stage === "entry" || stage === "room") && (
-          <aside className="lobby-context">
+          <aside data-glass className="lobby-context">
             <span className="lobby-context-label">
               {mode === "friends"
                 ? "A GAME FOR YOUR PEOPLE"

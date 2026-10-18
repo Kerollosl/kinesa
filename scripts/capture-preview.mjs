@@ -2,6 +2,24 @@ import { chromium, expect } from "@playwright/test";
 // Run against `npm run dev` to regenerate the repository's visual previews.
 const browser = await chromium.launch({ headless: true });
 const errors = [];
+// Prime off-screen compositing layers before Chromium captures a full page.
+// Translucent panes are otherwise sometimes omitted after a viewport resize.
+async function capture(page, path) {
+  await page.evaluate(async () => {
+    const paint = () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      );
+    const height = document.documentElement.scrollHeight;
+    for (let y = 0; y < height; y += innerHeight) {
+      scrollTo({ top: y, behavior: "instant" });
+      await paint();
+    }
+    scrollTo({ top: 0, behavior: "instant" });
+    await paint();
+  });
+  await page.screenshot({ path, fullPage: true });
+}
 const watch = (page) =>
   page.on("pageerror", (error) => errors.push(error.message));
 const context = await browser.newContext({
@@ -13,12 +31,12 @@ watch(page);
 await page.goto("http://localhost:5173");
 await expect(page.getByRole("button", { name: /Random game/ })).toBeVisible();
 await page.evaluate(() => document.fonts.ready);
-await page.screenshot({ path: "docs/kinesa-desktop.png", fullPage: true });
+await capture(page, "docs/kinesa-desktop.png");
 await page.setViewportSize({ width: 390, height: 844 });
-await page.screenshot({ path: "docs/kinesa-mobile.png", fullPage: true });
+await capture(page, "docs/kinesa-mobile.png");
 await page.getByRole("button", { name: /Play with friends/ }).click();
 await page.setViewportSize({ width: 1440, height: 1000 });
-await page.screenshot({ path: "docs/kinesa-setup.png", fullPage: true });
+await capture(page, "docs/kinesa-setup.png");
 await page.setViewportSize({ width: 390, height: 844 });
 await page.getByLabel("What should we call you?").fill("Mina");
 await page.getByRole("button", { name: "Create room", exact: true }).click();
@@ -28,24 +46,24 @@ for (let i = 1; i < 4; i++)
   await page
     .getByRole("textbox", { name: `Player ${i + 1} name` })
     .fill(["Mina", "Mary", "John", "Mariam"][i]);
-await page.screenshot({ path: "docs/kinesa-room.png", fullPage: true });
+await capture(page, "docs/kinesa-room.png");
 await page.getByRole("button", { name: "Deal our companions" }).click();
 await expect(
   page.getByRole("button", { name: "Game on", exact: true }),
 ).toBeEnabled();
-await page.screenshot({ path: "docs/kinesa-assignment.png", fullPage: true });
+await capture(page, "docs/kinesa-assignment.png");
 await page.getByRole("button", { name: "Game on", exact: true }).click();
 await page.getByRole("button", { name: "Spin the wheel", exact: true }).click();
 await expect(page.locator(".answer-option")).toHaveCount(4);
 await page.setViewportSize({ width: 1440, height: 1000 });
-await page.screenshot({ path: "docs/kinesa-gameplay.png", fullPage: true });
+await capture(page, "docs/kinesa-gameplay.png");
 await page.setViewportSize({ width: 390, height: 844 });
 await page.locator(".answer-option").first().click();
 await page.getByRole("button", { name: "Back to play", exact: true }).click();
-await page.screenshot({ path: "docs/kinesa-resume.png", fullPage: true });
+await capture(page, "docs/kinesa-resume.png");
 await page.getByRole("button", { name: /Resume your game/ }).click();
 await page.getByRole("button", { name: "Pass to Mary", exact: true }).click();
-await page.screenshot({ path: "docs/kinesa-handoff.png", fullPage: true });
+await capture(page, "docs/kinesa-handoff.png");
 await context.close();
 const movie = await browser.newContext({
   viewport: { width: 1280, height: 900 },

@@ -1,6 +1,6 @@
 # Kinesa ✦
 
-A Coptic and Bible trivia game frontend for up to four players, with animated Gospel companions and a clean, colorful interface.
+A Coptic and Bible trivia game frontend for up to four players, with animated Gospel companions and a liquid-glass interface.
 
 ![Kinesa game lobby](docs/kinesa-desktop.png)
 
@@ -36,7 +36,7 @@ Deploy `dist/` to any static host at the origin root. The app uses in-memory nav
 - **Keyboard controls:** answer with A–D or 1–4 when a human question is active; shortcuts ignore text fields and dialogs.
 - **Complete local match:** six-category wheel, questions, explanations, 100 points per correct answer, three rounds per player, shared wins, and rematches.
 - **Collection:** local category badges, correct-answer totals, and completed-match counts. Sound is optional and off by default.
-- **Refined visual system:** sans-serif typography, light surfaces, violet actions, softly dimensional illustration, and consistent styling across rooms, assignment cards, questions, and collections.
+- **Liquid glass:** frosted translucent panes, reflective edges, softly tinted actions, a floating navigation dock, and subtle pointer-driven highlights on desktop. Touch and reduced-motion modes keep lighting steady; reduced-transparency and unsupported-blur browsers receive more opaque surfaces. Questions use a quieter, more opaque pane for reading.
 - **Responsive interface:** desktop navigation, a mobile game dock, keyboard-operable dialogs, visible focus, and reduced-motion support.
 
 The original Gospel-symbol companions are **Leo the lion / Mark**, **Lou the ox / Luke**, **Juno the eagle / John**, and **Mattie the human / Matthew**. They are fictional companions inspired by traditional Gospel symbols, not portraits of the evangelists.
@@ -66,7 +66,9 @@ src/
   session.js               Safe local match persistence and restoration
   data.js                  Category definitions and sample deck
   styles.css               Core layout, responsive behavior and app motion
-  modern.css               Interface theme, home layout and surface treatments
+  modern.css               Interface layout, responsive behavior and setup flow
+  glass.css                Liquid-glass materials and transparency fallbacks
+  useGlassLight.js          Desktop pointer lighting without React re-renders
 public/fonts/              Self-hosted fonts and OFL licenses
 tests/                     Unit and browser tests
 ```
