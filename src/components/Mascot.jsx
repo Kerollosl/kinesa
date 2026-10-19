@@ -22,8 +22,8 @@ export const MASCOTS = [
     name: "Juno",
     gospel: "John",
     personality: "Big ideas. A bird’s-eye view.",
-    color: "#668BB2",
-    bg: "#DFEBF8",
+    color: "#96704F",
+    bg: "#F3E9DB",
   },
   {
     kind: "human",
@@ -370,76 +370,180 @@ function Ox({ mood }) {
 function Eagle({ mood }) {
   return (
     <>
+      {/* A white tail fan and long flight feathers distinguish Juno's silhouette. */}
       <path
-        d="M83 145L77 173Q87 180 100 171Q114 180 123 173L115 145Z"
-        fill="#50779A"
+        d="M84 145L76 168L88 166L91 176L101 168L111 176L114 166L127 168L117 144Z"
+        fill="#FFF7E6"
+        stroke={ink}
+        strokeWidth="2.7"
+        strokeLinejoin="round"
+      />
+      <g
+        className="mascot-wings"
+        fill="#956445"
+        stroke={ink}
+        strokeWidth="2.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <g
+          className="mascot-wing mascot-wing-left"
+          style={{ transformOrigin: "67px 119px" }}
+        >
+          <path d="M76 118C55 123 30 107 17 85L8 63Q7 55 14 61L37 82L23 54Q22 47 29 52L52 77L41 49Q41 43 47 48L72 79Q83 96 76 118Z" />
+          <path
+            d="M18 75L37 93M31 65L48 91M47 64L60 91"
+            stroke="#6E4939"
+            strokeWidth="3.6"
+          />
+          <path
+            d="M38 91Q54 102 70 99L74 111Q55 116 38 100Z"
+            fill="#BB8C60"
+            stroke="none"
+          />
+          <path
+            d="M46 96L53 104M56 99L62 108"
+            stroke="#DDAD77"
+            strokeWidth="2"
+          />
+        </g>
+        <g
+          className="mascot-wing mascot-wing-right"
+          style={{ transformOrigin: "133px 119px" }}
+        >
+          <path d="M124 118C145 123 170 107 183 85L192 63Q193 55 186 61L163 82L177 54Q178 47 171 52L148 77L159 49Q159 43 153 48L128 79Q117 96 124 118Z" />
+          <path
+            d="M182 75L163 93M169 65L152 91M153 64L140 91"
+            stroke="#6E4939"
+            strokeWidth="3.6"
+          />
+          <path
+            d="M162 91Q146 102 130 99L126 111Q145 116 162 100Z"
+            fill="#BB8C60"
+            stroke="none"
+          />
+          <path
+            d="M154 96L147 104M144 99L138 108"
+            stroke="#DDAD77"
+            strokeWidth="2"
+          />
+        </g>
+      </g>
+      <path
+        d="M72 103Q99 88 126 103L135 136Q133 158 112 165L100 171L87 165Q65 157 65 136Z"
+        fill="#966646"
         stroke={ink}
         strokeWidth="3"
-      />
-      <Wings wide />
-      <path
-        d="M68 101Q99 88 132 102L139 136Q135 164 100 167Q65 164 61 136Z"
-        fill="#749BBC"
-        stroke={ink}
-        strokeWidth="3"
+        strokeLinejoin="round"
       />
       <path
-        d="M78 112Q100 99 122 112Q128 139 115 153Q100 166 85 153Q72 139 78 112Z"
-        fill="#FFF3D9"
+        d="M82 116Q100 106 119 116L120 138Q115 154 100 159Q84 153 80 137Z"
+        fill="#BA8A5B"
       />
       <path
-        d="M90 132L100 137L110 132M92 144L100 148L108 144"
+        d="M83 126L91 132L99 127M101 127L109 132L117 126M89 139L98 145L108 139M96 151L101 154L106 150"
         fill="none"
-        stroke="#E5D5B7"
+        stroke="#D5A46E"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M80 160L78 172L68 175Q64 181 73 181H91Q97 178 90 175L88 162M112 162L110 175Q103 178 109 181H127Q136 181 132 175L122 172L120 160"
-        fill="#F0BD58"
+      {/* Separated toes and curved ivory claw tips, rather than flat bird feet. */}
+      <g
+        fill="#E9B451"
         stroke={ink}
-        strokeWidth="2.8"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M82 157L81 169Q72 168 68 175Q66 180 71 179L81 176L80 181Q82 184 86 181L90 175L96 179Q101 180 100 176L91 169L92 158" />
+        <path d="M109 158L108 169L100 176Q99 181 104 179L111 175L114 181Q118 184 120 180L119 176L129 179Q134 180 131 175Q128 169 119 169L119 157" />
+      </g>
+      <path
+        d="M69 175L66 180L72 178M82 179L80 185L87 181M127 175L133 180L128 179M115 179L119 185L121 180"
+        fill="#FFF5D9"
+        stroke={ink}
+        strokeWidth="1.8"
         strokeLinejoin="round"
       />
-      <g className="mascot-head" style={{ transformOrigin: "100px 108px" }}>
+      <g className="mascot-head" style={{ transformOrigin: "101px 111px" }}>
         <path
-          d="M62 68Q59 49 77 42Q92 34 112 39Q119 25 126 29L122 42Q138 33 139 40L132 50Q145 49 142 57L135 65Q145 91 129 109L137 115L121 117L126 125L110 122L100 130L90 122L74 125L79 117L63 115L71 108Q55 91 62 68Z"
-          fill="#83ACCD"
+          d="M61 75C59 56 73 40 94 38C117 34 136 45 140 63L138 87Q137 101 126 110L129 119L116 117L112 127L102 122L92 130L87 120L73 123L76 113L63 113L69 103Q58 91 61 75Z"
+          fill="#FFFAEE"
           stroke={ink}
           strokeWidth="3"
           strokeLinejoin="round"
         />
         <path
-          d="M66 82Q64 60 80 62Q94 64 100 74Q107 63 121 62Q137 60 134 82L130 101Q120 116 100 118Q79 116 70 101Z"
-          fill="#FFFAEB"
+          d="M68 65Q75 46 96 44Q117 41 130 54Q111 46 98 51Q78 49 68 65Z"
+          fill="#FFFFFF"
         />
         <path
-          d="M73 72Q81 67 88 73M112 73Q120 67 127 72"
-          stroke={ink}
-          strokeWidth="2.7"
+          d="M67 91Q73 105 85 108L80 114L91 113L94 120L102 115L111 119L116 111Q127 110 133 98Q125 115 113 120L110 125L102 122L92 128L88 119L76 122L78 113L66 112L72 103Z"
+          fill="#E6DEC9"
+        />
+        <g className="mascot-eyes">
+          {mood === "sleepy" ? (
+            <g fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round">
+              <path d="M74 81Q81 86 88 80M103 79Q111 84 119 77" />
+            </g>
+          ) : (
+            <>
+              <path
+                d="M71 79Q80 71 91 78Q87 90 78 88Q72 87 71 79Z"
+                fill="#FFFFFF"
+              />
+              <path
+                d="M101 76Q112 68 125 76Q122 88 111 87Q103 85 101 76Z"
+                fill="#FFFFFF"
+              />
+              <ellipse cx="82" cy="81" rx="5.2" ry="6.2" fill="#D9A541" />
+              <ellipse cx="114" cy="79" rx="6" ry="6.8" fill="#D9A541" />
+              <ellipse cx="83.5" cy="81" rx="3.3" ry="4.8" fill={ink} />
+              <ellipse cx="115.5" cy="79" rx="3.7" ry="5" fill={ink} />
+              <circle cx="84.7" cy="78.8" r="1.3" fill="#FFFFFF" />
+              <circle cx="116.8" cy="76.6" r="1.5" fill="#FFFFFF" />
+            </>
+          )}
+        </g>
+        <path
+          d="M70 74Q80 69 91 74M101 71Q112 65 125 70"
           fill="none"
+          stroke={ink}
+          strokeWidth="3.2"
           strokeLinecap="round"
         />
-        <Eyes y={84} mood={mood} />
-        <Cheeks y={97} left={73} right={127} color="#EAA58A" />
         <path
-          d="M89 99Q100 88 111 99L108 107Q100 119 92 107Z"
-          fill="#F5BC4C"
+          d="M111 102Q124 101 138 106Q136 117 124 118Q113 115 111 102Z"
+          fill="#DDA247"
           stroke={ink}
-          strokeWidth="2.6"
+          strokeWidth="2.5"
           strokeLinejoin="round"
         />
         <path
-          d="M90 101Q100 107 110 101"
-          fill="none"
+          d="M111 88Q127 82 143 91Q156 97 151 113Q146 104 137 104L118 107Q108 105 108 98Q107 92 111 88Z"
+          fill="#F0BB4B"
           stroke={ink}
-          strokeWidth="2.2"
+          strokeWidth="2.7"
+          strokeLinejoin="round"
         />
         <path
-          d="M96 97Q100 94 104 97"
+          d="M114 90Q130 87 142 94"
           fill="none"
-          stroke="#FFE5A4"
+          stroke="#FFE5A0"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+        />
+        <path
+          d="M120 94L125 93"
+          stroke="#9B6B33"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M114 106Q123 109 134 105"
+          fill="none"
+          stroke={ink}
           strokeWidth="2"
           strokeLinecap="round"
         />
