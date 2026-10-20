@@ -1,20 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  BookOpen,
   Check,
   Compass,
   Gamepad2,
-  Heart,
   HelpCircle,
-  Medal,
   Shuffle,
   Sparkles,
   Trophy,
+  Users,
   Volume2,
   VolumeX,
   X,
-  Zap,
 } from "lucide-react";
 import Mascot, { MASCOTS } from "./components/Mascot.jsx";
 import Home from "./components/Home.jsx";
@@ -23,6 +20,8 @@ import { loadMatch, persistMatch } from "./session.js";
 import { CategoryIcon } from "./components/Wheel.jsx";
 import Game from "./components/Game.jsx";
 import Lobby from "./components/Lobby.jsx";
+import Discover from "./components/Discover.jsx";
+import Collection from "./components/Collection.jsx";
 import { categories } from "./data.js";
 import {
   answerQuestion,
@@ -43,7 +42,11 @@ function loadStats() {
     Array.isArray(s.badges)
     ? {
         ...s,
-        badges: s.badges.filter((id) => categories.some((c) => c.id === id)),
+        badges: [
+          ...new Set(
+            s.badges.filter((id) => categories.some((c) => c.id === id)),
+          ),
+        ],
       }
     : blankStats;
 }
@@ -59,8 +62,17 @@ export default function App() {
   useGlassLight();
   const [savedMatch] = useState(loadMatch);
   const [matchMode, setMatchMode] = useState(savedMatch?.mode || "random");
-  const [page, setPage] = useState("home");
-  const [modal, setModal] = useState(null);
+  const [page, setPage] = useState(() =>
+    ["categories", "collection"].includes(location.hash.slice(1))
+      ? location.hash.slice(1)
+      : "home",
+  );
+  const [modal, setModalState] = useState(null);
+  const modalTrigger = useRef(null);
+  const setModal = (next) => {
+    if (next && !modal) modalTrigger.current = document.activeElement;
+    setModalState(next);
+  };
   const [mode, setMode] = useState("random");
   const [lobbyKey, setLobbyKey] = useState(0);
   const [rematchPlayers, setRematchPlayers] = useState(null);
@@ -72,6 +84,12 @@ export default function App() {
   );
   const [stats, setStats] = useState(loadStats);
   const [canSave, setCanSave] = useState(true);
+  const [tabActive, setTabActive] = useState(() => !document.hidden);
+  const gameRef = useRef(game);
+  gameRef.current = game;
+  const spinningRef = useRef(false);
+  const mainRef = useRef(null);
+  const [toast, setToast] = useState("");
   const spinTimer = useRef(null);
   const audio = useRef(null);
   useEffect(() => () => clearTimeout(spinTimer.current), []);
@@ -88,7 +106,7 @@ export default function App() {
         window.AudioContext || window.webkitAudioContext
       )();
       const ctx = audio.current;
-      ctx.resume();
+      ctx.resume().catch(() => {});
       [0, 0.11, 0.23].forEach((delay, i) => {
         const o = ctx.createOscillator(),
           g = ctx.createGain();
@@ -108,31 +126,91 @@ export default function App() {
       /* Sound is optional. */
     }
   };
+  const cancelSpin = () => {
+    clearTimeout(spinTimer.current);
+    spinningRef.current = false;
+    setSpinning(false);
+  };
+  const updateGame = (next) => {
+    gameRef.current = next;
+    setGame(next);
+  };
   const navigate = (p) => {
+    if (p !== "game") cancelSpin();
+    if (p !== page) history.pushState({ kinesaPage: p }, "", `#${p}`);
     setPage(p);
     window.scrollTo({ top: 0, behavior: "instant" });
   };
+  useEffect(() => {
+    history.replaceState({ kinesaPage: page }, "", `#${page}`);
+    const back = (event) => {
+      const target = event.state?.kinesaPage || location.hash.slice(1);
+      const next =
+        ["home", "categories", "collection", "lobby", "game"].includes(
+          target,
+        ) &&
+        (target !== "game" || gameRef.current)
+          ? target
+          : "home";
+      cancelSpin();
+      setModal(null);
+      setPage(next);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    };
+    window.addEventListener("popstate", back);
+    return () => window.removeEventListener("popstate", back);
+  }, []);
+  useEffect(() => {
+    if (["game", "lobby"].includes(page)) return;
+    const title = mainRef.current?.querySelector("h1");
+    title?.setAttribute("tabindex", "-1");
+    title?.focus({ preventScroll: true });
+  }, [page]);
+  useEffect(() => {
+    if (modal) cancelSpin();
+  }, [modal]);
+  useEffect(() => {
+    const visibility = () => {
+      setTabActive(!document.hidden);
+      if (document.hidden) cancelSpin();
+    };
+    document.addEventListener("visibilitychange", visibility);
+    return () => document.removeEventListener("visibilitychange", visibility);
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(""), 2400);
+    return () => clearTimeout(timer);
+  }, [toast]);
   const openLobby = (nextMode, players = null) => {
-    clearTimeout(spinTimer.current);
-    setSpinning(false);
+    cancelSpin();
     setMode(nextMode);
     setRematchPlayers(players);
     setLobbyKey((n) => n + 1);
     setModal(null);
     navigate("lobby");
   };
-  const begin = (prepared, nextMode) => {
-    clearTimeout(spinTimer.current);
-    setSpinning(false);
+  const startPrepared = (prepared, nextMode) => {
+    cancelSpin();
+    setModal(null);
     setRotation(0);
-    setGame(prepared);
+    updateGame(prepared);
     setMode(nextMode);
     setMatchMode(nextMode);
     beep();
     navigate("game");
   };
+  const begin = (prepared, nextMode) => {
+    const current = gameRef.current;
+    if (current && current.phase !== "finished") {
+      setModal({ type: "replace-match", prepared, nextMode });
+      return;
+    }
+    startPrepared(prepared, nextMode);
+  };
   const spin = () => {
-    if (spinning || game?.phase !== "spin") return;
+    if (spinningRef.current || gameRef.current?.phase !== "spin") return;
+    spinningRef.current = true;
     const index = Math.floor(Math.random() * categories.length);
     const target = (360 - (index * 60 + 30)) % 360;
     setRotation((r) => r + (360 - (r % 360)) + 1080 + target);
@@ -140,15 +218,17 @@ export default function App() {
     beep();
     spinTimer.current = setTimeout(
       () => {
-        setGame((g) => {
-          const q = getQuestion(categories[index].id, g.used);
-          return {
-            ...g,
+        const current = gameRef.current;
+        if (current?.phase === "spin") {
+          const q = getQuestion(categories[index].id, current.used);
+          updateGame({
+            ...current,
             phase: "question",
             question: q,
-            used: [...g.used, q.id],
-          };
-        });
+            used: [...current.used, q.id],
+          });
+        }
+        spinningRef.current = false;
         setSpinning(false);
       },
       window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -157,24 +237,31 @@ export default function App() {
     );
   };
   const answer = (i) => {
-    if (game?.phase !== "question") return;
-    const correct = i === game.question.correct;
+    const current = gameRef.current;
+    if (current?.phase !== "question" || !Number.isInteger(i) || i < 0 || i > 3)
+      return;
+    const correct = i === current.question.correct;
+    updateGame(answerQuestion(current, i));
     beep(correct);
-    setGame((g) => answerQuestion(g, i));
-    if (correct && !game.players[game.turn % game.players.length].isBot)
+    if (
+      correct &&
+      !current.players[current.turn % current.players.length].isBot
+    )
       setStats((s) => {
         const next = {
           ...s,
           correct: s.correct + 1,
-          badges: [...new Set([...s.badges, game.question.category])],
+          badges: [...new Set([...s.badges, current.question.category])],
         };
         saveLocal("kinesa-stats", next);
         return next;
       });
   };
   const advance = () => {
-    const next = nextTurn(game);
-    setGame(
+    const current = gameRef.current;
+    if (current?.phase !== "reveal") return;
+    const next = nextTurn(current);
+    updateGame(
       next.phase === "spin" && matchMode === "friends"
         ? { ...next, phase: "handoff" }
         : next,
@@ -192,6 +279,7 @@ export default function App() {
   useEffect(() => {
     if (
       page !== "game" ||
+      !tabActive ||
       modal ||
       !game ||
       !game.players[game.turn % game.players.length]?.isBot ||
@@ -211,12 +299,15 @@ export default function App() {
         1300,
       );
     return () => clearTimeout(timer);
-  }, [game?.phase, game?.turn, page, spinning, modal]);
+  }, [game?.phase, game?.turn, page, spinning, modal, tabActive]);
   return (
     <div
       className={`app-shell ${page === "game" ? "in-match" : page === "lobby" ? "in-lobby" : ""}`}
     >
-      <header className="app-header">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <header className="app-header" inert={!!modal}>
         <button
           className="brand"
           onClick={() => navigate("home")}
@@ -260,7 +351,10 @@ export default function App() {
             className="icon-button"
             aria-label={sound ? "Turn sound off" : "Turn sound on"}
             aria-pressed={sound}
-            onClick={() => setSound((s) => !s)}
+            onClick={() => {
+              setSound((s) => !s);
+              setToast(sound ? "Sound off" : "Sound on");
+            }}
           >
             {sound ? <Volume2 size={20} /> : <VolumeX size={20} />}
           </button>
@@ -281,7 +375,13 @@ export default function App() {
           </button>
         </div>
       </header>
-      <main className={`main-content page-${page}`}>
+      <main
+        id="main-content"
+        ref={mainRef}
+        tabIndex={-1}
+        inert={!!modal}
+        className={`main-content page-${page}`}
+      >
         {page === "home" && (
           <Home
             game={game}
@@ -300,109 +400,10 @@ export default function App() {
           />
         )}
         {page === "categories" && (
-          <>
-            <PageIntro
-              eyebrow="EXPLORE KINESA"
-              title="A world of stories."
-              description="From the pages of the Bible to the traditions we share. Discover all six categories."
-            />
-            <div className="explore-grid">
-              {categories.map((c, i) => (
-                <button
-                  className="explore-card"
-                  data-glass
-                  key={c.id}
-                  style={{
-                    "--category-color": c.color,
-                    "--category-pale": c.pale,
-                  }}
-                  onClick={() => setModal({ type: "category", category: c })}
-                >
-                  <span className="explore-number">0{i + 1}</span>
-                  <div className="explore-icon">
-                    <CategoryIcon category={c} size={44} />
-                  </div>
-                  <h2>{c.name}</h2>
-                  <p>{c.description}</p>
-                  <span className="text-button">
-                    Get the story <ArrowRight size={19} />
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="info-note">
-              <BookOpen size={20} />
-              <p>
-                We’re playing with a sample deck for now. The full question
-                library comes next.
-              </p>
-            </div>
-          </>
+          <Discover setModal={setModal} openLobby={openLobby} />
         )}
         {page === "collection" && (
-          <>
-            <PageIntro
-              eyebrow="YOUR COLLECTION"
-              title="The trophy shelf."
-              description="Correct answers earn category badges. Get all six and make yourself at home."
-            />
-            <div className="stats-row">
-              <div>
-                <Trophy />
-                <strong>{stats.games}</strong>
-                <span>Games completed</span>
-              </div>
-              <div>
-                <Zap />
-                <strong>{stats.correct}</strong>
-                <span>Correct answers</span>
-              </div>
-              <div>
-                <Medal />
-                <strong>{stats.badges.length} / 6</strong>
-                <span>Category badges</span>
-              </div>
-            </div>
-            <div className="badge-grid">
-              {categories.map((c) => {
-                const earned = stats.badges.includes(c.id);
-                return (
-                  <div
-                    className={`badge-card ${earned ? "earned" : ""}`}
-                    key={c.id}
-                  >
-                    <div
-                      className="badge-medallion"
-                      style={{ "--badge-color": earned ? c.color : "#d7dfeb" }}
-                    >
-                      <CategoryIcon category={c} size={42} />
-                      {earned && (
-                        <span>
-                          <Check size={15} />
-                        </span>
-                      )}
-                    </div>
-                    <h3>{c.name}</h3>
-                    <p>
-                      {earned ? "Earned. Nice work." : "One right answer away"}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="collection-cta">
-              <div>
-                <h2>There’s room for one more win.</h2>
-                <p>Your collection is saved on this device.</p>
-              </div>
-              <button
-                className="primary-button"
-                onClick={() => openLobby("random")}
-              >
-                Find a game <ArrowRight size={20} />
-              </button>
-            </div>
-          </>
+          <Collection stats={stats} setModal={setModal} openLobby={openLobby} />
         )}
         {page === "game" && game && (
           <Game
@@ -415,13 +416,34 @@ export default function App() {
             advance={advance}
             onExit={() => navigate("home")}
             onRematch={() => openLobby(matchMode, game.players)}
-            onReady={() => setGame((g) => ({ ...g, phase: "spin" }))}
+            onHelp={() => setModal({ type: "help" })}
+            onInspectPlayer={(player) => setModal({ type: "player", player })}
+            onReady={() => {
+              const current = gameRef.current;
+              if (current?.phase === "handoff")
+                updateGame({ ...current, phase: "spin" });
+            }}
             onHome={() => navigate("home")}
           />
         )}
       </main>
+      <div
+        className={`app-toast ${toast ? "is-visible" : ""}`}
+        role="status"
+        aria-live="polite"
+      >
+        {toast && (
+          <>
+            <Check size={16} />
+            {toast}
+          </>
+        )}
+      </div>
       {modal && (
-        <Modal onClose={() => setModal(null)}>
+        <Modal
+          onClose={() => setModal(null)}
+          returnFocus={modalTrigger.current}
+        >
           {modal.type === "help" && (
             <>
               <span className="modal-sticker">
@@ -459,12 +481,9 @@ export default function App() {
               </div>
               <button
                 className="primary-button full"
-                onClick={() => {
-                  setModal(null);
-                  navigate("home");
-                }}
+                onClick={() => setModal(null)}
               >
-                I’m in <ArrowRight size={20} />
+                Got it <ArrowRight size={20} />
               </button>
             </>
           )}
@@ -495,6 +514,85 @@ export default function App() {
               </button>
             </>
           )}
+          {modal.type === "player" &&
+            (() => {
+              const m = MASCOTS.find((m) => m.kind === modal.player.kind);
+              return (
+                <div className="player-detail">
+                  <div className="eyebrow">{modal.player.name}’S COMPANION</div>
+                  <h2 id="modal-title">Meet {m.name}.</h2>
+                  <div
+                    className="player-detail-art"
+                    style={{ "--companion-bg": m.bg }}
+                  >
+                    <Mascot kind={m.kind} />
+                  </div>
+                  <p className="modal-lead">
+                    The {m.kind} · Gospel of {m.gospel}
+                  </p>
+                  <p className="companion-personality">{m.personality}</p>
+                  <div className="player-detail-stats">
+                    <span>
+                      <strong>{modal.player.score}</strong> points
+                    </span>
+                    <span>
+                      <strong>{modal.player.badges.length}</strong> categories
+                      earned
+                    </span>
+                  </div>
+                  <p className="player-detail-note">
+                    Randomly dealt for this match. A different companion for
+                    every player.
+                  </p>
+                  <button
+                    className="primary-button full"
+                    onClick={() => setModal(null)}
+                  >
+                    Back to game <ArrowRight size={18} />
+                  </button>
+                </div>
+              );
+            })()}
+          {modal.type === "replace-match" && (
+            <>
+              <span className="modal-sticker">
+                <Gamepad2 size={32} />
+              </span>
+              <div className="eyebrow">YOU HAVE A GAME IN PROGRESS</div>
+              <h2 id="modal-title">Start a fresh game?</h2>
+              <p className="modal-lead">
+                Starting this match replaces the current game on this device,
+                including its scores and companions.
+              </p>
+              <div className="replace-match-summary">
+                <Users size={20} />
+                <span>
+                  {game.players.map((p) => p.name).join(", ")}
+                  <small>
+                    Round {Math.floor(game.turn / game.players.length) + 1} of 3
+                    · {game.players.length} players
+                  </small>
+                </span>
+              </div>
+              <div className="replace-match-actions">
+                <button
+                  className="secondary-button"
+                  onClick={() => {
+                    setModal(null);
+                    navigate("game");
+                  }}
+                >
+                  Resume current game
+                </button>
+                <button
+                  className="primary-button"
+                  onClick={() => startPrepared(modal.prepared, modal.nextMode)}
+                >
+                  Start new game <ArrowRight size={18} />
+                </button>
+              </div>
+            </>
+          )}
           {modal.type === "category" && (
             <>
               <span
@@ -503,7 +601,7 @@ export default function App() {
               >
                 <CategoryIcon category={modal.category} size={36} />
               </span>
-              <div className="eyebrow">ONE SIXTH OF THE ADVENTURE</div>
+              <div className="eyebrow">EXPLORE THE WHEEL</div>
               <h2 id="modal-title">{modal.category.name}</h2>
               <p className="modal-lead">{modal.category.detail}</p>
               <div className="category-example">
@@ -523,21 +621,12 @@ export default function App() {
     </div>
   );
 }
-function PageIntro({ eyebrow, title, description }) {
-  return (
-    <div className="page-intro">
-      <div className="eyebrow">{eyebrow}</div>
-      <h1>{title}</h1>
-      <p>{description}</p>
-    </div>
-  );
-}
-function Modal({ children, onClose }) {
+function Modal({ children, onClose, returnFocus }) {
   const ref = useRef(null);
   const callback = useRef(onClose);
   callback.current = onClose;
   useEffect(() => {
-    const previous = document.activeElement;
+    const previous = returnFocus || document.activeElement;
     const old = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     ref.current?.focus();
@@ -545,7 +634,7 @@ function Modal({ children, onClose }) {
       if (e.key === "Escape") callback.current();
       if (e.key === "Tab") {
         const nodes = ref.current.querySelectorAll(
-          'button:not(:disabled),input,select,[tabindex="0"]',
+          'button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]',
         );
         const first = nodes[0],
           last = nodes[nodes.length - 1];
@@ -566,7 +655,8 @@ function Modal({ children, onClose }) {
     return () => {
       document.body.style.overflow = old;
       document.removeEventListener("keydown", key);
-      previous?.focus();
+      if (previous?.isConnected) previous.focus({ preventScroll: true });
+      else document.querySelector("main h1")?.focus({ preventScroll: true });
     };
   }, []);
   return (

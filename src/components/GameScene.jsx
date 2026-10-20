@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { BookOpen, Cross } from "lucide-react";
 import Mascot from "./Mascot.jsx";
 import Wheel from "./Wheel.jsx";
+import { categories } from "../data.js";
 import "./game-scene.css";
 
 const crew = [
@@ -9,14 +10,49 @@ const crew = [
     kind: "human",
     name: "Mattie",
     line: "Good to see you!",
+    replies: [
+      "Good to see you!",
+      "Curiosity looks good on you.",
+      "Ready when you are.",
+    ],
     className: "gs-mattie",
   },
-  { kind: "eagle", name: "Juno", line: "Ready to soar?", className: "gs-juno" },
-  { kind: "ox", name: "Lou", line: "You’ve got this.", className: "gs-lou" },
-  { kind: "lion", name: "Leo", line: "Let’s play!", className: "gs-leo" },
+  {
+    kind: "eagle",
+    name: "Juno",
+    line: "Ready to soar?",
+    replies: [
+      "Ready to soar?",
+      "I’ve got a good feeling.",
+      "High-five. Higher flight.",
+    ],
+    className: "gs-juno",
+  },
+  {
+    kind: "ox",
+    name: "Lou",
+    line: "You’ve got this.",
+    replies: [
+      "You’ve got this.",
+      "Slow and steady. Smart and ready.",
+      "Always on your team.",
+    ],
+    className: "gs-lou",
+  },
+  {
+    kind: "lion",
+    name: "Leo",
+    line: "Let’s play!",
+    replies: ["Let’s play!", "Brave guesses welcome.", "A roaring good start."],
+    className: "gs-leo",
+  },
 ];
 
-export default function GameScene({ compact = false }) {
+export default function GameScene({
+  compact = false,
+  paused = false,
+  onPreview,
+}) {
   const id = useId().replaceAll(":", "");
   const [reaction, setReaction] = useState(null);
   const [rotation, setRotation] = useState(-16);
@@ -25,6 +61,9 @@ export default function GameScene({ compact = false }) {
   const timer = useRef(null);
   const spinTimer = useRef(null);
   const reactionId = useRef(0);
+  const greetings = useRef({});
+  const rotationRef = useRef(-16);
+  const spinLocked = useRef(false);
   useEffect(
     () => () => {
       clearTimeout(timer.current);
@@ -35,28 +74,44 @@ export default function GameScene({ compact = false }) {
 
   function cheer(member) {
     clearTimeout(timer.current);
-    setReaction({ ...member, id: ++reactionId.current });
-    timer.current = setTimeout(() => setReaction(null), 1900);
+    const count = greetings.current[member.kind] || 0;
+    greetings.current[member.kind] = count + 1;
+    setReaction({
+      ...member,
+      line: member.replies[count % member.replies.length],
+      id: ++reactionId.current,
+    });
+    timer.current = setTimeout(() => setReaction(null), 2600);
   }
   function spin() {
-    if (spinning) return;
+    if (spinLocked.current) return;
+    spinLocked.current = true;
     clearTimeout(timer.current);
     setReaction(null);
     setSpinning(true);
-    setRotation((value) => value + 780);
+    const index = Math.floor(Math.random() * categories.length);
+    const target = (360 - (index * 60 + 30)) % 360;
+    const value = rotationRef.current;
+    const nextRotation = value + (360 - (value % 360)) + 720 + target;
+    rotationRef.current = nextRotation;
+    setRotation(nextRotation);
     setParty((value) => value + 1);
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     spinTimer.current = setTimeout(
-      () => setSpinning(false),
+      () => {
+        setSpinning(false);
+        spinLocked.current = false;
+        onPreview?.(categories[index]);
+      },
       reduced ? 180 : 2800,
     );
   }
 
   return (
     <div
-      className={`game-scene ${compact ? "game-scene-compact" : ""} ${spinning ? "gs-party" : ""}`}
+      className={`game-scene ${compact ? "game-scene-compact" : ""} ${spinning ? "gs-party" : ""} ${paused ? "gs-motion-paused" : ""}`}
     >
       <div className="gs-floor-shadow" aria-hidden="true" />
       <svg
@@ -156,7 +211,7 @@ export default function GameScene({ compact = false }) {
             </span>
             {active && (
               <span className="gs-reaction" key={`bubble-${reaction.id}`}>
-                {member.line}
+                {reaction.line}
               </span>
             )}
           </button>

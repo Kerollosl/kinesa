@@ -555,3 +555,31 @@
     transition: none !important;
   }
 }
+
+/* Scene interactions remain readable at phone size and can be paused independently. */
+.game-scene .gs-reaction {
+  white-space: normal;
+  text-wrap: balance;
+  min-width: 76px;
+  line-height: 1.35;
+  padding: 9px 7px;
+}
+.game-scene .gs-character:focus-visible .gs-character-art {
+  filter: drop-shadow(0 3px 5px #6653b533);
+}
+.game-scene.gs-motion-paused *,
+.game-scene.gs-motion-paused *::before,
+.game-scene.gs-motion-paused *::after {
+  animation-play-state: paused !important;
+}
+.game-scene.gs-motion-paused .gs-character:hover .gs-character-art {
+  animation: none;
+  transform: translateY(-2px);
+}
+@media (hover: none) {
+  .game-scene .gs-wheel-caption {
+    opacity: 1;
+    transform: rotate(-5deg);
+    font-size: clamp(7px, 1.8cqw, 11px);
+  }
+}

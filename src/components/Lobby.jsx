@@ -6,9 +6,11 @@ import {
   Copy,
   Dices,
   Clock3,
+  CircleCheck,
   Trophy,
   ChevronRight,
   Globe2,
+  LockKeyhole,
   Plus,
   Shuffle,
   Sparkles,
@@ -17,6 +19,7 @@ import {
 } from "lucide-react";
 import Mascot, { MASCOTS } from "./Mascot.jsx";
 import { createGame, readSaved, saveLocal } from "../engine.js";
+import "./lobby-experience.css";
 
 const newCode = () =>
   Array.from(
@@ -24,7 +27,28 @@ const newCode = () =>
     () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)],
   ).join("");
 const sampleNames = ["Mina", "Mariam", "Bishoy"];
+const seatColors = ["#758ee2", "#b78aca", "#6bafa7", "#c49a67"];
+const initials = (value) =>
+  value
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join("") || "?";
+function savedRoom() {
+  const room = readSaved("kinesa-room-preview", null);
+  return room &&
+    typeof room.code === "string" &&
+    /^[A-Z0-9]{6}$/.test(room.code) &&
+    Array.isArray(room.names) &&
+    room.names.length >= 2 &&
+    room.names.length <= 4 &&
+    room.names.every((n) => typeof n === "string" && n.length <= 20)
+    ? room
+    : null;
+}
 export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
+  const [recentRoom] = useState(savedRoom);
   const [stage, setStage] = useState("entry");
   const [tab, setTab] = useState("create");
   const [name, setName] = useState(
@@ -40,6 +64,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
   const [roomCode, setRoomCode] = useState(newCode);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
   const [filled, setFilled] = useState(1);
   const [prepared, setPrepared] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -47,9 +72,18 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
   const queueTimer = useRef(null);
   const copyTimer = useRef(null);
   const titleRef = useRef(null);
+  const playerInputs = useRef([]);
+  const pendingFocus = useRef(null);
   useEffect(() => {
     titleRef.current?.focus();
   }, [stage]);
+  useEffect(() => {
+    if (pendingFocus.current === null) return;
+    const input = playerInputs.current[pendingFocus.current];
+    input?.focus();
+    input?.select();
+    pendingFocus.current = null;
+  }, [names.length]);
   useEffect(
     () => () => {
       clearTimeout(queueTimer.current);
@@ -98,16 +132,29 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
     setStage("room");
   };
   const joinRoom = () => {
-    const saved = readSaved("kinesa-room-preview", null);
-    if (saved?.code === code.toUpperCase() && Array.isArray(saved.names)) {
-      const base = saved.names.slice(0, 3);
-      setNames([...base, name.trim() || "You"]);
+    const saved = savedRoom();
+    if (saved?.code === code.toUpperCase()) {
+      if (saved.names.length === 4) {
+        setError(
+          "This room already has four players. Create a room for your own group, or try AMEN24.",
+        );
+        return;
+      }
+      const base = saved.names;
+      const joinedPlayers = [...base, name.trim() || "You"];
+      setNames(joinedPlayers);
       setRoomCode(saved.code);
+      saveLocal("kinesa-room-preview", {
+        code: saved.code,
+        names: joinedPlayers,
+      });
+      saveLocal("kinesa-nickname", name.trim());
       setError("");
       setStage("room");
     } else if (code.toUpperCase() === "AMEN24") {
       setNames([name.trim() || "You", "Mina", "Mariam"]);
       setRoomCode("AMEN24");
+      saveLocal("kinesa-nickname", name.trim());
       setError("");
       setStage("room");
     } else {
@@ -122,19 +169,41 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
     });
   };
   const addFriend = () => {
+    if (names.length >= 4) return;
+    pendingFocus.current = names.length;
     setNames((previous) => {
       const next = [...previous, `Friend ${previous.length}`];
       saveLocal("kinesa-room-preview", { code: roomCode, names: next });
       return next;
     });
+    setAnnouncement(`Player ${names.length + 1} added. Enter their name.`);
+  };
+  const removeFriend = (index) => {
+    pendingFocus.current = Math.max(0, index - 1);
+    setNames((previous) => {
+      const next = previous.filter((_, i) => i !== index);
+      saveLocal("kinesa-room-preview", { code: roomCode, names: next });
+      return next;
+    });
+    setAnnouncement(
+      `Player ${index + 1} removed. ${names.length - 1} players in your room.`,
+    );
   };
   const copy = async () => {
+    clearTimeout(copyTimer.current);
+    setError("");
     try {
       await navigator.clipboard.writeText(roomCode);
       setCopied(true);
+      setAnnouncement(`Room code ${roomCode} copied.`);
       copyTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      setError(`Your room code is ${roomCode}. Copy it from the code above.`);
+      setAnnouncement(
+        `Your room code is ${roomCode}. Select the code above to copy it.`,
+      );
+      setError(
+        `Your room code is ${roomCode}. Select the code above to copy it.`,
+      );
     }
   };
   const editSetup = () => {
@@ -149,7 +218,10 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
     onBack();
   };
   return (
-    <div className={`lobby-page lobby-${mode}`}>
+    <div className={`lobby-page lobby-${mode} lobby-stage-${stage}`}>
+      <span className="lobby-sr-status" role="status">
+        {announcement}
+      </span>
       <div className="lobby-toolbar">
         <button className="text-button" onClick={cancel}>
           <ArrowLeft size={18} /> Back to play
@@ -276,6 +348,18 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                       ? "Try a quick match with practice opponents. Real online matchmaking comes next."
                       : "Try the friends lobby on one device. Online invitations come next."}
             </p>
+            {(stage === "entry" || stage === "room") && (
+              <div className="lobby-format-summary">
+                <span>
+                  <Users size={13} />
+                  {mode === "friends" ? "2–4 players" : "You + 3 bots"}
+                </span>
+                <span>
+                  <Clock3 size={13} />3 rounds each
+                </span>
+                {mode === "friends" && <span>One device</span>}
+              </div>
+            )}
           </div>
           {stage === "entry" && (
             <section className="lobby-entry-panel">
@@ -302,7 +386,11 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="nickname"
+                  aria-describedby="nickname-hint"
                 />
+                <p className="lobby-input-hint" id="nickname-hint">
+                  Your name for this game. No account needed.
+                </p>
                 {mode === "friends" && (
                   <>
                     <div
@@ -313,6 +401,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                       <button
                         type="button"
                         className={tab === "create" ? "selected" : ""}
+                        aria-pressed={tab === "create"}
                         onClick={() => {
                           setTab("create");
                           setError("");
@@ -323,6 +412,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                       <button
                         type="button"
                         className={tab === "join" ? "selected" : ""}
+                        aria-pressed={tab === "join"}
                         onClick={() => {
                           setTab("join");
                           setError("");
@@ -340,18 +430,28 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                           id="room-code"
                           className="nickname-input code-input"
                           value={code}
-                          onChange={(e) =>
+                          onChange={(e) => {
+                            setError("");
                             setCode(
                               e.target.value
                                 .toUpperCase()
                                 .replace(/[^A-Z0-9]/g, ""),
-                            )
-                          }
+                            );
+                          }}
                           maxLength={6}
                           placeholder="AMEN24"
+                          autoComplete="off"
+                          autoCapitalize="characters"
+                          spellCheck={false}
+                          aria-invalid={Boolean(error)}
+                          aria-describedby={
+                            error
+                              ? "room-code-error room-code-hint"
+                              : "room-code-hint"
+                          }
                           required
                         />
-                        <p>
+                        <p id="room-code-hint">
                           Try the sample room{" "}
                           <button
                             type="button"
@@ -366,7 +466,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   </>
                 )}
                 {error && (
-                  <p className="form-error" role="alert">
+                  <p className="form-error" id="room-code-error" role="alert">
                     {error}
                   </p>
                 )}
@@ -379,6 +479,27 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   <ArrowRight size={20} />
                 </button>
               </form>
+              {mode === "friends" && recentRoom && !initialPlayers && (
+                <button
+                  className="resume-room"
+                  onClick={() => {
+                    setNames(recentRoom.names);
+                    setRoomCode(recentRoom.code);
+                    setName(recentRoom.names[0]);
+                    setError("");
+                    setStage("room");
+                  }}
+                >
+                  <span>
+                    <strong>Continue your room</strong>
+                    <small>
+                      {recentRoom.code} · {recentRoom.names.length} players ·
+                      saved on this device
+                    </small>
+                  </span>
+                  <ArrowRight size={18} />
+                </button>
+              )}
               <div className="assignment-note">
                 <Shuffle size={20} />
                 <p>
@@ -390,26 +511,57 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
           )}
           {stage === "matching" && (
             <section className="matching-panel">
-              <div className="radar-rings">
+              <div className="match-deck-art" aria-hidden="true">
                 <i />
                 <i />
-                <i />
-                <Globe2 size={50} />
+                <span>
+                  <Shuffle size={35} />
+                </span>
               </div>
-              <div className="matching-seats" aria-live="polite">
+              <div
+                className="match-readiness"
+                role="progressbar"
+                aria-label="Practice match seats filled"
+                aria-valuenow={filled}
+                aria-valuemin={0}
+                aria-valuemax={4}
+              >
+                {[0, 1, 2, 3].map((i) => (
+                  <i key={i} className={i < filled ? "is-filled" : ""} />
+                ))}
+              </div>
+              <p className="match-count" role="status">
+                {filled} / 4 seats filled
+              </p>
+              <div className="matching-seats">
                 {[name || "You", ...sampleNames].map((n, i) => (
-                  <div className={i < filled ? "filled" : ""} key={i}>
-                    <span>
-                      {i < filled ? <Check size={27} /> : <Plus size={25} />}
+                  <div
+                    className={i < filled ? "filled" : ""}
+                    key={i}
+                    style={{ "--seat-color": seatColors[i] }}
+                  >
+                    <span className="matching-seat-avatar" aria-hidden="true">
+                      {i < filled ? (
+                        initials(n)
+                      ) : (
+                        <span className="seat-loading">
+                          <i />
+                          <i />
+                          <i />
+                        </span>
+                      )}
+                      {i < filled && <CircleCheck size={20} />}
                     </span>
-                    <strong>{i < filled ? n : "Finding a rival"}</strong>
+                    <strong>{i < filled ? n : "Getting ready"}</strong>
                     <small>
                       {i === 0 ? "YOU" : i < filled ? "PRACTICE BOT" : "•••"}
                     </small>
                   </div>
                 ))}
               </div>
-              <p className="match-count">{filled} / 4 seats filled</p>
+              <p className="matching-promise">
+                <LockKeyhole size={14} /> Practice match · No online players
+              </p>
               <button
                 className="secondary-button"
                 onClick={() => {
@@ -439,40 +591,63 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
               </p>
               <div className="room-players-heading">
                 <h2>Your players</h2>
-                <span>{names.length} of 4 seats</span>
+                <span className="room-occupancy">
+                  <span aria-hidden="true">
+                    {[0, 1, 2, 3].map((i) => (
+                      <i
+                        key={i}
+                        className={i < names.length ? "occupied" : ""}
+                      />
+                    ))}
+                  </span>
+                  {names.length} of 4 seats
+                </span>
               </div>
+              <p className="room-edit-hint">
+                Tap a name to edit. Everyone plays on this device.
+              </p>
               <div className="friend-seats">
                 {names.map((n, i) => (
-                  <div className="friend-seat" key={i}>
-                    <span className="mystery-avatar">?</span>
+                  <div
+                    className="friend-seat"
+                    key={i}
+                    style={{ "--seat-color": seatColors[i] }}
+                  >
+                    <span className="mystery-avatar" aria-hidden="true">
+                      {initials(n)}
+                    </span>
                     <label>
                       <span>{i === 0 ? "HOST" : `PLAYER ${i + 1}`}</span>
                       <input
                         value={n}
+                        ref={(element) => {
+                          playerInputs.current[i] = element;
+                        }}
                         maxLength={20}
                         aria-label={`Player ${i + 1} name`}
                         onChange={(e) => updateName(i, e.target.value)}
+                        onBlur={(e) => {
+                          if (!e.target.value.trim())
+                            updateName(i, i === 0 ? "You" : `Friend ${i}`);
+                        }}
                       />
                     </label>
                     {i > 1 ? (
                       <button
                         className="icon-button"
                         aria-label={`Remove player ${i + 1}`}
-                        onClick={() =>
-                          setNames((ns) => {
-                            const next = ns.filter((_, j) => j !== i);
-                            saveLocal("kinesa-room-preview", {
-                              code: roomCode,
-                              names: next,
-                            });
-                            return next;
-                          })
-                        }
+                        onClick={() => removeFriend(i)}
                       >
                         <X size={18} />
                       </button>
                     ) : (
-                      <Check size={20} />
+                      <span
+                        className="seat-ready"
+                        role="img"
+                        aria-label="Ready"
+                      >
+                        <Check size={17} />
+                      </span>
                     )}
                   </div>
                 ))}
@@ -488,7 +663,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                 <p>
                   Your companion is a surprise.
                   <strong>
-                    The full squad is shuffled when the game begins.
+                    We’ll deal a different Gospel figure to each player next.
                   </strong>
                 </p>
               </div>
@@ -507,7 +682,11 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
           )}
           {stage === "reveal" && prepared && (
             <section className="assignment-stage">
-              <div className="assignment-grid">
+              <div
+                className="assignment-grid"
+                data-player-count={prepared.players.length}
+                style={{ "--player-count": prepared.players.length }}
+              >
                 {prepared.players.map((p, i) => {
                   const m = MASCOTS.find((m) => m.kind === p.kind);
                   return (
@@ -548,6 +727,11 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
               </div>
               <p className="assignment-confirmation">
                 <Check size={18} /> Everyone’s different. Everyone’s in.
+              </p>
+              <p className="assignment-ready-message" role="status">
+                {dealDone
+                  ? "Companions dealt. Your game is ready."
+                  : "Dealing your companions…"}
               </p>
               <div className="assignment-actions">
                 <button className="secondary-button" onClick={editSetup}>

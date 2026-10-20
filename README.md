@@ -20,22 +20,25 @@ npm run build
 npm run preview
 ```
 
-Deploy `dist/` to any static host at the origin root. The app uses in-memory navigation and needs no routing rewrites or API keys.
+Deploy `dist/` to any static host at the origin root. The app uses hash navigation and needs no routing rewrites or API keys. Discover and Collection support direct links; unfinished matches can be resumed from the home screen.
 
 ## The experience
 
 - **Random game:** enter a name, preview matchmaking with three explicitly labeled practice bots, reveal the companions, and play. Bots spin and answer on their own turns; the player advances after reading each explanation. Bot points do not inflate the player's collection.
-- **Play with friends:** preview creating a room for two to four people or joining a room. Fill the seats, then deal companions and play locally. The sample join code is `AMEN24`; the most recently created room code also works in this browser. These preview codes do not connect separate devices.
+- **Play with friends:** create a room for two to four people or join a preview room. Seat cards, occupancy, editable names, input focus, and copy feedback make setup clear. Full rooms reject extra players; a saved room can be reopened with its roster intact. The sample join code is `AMEN24`. These preview codes do not connect separate devices.
 - **Random companion assignment:** players never choose their Gospel figure. Each new match uses a fresh Fisher–Yates shuffle of the lion, ox, eagle, and human, dealing without replacement. There can be no duplicate companions in a match. Rematches shuffle again.
 - **Guided setup:** a three-step indicator explains setup, companion reveal, and play. Desktop setup includes an illustrated rules panel, with a compact layout on phones.
 - **Animated reveal:** each player's companion appears on a flipping card before gameplay begins. Card colors follow the companion's identity. Players can return to edit the roster, then deal a new set before starting.
-- **Interactive game scene:** a softly shaded lavender stage, floating book and cross tokens, character high-fives, a practice wheel, and distinct idle movement for the four companions. Reduced-motion preferences disable the ambient movement and shorten the practice spin.
+- **Interactive game scene:** character high-fives cycle distinct greetings, and practice spins land on and announce the actual category. Scene animation can be paused. Reduced-motion preferences disable ambient movement and shorten deliberate spins.
 - **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during room setup and matches so it cannot crowd the reveal or cover answers.
 - **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
 - **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. The home screen shows the active companion, current turn, and round with a direct resume action. Invalid saves are rejected.
-- **Keyboard controls:** answer with A–D or 1–4 when a human question is active; shortcuts ignore text fields and dialogs.
-- **Complete local match:** six-category wheel, questions, explanations, 100 points per correct answer, three rounds per player, shared wins, and rematches.
-- **Collection:** local category badges, correct-answer totals, and completed-match counts. Sound is optional and off by default.
+- **Keyboard controls:** answer with A–D or 1–4 when a human question is active; shortcuts ignore text fields, links, other controls, and dialogs. Rapid input is credited once in both the game and collection.
+- **Complete local match:** six-category wheel, questions, source explanations, 100 points per correct answer, three rounds per player, shared wins, and rematches. The results screen includes actual match totals, tied rankings, accuracy, and animated score bars.
+- **Discover:** browse all six categories and try their existing sample questions, with correct answers, explanations, and sources. These samples are unscored and never award badges.
+- **Collection:** an actual-progress ring, earned and locked interactive badges, unlock details, correct-answer totals, completed matches, and useful empty states. Progress belongs to this browser and includes human players on this device.
+- **Companion details:** tap any player in the scoreboard or final standings to meet their Gospel companion and inspect their match progress.
+- **Safe navigation:** browser Back/Forward, focused page headings, mobile rules, focus-restoring dialogs, and a skip link. Leaving a match, opening a dialog, or hiding the tab pauses active spins and practice-opponent timers. Starting another match asks before replacing an unfinished game. Sound is optional, off by default, and confirms changes visibly.
 - **Liquid glass:** frosted translucent panes, reflective edges, softly tinted actions, a floating navigation dock, and subtle pointer-driven highlights on desktop. Touch and reduced-motion modes keep lighting steady; reduced-transparency and unsupported-blur browsers receive more opaque surfaces. Questions use a quieter, more opaque pane for reading.
 - **Responsive interface:** desktop navigation, a mobile game dock, keyboard-operable dialogs, visible focus, and reduced-motion support.
 
@@ -53,21 +56,25 @@ Unfinished matches, collection progress, sound preference, nickname, and the lat
 
 ```text
 src/
-  App.jsx                  Navigation, exploration, collection, match state
+  App.jsx                  Navigation, dialogs, match state, sound and safe resume
   components/
     Home.jsx               Responsive home hierarchy and game-mode entry
+    Discover.jsx           Unscored category samples and source explanations
+    Collection.jsx         Real progress, badge details and empty states
     GameScene.jsx          Interactive animated hero arena
     game-scene.css         Scoped arena motion and layout
     Lobby.jsx              Game modes, room previews, matching and assignment reveal
     Game.jsx               Wheel, answers, scores and results
     Mascot.jsx             Four original SVG companions and metadata
     Wheel.jsx              Six-category wheel and icons
+    *-experience.css       Scoped layout and interaction styling
   engine.js                Random assignment, scoring, turns, sample selection
   session.js               Safe local match persistence and restoration
   data.js                  Category definitions and sample deck
   styles.css               Core layout, responsive behavior and app motion
   modern.css               Interface layout, responsive behavior and setup flow
   glass.css                Liquid-glass materials and transparency fallbacks
+  app-experience.css       Shared dialog, focus and toast details
   useGlassLight.js          Desktop pointer lighting without React re-renders
 public/fonts/              Self-hosted fonts and OFL licenses
 tests/                     Unit and browser tests
@@ -76,6 +83,8 @@ tests/                     Unit and browser tests
 To add real multiplayer, replace the local lobby with a server-backed matchmaking/room service and move authoritative assignment, turns, scoring, and validation to the server. Companions must still be shuffled and dealt **once per match** by the authority, never picked by clients. Replace sample selection with a reviewed question provider and appropriate loading/error states.
 
 ## Verification
+
+The [component review](docs/experience-review.md) records the screens, interactions, and validation covered in this pass.
 
 ```sh
 npm test
@@ -86,7 +95,7 @@ npm run build
 
 Unit coverage enumerates all 24 four-player companion permutations, verifies no duplicates, proves submitted character choices are ignored, and checks fresh rematches, scoring, shared wins, turns, and the sample deck.
 
-Browser coverage includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, and revising a room after the companion reveal.
+Browser coverage includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, revising a room after the companion reveal, browser history/focus, mobile rules/focus return, interrupted spins, rapid keyboard input, unfinished-match replacement, room recovery, unscored discovery, interactive collection badges, and scene motion controls.
 
 Use an existing Chromium installation if desired:
 
@@ -100,4 +109,4 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). DM Sans is bundled under the SIL Open Font License in `public/fonts/`.
 
-[Mobile preview](docs/kinesa-mobile.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)
+[Mobile preview](docs/kinesa-mobile.png) · [Discover](docs/kinesa-discover.png) · [Collection](docs/kinesa-collection.png) · [Results](docs/kinesa-results.png) · [Companion details](docs/kinesa-companion.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)

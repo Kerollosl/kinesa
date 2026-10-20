@@ -9,9 +9,12 @@ import {
   Trophy,
   Hand,
   Keyboard,
-  Users,
+  HelpCircle,
+  Sparkles,
+  Target,
 } from "lucide-react";
-import Mascot from "./Mascot.jsx";
+import Mascot, { MASCOTS } from "./Mascot.jsx";
+import "./match-experience.css";
 import Wheel, { CategoryIcon } from "./Wheel.jsx";
 import { categories } from "../data.js";
 import { ROUNDS, getWinners } from "../engine.js";
@@ -27,9 +30,12 @@ export default function Game({
   onRematch,
   onHome,
   onReady,
+  onHelp,
+  onInspectPlayer,
 }) {
   const active = game.turn % game.players.length;
   const player = game.players[active];
+  const companion = MASCOTS.find((m) => m.kind === player.kind);
   const q = game.question;
   const cat = q ? categories.find((c) => c.id === q.category) : null;
   const finished = game.phase === "finished";
@@ -50,7 +56,10 @@ export default function Game({
           ? "instant"
           : "smooth",
       });
-    } else phaseHeading.current?.focus();
+    } else {
+      phaseHeading.current?.focus({ preventScroll: true });
+      window.scrollTo({ top: 0, behavior: "instant" });
+    }
   }, [game.phase]);
   useEffect(() => {
     const key = (e) => {
@@ -61,14 +70,21 @@ export default function Game({
         e.metaKey ||
         document.querySelector('[role="dialog"]') ||
         (e.target instanceof HTMLElement &&
-          e.target.closest('input,textarea,select,[contenteditable="true"]'))
+          e.target.closest(
+            'input,textarea,select,a,button:not(.answer-option),[contenteditable="true"]',
+          ))
       )
         return;
       const index =
         "1234".indexOf(e.key) >= 0
           ? "1234".indexOf(e.key)
           : "abcd".indexOf(e.key.toLowerCase());
-      if (game.phase === "question" && !player.isBot && index >= 0) {
+      if (
+        game.phase === "question" &&
+        !player.isBot &&
+        index >= 0 &&
+        document.activeElement?.closest(".question-stage")
+      ) {
         e.preventDefault();
         answer(index);
       }
@@ -88,7 +104,7 @@ export default function Game({
           ? "Up next"
           : "Playing";
   return (
-    <div className="game-page">
+    <div className="game-page" data-phase={game.phase}>
       <div className="game-top">
         <button className="text-button" onClick={onExit}>
           <ArrowLeft size={17} /> Back to play
@@ -98,9 +114,22 @@ export default function Game({
             ? "ALL ROUNDS COMPLETE"
             : `ROUND ${Math.floor(game.turn / game.players.length) + 1} OF ${ROUNDS}`}
         </span>
-        <span className="sample-tag">
-          {savedLocally ? "Saved on this device" : "This session only"}
-        </span>
+        <div className="game-top-tools">
+          <span className="sample-tag">
+            {finished
+              ? "Match complete"
+              : savedLocally
+                ? "Saved on this device"
+                : "This session only"}
+          </span>
+          <button
+            className="game-help text-button"
+            onClick={onHelp}
+            aria-label="Game rules"
+          >
+            <HelpCircle size={16} /> Rules
+          </button>
+        </div>
       </div>
       <div
         className="match-progress"
@@ -133,10 +162,12 @@ export default function Game({
         style={{ "--player-count": game.players.length }}
       >
         {game.players.map((p, i) => (
-          <div
+          <button
+            onClick={() => onInspectPlayer(p)}
+            title={`Meet ${MASCOTS.find((m) => m.kind === p.kind).name}, ${p.name}’s companion`}
             className={`score-player ${active === i && !finished ? "current" : ""}`}
             key={p.kind}
-            aria-label={`${p.name}: ${p.score} points${active === i && !finished ? ", " + playerStatus : ""}`}
+            aria-label={`${p.name}: ${p.score} points${active === i && !finished ? ", " + playerStatus : ""}. View companion`}
           >
             <div className="score-avatar">
               <Mascot kind={p.kind} />
@@ -161,7 +192,7 @@ export default function Game({
                 />
               ))}
             </div>
-          </div>
+          </button>
         ))}
       </div>
       {game.phase === "handoff" && (
@@ -172,7 +203,11 @@ export default function Game({
           <h1 ref={phaseHeading} tabIndex={-1}>
             Pass to {player.name}.
           </h1>
-          <p>Your companion’s ready. Your question is still a surprise.</p>
+          <p>
+            {companion.name} is ready for round{" "}
+            {Math.floor(game.turn / game.players.length) + 1}. Take the device
+            when it’s your turn.
+          </p>
           <div className="handoff-avatar">
             <span className="handoff-orbit" />
             <Mascot kind={player.kind} />
@@ -189,7 +224,11 @@ export default function Game({
       )}
       {game.phase === "spin" && (
         <section className="spin-stage">
-          <div className="eyebrow">YOUR SPIN. YOUR SHOT.</div>
+          <div className="eyebrow">
+            {Math.floor(game.turn / game.players.length) === ROUNDS - 1
+              ? "FINAL ROUND · MAKE IT COUNT"
+              : "A NEW TURN. A NEW CHANCE."}
+          </div>
           <h1 ref={phaseHeading} tabIndex={-1}>
             {player.isBot
               ? `${player.name} is up!`
@@ -221,7 +260,12 @@ export default function Game({
           <div className="wheel-legend">
             {categories.map((c) => (
               <span key={c.id}>
-                <i style={{ background: c.color }} />
+                <span
+                  className="legend-category-icon"
+                  style={{ "--legend-color": c.color }}
+                >
+                  <CategoryIcon category={c} size={14} />
+                </span>
                 {c.name}
               </span>
             ))}
@@ -252,6 +296,7 @@ export default function Game({
                   key={text}
                   className={`answer-option ${revealed && i === q.correct ? "correct" : ""} ${revealed && i === game.selected && i !== q.correct ? "incorrect" : ""}`}
                   disabled={revealed || player.isBot}
+                  aria-label={`${String.fromCharCode(65 + i)}. ${text}${revealed && i === q.correct ? ". Correct answer" : revealed && i === game.selected ? ". Your answer, incorrect" : ""}`}
                   onClick={() => answer(i)}
                 >
                   <span className="answer-letter">
@@ -271,9 +316,18 @@ export default function Game({
             <div className="question-hints">
               <p className="take-time">
                 <Heart size={15} />{" "}
-                {player.isBot
-                  ? "Practice opponent is thinking…"
-                  : "No rush. You know more than you think."}
+                {player.isBot ? (
+                  <>
+                    Practice opponent is thinking
+                    <span className="thinking-dots" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                  </>
+                ) : (
+                  "Take your time. There’s no countdown."
+                )}
               </p>
               {!player.isBot && (
                 <span className="keyboard-hint">
@@ -308,7 +362,13 @@ export default function Game({
                   </p>
                 )}
                 <p>{q.explanation}</p>
-                <span className="source">{q.source}</span>
+                <span className="source">Source · {q.source}</span>
+                {game.selected === q.correct && (
+                  <span className="answer-earned-category">
+                    <CategoryIcon category={cat} size={13} /> {cat.name} · 100
+                    points earned
+                  </span>
+                )}
               </div>
               <button className="primary-button" onClick={advance}>
                 {game.turn + 1 >= game.players.length * ROUNDS
@@ -337,7 +397,7 @@ export default function Game({
               />
             ))}
           </div>
-          <div className="eyebrow">FAITH. FRIENDS. A FEW BRAGGING RIGHTS.</div>
+          <div className="eyebrow">THREE ROUNDS. ONE GREAT GAME.</div>
           <Trophy className="winner-trophy" size={38} />
           <h1 ref={phaseHeading} tabIndex={-1}>
             {winners.length > 1
@@ -360,24 +420,78 @@ export default function Game({
               </div>
             ))}
           </div>
-          <div className="final-scores">
+          <div className="match-recap">
+            <div>
+              <Target size={17} />
+              <strong>
+                {game.players.reduce((sum, p) => sum + p.score / 100, 0)}
+                <small> / {game.players.length * ROUNDS}</small>
+              </strong>
+              <span>Correct answers</span>
+            </div>
+            <div>
+              <Sparkles size={17} />
+              <strong>
+                {new Set(game.players.flatMap((p) => p.badges)).size}
+                <small> / 6</small>
+              </strong>
+              <span>Categories earned</span>
+            </div>
+            <div>
+              <Trophy size={17} />
+              <strong>
+                {winners[0].score}
+                <small> pts</small>
+              </strong>
+              <span>Leading score</span>
+            </div>
+          </div>
+          <div className="results-leaderboard-heading">
+            <h2>The final standings</h2>
+            <span>Tap a player to meet their companion</span>
+          </div>
+          <ol className="final-scores">
             {[...game.players]
               .sort((a, b) => b.score - a.score)
               .map((p) => (
-                <div key={p.kind}>
-                  <span>
-                    {winners.some((w) => w.kind === p.kind) ? "✦" : "✧"}
-                  </span>
-                  <strong>
-                    {p.name}
-                    {p.isBot && <small className="bot-tag">BOT</small>}
-                  </strong>
-                  <b>
-                    {p.score} <small>points</small>
-                  </b>
-                </div>
+                <li key={p.kind}>
+                  <button
+                    className={`final-score-row ${winners.some((w) => w.kind === p.kind) ? "is-winner" : ""}`}
+                    onClick={() => onInspectPlayer(p)}
+                  >
+                    <span className="result-rank">
+                      {1 +
+                        game.players.filter((other) => other.score > p.score)
+                          .length}
+                    </span>
+                    <span className="result-avatar">
+                      <Mascot kind={p.kind} />
+                    </span>
+                    <span className="result-player">
+                      <strong>
+                        {p.name}
+                        {p.isBot && <small className="bot-tag">BOT</small>}
+                      </strong>
+                      <span>
+                        {p.score / 100} of {ROUNDS} correct
+                        {p.score === ROUNDS * 100 ? " · Perfect game!" : ""}
+                      </span>
+                      <span className="result-score-track" aria-hidden="true">
+                        <i
+                          style={{
+                            width: `${Math.max(2, (p.score / (ROUNDS * 100)) * 100)}%`,
+                          }}
+                        />
+                      </span>
+                    </span>
+                    <span className="result-points">
+                      <strong>{p.score}</strong>
+                      <small>points</small>
+                    </span>
+                  </button>
+                </li>
               ))}
-          </div>
+          </ol>
           <div className="results-actions">
             <button className="primary-button" onClick={onRematch}>
               <RotateCcw size={18} /> One more round?
