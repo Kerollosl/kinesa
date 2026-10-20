@@ -22,67 +22,73 @@ async function capture(page, path) {
   await page.screenshot({ path, fullPage: true });
 }
 
-// Review the real renderer's three poses at a fixed scale, without adding a
-// development-only gallery to the product itself.
+// Capture the assembled rigs; the motion recording below demonstrates their
+// actual continuous animation rather than a set of hand-picked action frames.
 async function captureCompanions(page) {
   await page.evaluate(async () => {
-    const art = new Image();
-    art.src = "/characters/kinesa-companions-3d.png";
-    await art.decode();
-    const originals = ["lion", "ox", "eagle", "human"].map((kind) =>
-      document.querySelector(`.gs-character-art .mascot-${kind}`),
+    await Promise.all(
+      [
+        "/characters/kinesa-companion-rig.webp",
+        "/characters/kinesa-companion-torsos.webp",
+        "/characters/kinesa-companion-eyelids.webp",
+      ].map(async (src) => {
+        const art = new Image();
+        art.src = src;
+        await art.decode();
+      }),
     );
     const gallery = document.createElement("div");
     gallery.id = "companion-preview";
     gallery.style =
-      "position:fixed;left:0;top:0;width:1440px;height:1080px;z-index:10000;padding:32px 55px;background:#edf2fb;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:12px;";
-    ["idle", "blink", "celebrate"].forEach((pose, row) => {
-      originals.forEach((original, col) => {
-        const cell = document.createElement("div");
-        cell.dataset.kind = ["lion", "ox", "eagle", "human"][col];
-        cell.style =
-          "display:flex;flex-direction:column;align-items:center;justify-content:center;";
-        const svg = original.cloneNode(true);
-        svg.style = "width:280px;height:280px;overflow:visible;";
-        svg.querySelectorAll("[id]").forEach((element) => {
-          const before = element.id;
-          element.id += `-review-${row}`;
-          svg.querySelectorAll("[clip-path]").forEach((group) => {
-            if (group.getAttribute("clip-path") === `url(#${before})`)
-              group.setAttribute("clip-path", `url(#${element.id})`);
+      "position:fixed;left:0;top:0;width:1440px;height:430px;z-index:10000;padding:24px 45px;background:#edf2fb;display:grid;grid-template-columns:repeat(4,1fr);place-items:center;gap:12px;";
+    ["lion", "ox", "eagle", "human"].forEach((kind, col) => {
+      const cell = document.createElement("div");
+      cell.dataset.kind = kind;
+      cell.style =
+        "display:flex;flex-direction:column;align-items:center;justify-content:center;";
+      const svg = document
+        .querySelector(`.gs-character-art .mascot-${kind}`)
+        .cloneNode(true);
+      svg.style = "width:310px;height:310px;overflow:visible;";
+      svg.querySelectorAll("[id]").forEach((element) => {
+        const before = element.id;
+        element.id += "-review";
+        svg
+          .querySelectorAll("[clip-path], [fill], [stroke], [mask]")
+          .forEach((group) => {
+            ["clip-path", "fill", "stroke", "mask"].forEach((attr) => {
+              if (group.getAttribute(attr) === `url(#${before})`)
+                group.setAttribute(attr, `url(#${element.id})`);
+            });
           });
-        });
-        svg.querySelector(".mascot-body").style =
-          "animation:none!important;transform:none!important;";
-        ["idle", "blink", "celebrate"].forEach((frame) => {
-          svg.querySelector(`.mascot-render-${frame}`).style =
-            `animation:none!important;opacity:${frame === pose ? 1 : 0}!important;`;
-        });
-        const label = document.createElement("span");
-        label.style = "font:500 14px 'DM Sans',sans-serif;color:#64728c;";
-        label.textContent = `${["Leo", "Lou", "Juno", "Mattie"][col]} · ${pose}`;
-        cell.append(svg, label);
-        gallery.append(cell);
       });
+      const label = document.createElement("span");
+      label.style = "font:500 15px 'DM Sans',sans-serif;color:#64728c;";
+      label.textContent = [
+        "Leo · Mark",
+        "Lou · Luke",
+        "Juno · John",
+        "Mattie · Matthew",
+      ][col];
+      cell.append(svg, label);
+      gallery.append(cell);
     });
     document.body.append(gallery);
   });
-  await page.locator("#companion-preview").screenshot({
-    path: "docs/kinesa-companions.png",
-  });
+  await page
+    .locator("#companion-preview")
+    .screenshot({ path: "docs/kinesa-companions.png" });
   await page.evaluate(() => {
     const gallery = document.querySelector("#companion-preview");
     gallery.querySelectorAll("[data-kind]").forEach((cell) => {
       if (cell.dataset.kind !== "eagle") cell.remove();
     });
-    gallery.style.width = "1120px";
-    gallery.style.height = "390px";
-    gallery.style.gridTemplateColumns = "repeat(3,1fr)";
-    gallery.style.gridTemplateRows = "1fr";
+    gallery.style.width = "390px";
+    gallery.style.gridTemplateColumns = "1fr";
   });
-  await page.locator("#companion-preview").screenshot({
-    path: "docs/kinesa-juno.png",
-  });
+  await page
+    .locator("#companion-preview")
+    .screenshot({ path: "docs/kinesa-juno.png" });
   await page.evaluate(() =>
     document.querySelector("#companion-preview").remove(),
   );
@@ -181,45 +187,68 @@ await capture(page, "docs/kinesa-collection.png");
 await page.setViewportSize({ width: 390, height: 844 });
 await capture(page, "docs/kinesa-collection-mobile.png");
 await context.close();
-const movie = await browser.newContext({
-  viewport: { width: 1280, height: 900 },
-  recordVideo: { dir: "/tmp/kinesa-video", size: { width: 1280, height: 900 } },
-});
-const demo = await movie.newPage();
-watch(demo);
-await demo.goto("http://localhost:5173");
-await expect(demo.getByRole("button", { name: /Random game/ })).toBeVisible();
-await demo.evaluate(() => document.fonts.ready);
-await demo.waitForTimeout(800);
-await demo.getByRole("button", { name: "High-five Leo", exact: true }).click();
-await demo.waitForTimeout(900);
-await demo.getByRole("button", { name: "High-five Juno", exact: true }).click();
-await demo.waitForTimeout(800);
-await demo
-  .getByRole("button", { name: "Give the trivia wheel a practice spin" })
-  .click();
-await demo.waitForTimeout(2900);
-await demo.getByRole("button", { name: "Discover", exact: true }).click();
-await demo.locator(".le-sample-answer").first().click();
-await demo.waitForTimeout(1000);
-await demo.getByRole("button", { name: "Play", exact: true }).click();
-await demo.getByRole("button", { name: /Play with friends/ }).click();
-await demo.getByLabel("What should we call you?").fill("Mina");
-await demo.getByRole("button", { name: "Create room", exact: true }).click();
-await demo.getByRole("button", { name: /Add a friend/ }).click();
-await demo.getByRole("button", { name: /Add a friend/ }).click();
-await demo.waitForTimeout(700);
-await demo.getByRole("button", { name: "Deal our companions" }).click();
-await demo.waitForTimeout(2200);
-await demo.getByRole("button", { name: "Game on", exact: true }).click();
-await demo.getByRole("button", { name: "Spin the wheel", exact: true }).click();
-await expect(demo.locator(".answer-option")).toHaveCount(4);
-await demo.waitForTimeout(1000);
-await demo.locator(".answer-option").first().click();
-await demo.waitForTimeout(1200);
-const video = demo.video();
-await movie.close();
-await video.saveAs("docs/kinesa-motion.webm");
+if (!process.argv.includes("--stills-only")) {
+  const movie = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    recordVideo: {
+      dir: "/tmp/kinesa-video",
+      size: { width: 1280, height: 900 },
+    },
+  });
+  const demo = await movie.newPage();
+  watch(demo);
+  await demo.goto("http://localhost:5173");
+  await expect(demo.getByRole("button", { name: /Random game/ })).toBeVisible();
+  await demo.evaluate(() => document.fonts.ready);
+  await demo.waitForTimeout(800);
+  const leo = demo.getByRole("button", { name: "High-five Leo", exact: true });
+  const leoBox = await leo.boundingBox();
+  await demo.mouse.move(leoBox.x + 12, leoBox.y + 22, { steps: 18 });
+  await demo.waitForTimeout(500);
+  await demo.mouse.move(leoBox.x + leoBox.width - 10, leoBox.y + 15, {
+    steps: 24,
+  });
+  await demo.waitForTimeout(500);
+  await leo.click();
+  await demo.waitForTimeout(350);
+  await leo.click();
+  await demo.waitForTimeout(900);
+  await demo
+    .getByRole("button", { name: "High-five Juno", exact: true })
+    .click();
+  await demo.waitForTimeout(800);
+  await demo
+    .getByRole("button", { name: "Give the trivia wheel a practice spin" })
+    .click();
+  await demo.waitForTimeout(2900);
+  await demo.getByRole("button", { name: "Discover", exact: true }).click();
+  await demo.locator(".le-sample-answer").first().click();
+  await demo.waitForTimeout(1000);
+  await demo.getByRole("button", { name: "Play", exact: true }).click();
+  await demo.getByRole("button", { name: /Play with friends/ }).click();
+  await demo.getByLabel("What should we call you?").fill("Mina");
+  await demo.getByRole("button", { name: "Create room", exact: true }).click();
+  await demo.getByRole("button", { name: /Add a friend/ }).click();
+  await demo.getByRole("button", { name: /Add a friend/ }).click();
+  await demo.waitForTimeout(700);
+  await demo.getByRole("button", { name: "Deal our companions" }).click();
+  await demo.waitForTimeout(2200);
+  await demo.getByRole("button", { name: "Game on", exact: true }).click();
+  await demo
+    .getByRole("button", { name: "Spin the wheel", exact: true })
+    .click();
+  await expect(demo.locator(".answer-option")).toHaveCount(4);
+  await demo.waitForTimeout(1000);
+  await demo.locator(".answer-option").first().click();
+  await demo.waitForTimeout(1200);
+  const video = demo.video();
+  await movie.close();
+  await video.saveAs("docs/kinesa-motion.webm");
+}
 await browser.close();
 if (errors.length) throw new Error(errors.join("\n"));
-console.log("Final screenshots and motion recording saved. No browser errors.");
+console.log(
+  process.argv.includes("--stills-only")
+    ? "Final screenshots saved. No browser errors."
+    : "Final screenshots and motion recording saved. No browser errors.",
+);

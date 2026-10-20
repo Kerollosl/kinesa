@@ -1,24 +1,30 @@
-/* Rendered companions share one light source and move as a soft, solid toy.
-   The scene already animates its outer art wrapper, so it owns their travel. */
-.mascot.mascot-3d {
-  --companion-breath-delay: -0.5s;
-  --companion-blink-delay: -0.9s;
-  --companion-idle-opacity: 1;
-  --companion-blink-opacity: 0;
-  --companion-celebrate-opacity: 0;
-  --companion-idle-animation: companion-idle-frame;
-  --companion-blink-animation: companion-blink-frame;
-  --companion-body-animation: companion-breathe;
-  --companion-body-duration: 5.8s;
-  --companion-body-iterations: infinite;
-
+/* Painted parts move on persistent spring-driven joints. CSS never restarts a
+   character or replaces its silhouette when interaction state changes. */
+.mascot.mascot-rig {
   overflow: visible;
   isolation: isolate;
 }
 
-/* Face framing stays legible in small player icons. The source window is the
-   same for every expression, including the wider celebration wings. */
-.mascot.mascot-3d.mascot-portrait {
+.mascot.mascot-rig .mascot-body,
+.mascot.mascot-rig .mascot-shadow {
+  animation: none !important;
+}
+
+.mascot.mascot-rig [data-joint],
+.mascot.mascot-rig [data-lid],
+.mascot.mascot-rig [data-contact-shadow] {
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+
+.companion-painted-part,
+.mascot-rig [data-lid],
+.mascot-rig [data-lid-line] {
+  pointer-events: none;
+  user-select: none;
+}
+
+.mascot.mascot-rig.mascot-portrait {
   overflow: hidden;
 }
 
@@ -40,234 +46,15 @@
   background: #ffffff70;
 }
 
-.mascot.mascot-3d.mascot-ox {
-  --companion-breath-delay: -2.1s;
-  --companion-blink-delay: -3.6s;
-}
-
-.mascot.mascot-3d.mascot-eagle {
-  --companion-breath-delay: -3.6s;
-  --companion-blink-delay: -1.9s;
-}
-
-.mascot.mascot-3d.mascot-human {
-  --companion-breath-delay: -1.4s;
-  --companion-blink-delay: -5.2s;
-}
-
-.mascot.mascot-3d .mascot-body {
-  transform-box: view-box;
-  transform-origin: 50% 86%;
-  animation-name: var(--companion-body-animation);
-  animation-duration: var(--companion-body-duration);
-  animation-timing-function: cubic-bezier(0.37, 0, 0.25, 1);
-  animation-delay: var(--companion-breath-delay);
-  animation-iteration-count: var(--companion-body-iterations);
-  animation-fill-mode: both;
-}
-
-.mascot.mascot-3d .mascot-render-idle,
-.mascot.mascot-3d .mascot-render-blink,
-.mascot.mascot-3d .mascot-render-celebrate {
-  pointer-events: none;
-  user-select: none;
-}
-
-.mascot.mascot-3d .mascot-render-idle {
-  opacity: var(--companion-idle-opacity);
-  animation: var(--companion-idle-animation) 6.4s step-end
-    var(--companion-blink-delay) infinite;
-}
-
-.mascot.mascot-3d .mascot-render-blink {
-  opacity: var(--companion-blink-opacity);
-  animation: var(--companion-blink-animation) 6.4s step-end
-    var(--companion-blink-delay) infinite;
-}
-
-.mascot.mascot-3d .mascot-render-celebrate {
-  opacity: var(--companion-celebrate-opacity);
-}
-
-.mascot.mascot-3d .mascot-shadow {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: companion-ground-shadow 5.8s ease-in-out
-    var(--companion-breath-delay) infinite;
-}
-
-/* One expression is visible at a time. Brief stepped blinks avoid the ghosted
-   eyes produced by dissolving between two nearly identical rendered faces. */
-@keyframes companion-idle-frame {
-  0%,
-  43%,
-  46%,
-  100% {
-    opacity: 1;
-  }
-  44%,
-  45% {
-    opacity: 0;
-  }
-}
-
-@keyframes companion-blink-frame {
-  0%,
-  43%,
-  46%,
-  100% {
-    opacity: 0;
-  }
-  44%,
-  45% {
-    opacity: 1;
-  }
-}
-
-@keyframes companion-breathe {
-  0%,
-  100% {
-    transform: translateY(0) rotate(-0.45deg) scale(1, 1);
-  }
-  48% {
-    transform: translateY(-1.6px) rotate(0.6deg) scale(0.994, 1.012);
-  }
-}
-
-@keyframes companion-ground-shadow {
-  0%,
-  100% {
-    transform: scaleX(1);
-    opacity: 0.14;
-  }
-  48% {
-    transform: scaleX(0.94);
-    opacity: 0.1;
-  }
-}
-
-:is(.gs-cheering, .gs-party, .winner-mascots, .answer-reveal.is-correct)
-  .mascot.mascot-3d,
-.mascot.mascot-3d[data-mood="celebrate"] {
-  --companion-idle-opacity: 0;
-  --companion-blink-opacity: 0;
-  --companion-celebrate-opacity: 1;
-  --companion-idle-animation: none;
-  --companion-blink-animation: none;
-}
-
-:is(.winner-mascots, .answer-reveal.is-correct) .mascot.mascot-3d {
-  --companion-body-animation: companion-celebrate-settle;
-  --companion-body-duration: 1.15s;
-  --companion-body-iterations: 1;
-  --companion-breath-delay: 0s;
-}
-
-@keyframes companion-celebrate-settle {
-  0% {
-    transform: translateY(1px) scale(1.025, 0.975);
-  }
-  25% {
-    transform: translateY(-5px) rotate(-2deg) scale(0.985, 1.025);
-  }
-  49% {
-    transform: translateY(0) rotate(1.2deg) scale(1.015, 0.99);
-  }
-  71% {
-    transform: translateY(-1.2px) rotate(-0.5deg) scale(0.998, 1.005);
-  }
-  100% {
-    transform: none;
-  }
-}
-
-/* The outer scene wrapper already supplies hovering and celebratory hops. */
-.gs-character .mascot.mascot-3d {
-  --companion-body-animation: none;
-}
-
-.gs-character .mascot.mascot-3d .mascot-shadow {
-  animation: none;
+.gs-character .mascot.mascot-rig .mascot-shadow {
   opacity: 0;
 }
 
-/* Cards quietly breathe while awaiting a decision; the deal itself belongs to
-   the card flip. Do not restore the old perpetual assignment-card hopping. */
-.assignment-front .mascot.mascot-3d {
-  --companion-body-animation: companion-breathe;
-  --companion-body-duration: 6.6s;
-  --companion-body-iterations: infinite;
-}
-
-:is(.score-player:focus-visible, .companions-banner:focus-visible)
-  .mascot.mascot-3d {
-  --companion-idle-opacity: 0;
-  --companion-blink-opacity: 0;
-  --companion-celebrate-opacity: 1;
-  --companion-idle-animation: none;
-  --companion-blink-animation: none;
-  --companion-body-animation: companion-greet;
-  --companion-body-duration: 0.7s;
-  --companion-body-iterations: 1;
-  --companion-breath-delay: 0s;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  :is(.score-player:hover, .companions-banner:hover, .assignment-slot:hover)
-    .mascot.mascot-3d {
-    --companion-idle-opacity: 0;
-    --companion-blink-opacity: 0;
-    --companion-celebrate-opacity: 1;
-    --companion-idle-animation: none;
-    --companion-blink-animation: none;
-    --companion-body-animation: companion-greet;
-    --companion-body-duration: 0.7s;
-    --companion-body-iterations: 1;
-    --companion-breath-delay: 0s;
-  }
-}
-
-@keyframes companion-greet {
-  0% {
-    transform: none;
-  }
-  35% {
-    transform: translateY(-2.5px) rotate(-2.2deg) scale(1.025);
-  }
-  65% {
-    transform: translateY(-0.8px) rotate(0.8deg) scale(1.01);
-  }
-  100% {
-    transform: translateY(-1px) rotate(-0.6deg) scale(1.015);
-  }
-}
-
-.game-scene.gs-motion-paused .mascot.mascot-3d * {
-  animation-play-state: paused !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .mascot.mascot-3d *,
-  .mascot.mascot-3d *::before,
-  .mascot.mascot-3d *::after {
+  .mascot.mascot-rig *,
+  .mascot.mascot-rig *::before,
+  .mascot.mascot-rig *::after {
     animation: none !important;
     transition: none !important;
-  }
-
-  .mascot.mascot-3d .mascot-body,
-  .mascot.mascot-3d .mascot-shadow {
-    transform: none !important;
-  }
-
-  .mascot.mascot-3d .mascot-render-idle {
-    opacity: var(--companion-idle-opacity);
-  }
-
-  .mascot.mascot-3d .mascot-render-blink {
-    opacity: 0;
-  }
-
-  .mascot.mascot-3d .mascot-render-celebrate {
-    opacity: var(--companion-celebrate-opacity);
   }
 }

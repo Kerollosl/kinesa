@@ -1,11 +1,17 @@
-# Kinesa companion artwork
+# Kinesa companion rig artwork
 
-`kinesa-companions-3d.png` is original generated Kinesa artwork: a transparent 1448 × 1086 atlas. Columns are Leo (lion), Lou (ox), Juno (eagle), and Mattie (human); rows are idle, blink, and celebrate. It contains no third-party mascot assets.
+The four original Gospel companions are assembled from transparent, self-hosted painted parts:
 
-`src/components/Mascot.jsx` specifies each source window explicitly because the artwork has irregular gutters. All expressions use the same character scale and camera center, with a shared destination foot baseline. The eagle's raised wings need a wider window than its idle pose. Keep these windows separate to avoid rendering a neighboring character's feathers.
+- `kinesa-companion-rig.webp` (1536 × 1024): six parts per character—body reference, head, left/right wings, left/right limbs. Rows are Leo, Lou, Juno and Mattie.
+- `kinesa-companion-torsos.webp` (1983 × 793): underpainted lion and ox bodies behind moving forelimbs.
+- `kinesa-companion-eyelids.webp` (2172 × 724): matching closed-eye facial textures, registered locally over each eye rather than swapping full heads.
 
-The SVG wrapper provides one accessible name, scoped clip paths, full-body or portrait framing, and a contact shadow. Each pose references the same cached PNG. `index.html` preloads it. No canvas, external service, or 3D engine is required at runtime.
+All artwork was generated originally for Kinesa. Lossless WebP encoding preserves every visible RGBA channel value from the PNG originals and reduces the three textures by 41%. There are no external runtime requests or third-party mascot assets. The former full-body action atlas is retained in Git history.
 
-`src/components/companion-motion.css` owns expression switching and gentle body motion. The home scene's existing outer wrapper owns scene travel and its own ground shadow. Reduced motion disables all animation and shows exactly one pose; the scene pause control freezes its frame animation as well as movement.
+`src/components/companion-rig.js` defines source windows, destination camera boxes, shoulder/head pivots, and eye registration. These are explicit because generated atlas gutters are irregular. Head clip shapes exclude neighboring pieces at narrow gutters; the ox chest has a feathered underpaint layer to conceal shoulder roots. Parts overlap under heads, manes and collars. Keep feet grounded when adjusting the camera.
 
-To replace the art, preserve the four Gospel identities, consistent lighting, fixed scale between expressions, transparent background, and enough space for horns, halos, tails, and spread wings. Update the atlas dimensions and source windows together, then review every pose at full and icon sizes.
+`Mascot.jsx` renders one accessible SVG with scoped clip/mask identifiers. `useCompanionMotion.js` updates persistent joint transforms directly, using one shared animation frame scheduler. `companion-physics.js` supplies damped springs, asynchronous continuous idle movement, pointer attention, blinking and interruptible greetings. No React renders occur per animation frame or pointer movement.
+
+Pause preserves phase, position and velocity. Offscreen and hidden-tab rigs suspend without catch-up. Reduced motion uses one static articulated pose. `companion-motion.css` supplies framing and overrides obsolete sprite animations; it does not restart joint motion on hover or click.
+
+To replace the artwork, keep generous hidden neck/shoulder overlap, consistent baked lighting, original Gospel identities, and complete transparent silhouettes. Update windows, pivots and local eyelid registration together. Review idle, interrupted greetings, blinks and icon framing; regenerate the app screenshots and motion recording with `node scripts/capture-preview.mjs`.

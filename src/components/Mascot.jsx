@@ -1,4 +1,6 @@
 import { useId } from "react";
+import useCompanionMotion from "./useCompanionMotion.js";
+import { COMPANION_RIGS, RIG_ARTWORK, rigPlacement } from "./companion-rig.js";
 import "./companion-motion.css";
 
 export const MASCOTS = [
@@ -36,117 +38,215 @@ export const MASCOTS = [
   },
 ];
 
-const artwork = "/characters/kinesa-companions-3d.png";
-const atlas = { width: 1448, height: 1086 };
-const poses = ["idle", "blink", "celebrate"];
+function RigPart({ part, id }) {
+  const placement = rigPlacement(part);
+  const art = RIG_ARTWORK[part.art || "parts"];
+  const { x, y, width, height } = placement;
+  const clip =
+    part.outline === "ox-head"
+      ? `M${x} ${y}h${width * 0.35}v9h${width * 0.35}v-9H${x + width}v${height}H${x + 4}v${-height * 0.51}H${x}Z`
+      : part.trimCorners
+        ? `M${x + 1.8} ${y}H${x + width}v${height - 7}h${-width * 0.25}v7h${-width * 0.5}v-7H${x + 1.8}Z`
+        : null;
+  return (
+    <g className="companion-painted-part">
+      <defs>
+        <clipPath id={id}>
+          {clip ? (
+            <path d={clip} />
+          ) : (
+            <rect x={x} y={y} width={width} height={height} />
+          )}
+        </clipPath>
+      </defs>
+      <image
+        href={art.href}
+        x={placement.imageX}
+        y={placement.imageY}
+        width={art.width * placement.scale}
+        height={art.height * placement.scale}
+        preserveAspectRatio="none"
+        clipPath={`url(#${id})`}
+      />
+    </g>
+  );
+}
 
-// Keep the camera, character scale and feet fixed between expressions. The
-// authored atlas has irregular gutters, so use explicit source windows rather
-// than dividing it into a grid or independently fitting each pose to its box.
-const frames = {
-  lion: {
-    center: 200,
-    scale: 0.48,
-    windows: [
-      [25, 18, 350, 347],
-      [25, 368, 350, 344],
-      [20, 712, 365, 350],
-    ],
-  },
-  ox: {
-    center: 552,
-    scale: 0.48,
-    windows: [
-      [390, 12, 325, 353],
-      [390, 366, 325, 346],
-      [390, 713, 324, 349],
-    ],
-  },
-  eagle: {
-    center: 914,
-    scale: 0.46,
-    windows: [
-      [760, 35, 310, 333],
-      [760, 382, 310, 330],
-      [714, 713, 398, 349],
-    ],
-  },
-  human: {
-    center: 1274,
-    scale: 0.48,
-    windows: [
-      [1120, 12, 310, 353],
-      [1120, 366, 310, 346],
-      [1120, 710, 310, 352],
-    ],
-  },
-};
-const footBaselines = [354, 704, 1051];
+function Eyelids({ rig, id }) {
+  const art = RIG_ARTWORK.eyelids;
+  return rig.eyes.map((eye, index) => {
+    const [sourceX, sourceY] = rig.blink.centers[index];
+    const scale = rig.blink.scale;
+    return (
+      <g key={index}>
+        <defs>
+          <radialGradient id={`${id}-lid-feather-${index}`}>
+            <stop offset="0" stopColor="white" />
+            <stop offset=".8" stopColor="white" />
+            <stop offset="1" stopColor="black" />
+          </radialGradient>
+          <mask id={`${id}-lid-mask-${index}`}>
+            <ellipse
+              cx={eye.x}
+              cy={eye.y}
+              rx={eye.rx * 1.28}
+              ry={eye.ry * 1.28}
+              fill={`url(#${id}-lid-feather-${index})`}
+            />
+          </mask>
+        </defs>
+        <g
+          data-lid
+          visibility="hidden"
+          data-pivot={`${eye.x} ${eye.y - eye.ry}`}
+          transform={`translate(0 ${eye.y - eye.ry}) scale(1 0) translate(0 ${-eye.y + eye.ry})`}
+        >
+          <image
+            href={art.href}
+            x={eye.x - sourceX * scale}
+            y={eye.y + 3 - sourceY * scale}
+            width={art.width * scale}
+            height={art.height * scale}
+            mask={`url(#${id}-lid-mask-${index})`}
+            preserveAspectRatio="none"
+          />
+        </g>
+      </g>
+    );
+  });
+}
 
 export default function Mascot({
   kind = "lion",
   className = "",
   mood = "happy",
   portrait = false,
+  paused = false,
+  reaction = 0,
+  look = null,
   ...props
 }) {
   const id = useId().replaceAll(":", "");
   const companion =
     MASCOTS.find((mascot) => mascot.kind === kind) || MASCOTS[0];
-  const frame = frames[companion.kind];
-  const offsetX = 100 - frame.center * frame.scale;
-
+  const rig = COMPANION_RIGS[companion.kind];
+  const rootRef = useCompanionMotion({
+    kind: companion.kind,
+    mood,
+    portrait,
+    paused,
+    reaction,
+    look,
+  });
+  const joint = (name) => ({
+    "data-joint": name,
+    "data-pivot": rig.pivots[name].join(" "),
+  });
   return (
     <svg
+      ref={rootRef}
       viewBox={portrait ? "40 28 120 120" : "0 0 200 200"}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       aria-label={`${companion.name}, the ${companion.kind} companion of ${companion.gospel}`}
-      className={`mascot mascot-3d mascot-${companion.kind} ${portrait ? "mascot-portrait" : ""} ${className}`}
+      className={`mascot mascot-3d mascot-rig mascot-${companion.kind} ${portrait ? "mascot-portrait" : ""} ${className}`}
       data-mood={mood}
       {...props}
     >
-      <defs>
-        {frame.windows.map(([x, y, width, height], index) => (
-          <clipPath id={`companion-${id}-${poses[index]}`} key={poses[index]}>
-            <rect
-              x={offsetX + x * frame.scale}
-              y={180 + (y - footBaselines[index]) * frame.scale}
-              width={width * frame.scale}
-              height={height * frame.scale}
-            />
-          </clipPath>
-        ))}
-      </defs>
       {!portrait && (
         <ellipse
           className="mascot-shadow"
+          data-contact-shadow
+          data-pivot="100 183"
           cx="100"
-          cy="182"
-          rx="40"
-          ry="5"
+          cy="183"
+          rx="37"
+          ry="4.2"
           fill="#705A75"
           opacity=".12"
         />
       )}
-      <g className="mascot-body">
-        {poses.map((pose, index) => (
-          <g
-            className={`mascot-render-${pose}`}
-            clipPath={`url(#companion-${id}-${pose})`}
-            key={pose}
-          >
-            <image
-              href={artwork}
-              x={offsetX}
-              y={180 - footBaselines[index] * frame.scale}
-              width={atlas.width * frame.scale}
-              height={atlas.height * frame.scale}
-              preserveAspectRatio="none"
-            />
+      <g className="mascot-body" data-joint="body" data-pivot="100 181">
+        <g {...joint("wingLeft")}>
+          <RigPart part={rig.wingLeft} id={`${id}-wing-left`} />
+        </g>
+        <g {...joint("wingRight")}>
+          <RigPart part={rig.wingRight} id={`${id}-wing-right`} />
+        </g>
+        <RigPart part={rig.body} id={`${id}-torso`} />
+        <g {...joint("armLeft")}>
+          <RigPart part={rig.armLeft} id={`${id}-arm-left`} />
+        </g>
+        <g {...joint("armRight")}>
+          <RigPart part={rig.armRight} id={`${id}-arm-right`} />
+        </g>
+        {rig.collar && (
+          <g>
+            <defs>
+              <linearGradient
+                id={`${id}-collar-fade`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="0" stopColor="white" />
+                <stop offset=".75" stopColor="white" />
+                <stop offset="1" stopColor="black" />
+              </linearGradient>
+              <mask id={`${id}-collar-mask`}>
+                <rect
+                  x={rig.collar[0]}
+                  y={rig.collar[1]}
+                  width={rig.collar[2]}
+                  height={rig.collar[3]}
+                  fill={`url(#${id}-collar-fade)`}
+                />
+              </mask>
+            </defs>
+            <g mask={`url(#${id}-collar-mask)`}>
+              <RigPart part={rig.body} id={`${id}-collar`} />
+            </g>
           </g>
-        ))}
+        )}
+        <g {...joint("head")}>
+          <RigPart part={rig.head} id={`${id}-head`} />
+          <Eyelids rig={rig} id={id} />
+          {companion.kind === "human" && (
+            <g data-joint="halo" data-pivot="100 18">
+              <defs>
+                <linearGradient
+                  id={`${id}-halo`}
+                  x1="70"
+                  y1="13"
+                  x2="130"
+                  y2="23"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stopColor="#FFF1B0" />
+                  <stop offset=".4" stopColor="#E5AE37" />
+                  <stop offset="1" stopColor="#BA7820" />
+                </linearGradient>
+              </defs>
+              <ellipse
+                cx="100"
+                cy="18"
+                rx="27"
+                ry="7"
+                transform="rotate(-8 100 18)"
+                stroke={`url(#${id}-halo)`}
+                strokeWidth="5"
+              />
+              <path
+                d="M75 19Q89 7 121 12"
+                stroke="#FFF1AE"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+              />
+            </g>
+          )}
+        </g>
       </g>
     </svg>
   );

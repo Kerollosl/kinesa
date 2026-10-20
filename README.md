@@ -30,7 +30,7 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 - **Guided setup:** a three-step indicator explains setup, companion reveal, and play. Desktop setup includes an illustrated rules panel, with a compact layout on phones.
 - **Animated reveal:** each player's companion appears on a flipping card before gameplay begins. Card colors follow the companion's identity. Players can return to edit the roster, then deal a new set before starting.
 - **Interactive game scene:** character high-fives cycle distinct greetings, and practice spins land on and announce the actual category. Scene animation can be paused. Reduced-motion preferences disable ambient movement and shorten deliberate spins.
-- **Sculpted companions:** softly lit, rounded 3D-style artwork gives the four companions a cohesive cartoon look. Idle, blink, and celebration poses share a fixed camera and foot position; high-fives, correct answers, and wins bring out their joyful expressions. Small player icons use face-focused framing. One self-hosted transparent atlas supplies every pose, with no 3D runtime or external asset requests.
+- **Fluid companion animation:** softly shaded 3D-style artwork is assembled into persistent articulated rigs. Heads, wings, paws, hands and Mattie’s halo move independently; painted eyelids close smoothly without replacing the face or body. Per-character breathing, curiosity, wing flex and occasional gestures continue through greetings. Pointer attention and repeated taps retarget damped springs from their current position and velocity, then settle back into the ongoing idle. One shared animation clock suspends offscreen characters and hidden tabs; scene pause freezes the exact pose and reduced motion stays static. Artwork is self-hosted and losslessly compressed.
 - **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during room setup and matches so it cannot crowd the reveal or cover answers.
 - **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
 - **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. The home screen shows the active companion, current turn, and round with a direct resume action. Invalid saves are rejected.
@@ -66,8 +66,11 @@ src/
     game-scene.css         Scoped arena motion and layout
     Lobby.jsx              Game modes, room previews, matching and assignment reveal
     Game.jsx               Wheel, answers, scores and results
-    Mascot.jsx             Accessible companion renderer, atlas framing and metadata
-    companion-motion.css   Blinks, reactions, breathing and reduced-motion poses
+    Mascot.jsx             Accessible layered companion renderer and metadata
+    companion-rig.js        Painted-part framing, pivots and eyelid registration
+    companion-physics.js    Springs, continuous idle and interruptible gestures
+    useCompanionMotion.js   Shared animation clock, pointer input and suspension
+    companion-motion.css   Rig framing and motion accessibility styles
     Wheel.jsx              Six-category wheel and icons
     *-experience.css       Scoped layout and interaction styling
   engine.js                Random assignment, scoring, turns, sample selection
@@ -98,7 +101,9 @@ npm run build
 
 Unit coverage enumerates all 24 four-player companion permutations, verifies no duplicates, proves submitted character choices are ignored, and checks fresh rematches, scoring, shared wins, turns, and the sample deck.
 
-Browser coverage includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, revising a room after the companion reveal, browser history/focus, mobile rules/focus return, interrupted spins, rapid keyboard input, unfinished-match replacement, room recovery, unscored discovery, interactive collection badges, and scene motion controls.
+Motion unit coverage checks frame-rate stability, interruptions, pause clocks, delayed frames, portrait restraint and return to idle. Browser motion regressions check live independent joints, persistent character nodes, repeated greetings, pause/resume and dynamic reduced-motion changes.
+
+Browser coverage also includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, revising a room after the companion reveal, browser history/focus, mobile rules/focus return, interrupted spins, rapid keyboard input, unfinished-match replacement, room recovery, unscored discovery, interactive collection badges, and scene motion controls.
 
 Use an existing Chromium installation if desired:
 

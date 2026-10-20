@@ -203,11 +203,14 @@ export default function GameScene({
             aria-label={`High-five ${member.name}`}
           >
             <span className="gs-character-shadow" aria-hidden="true" />
-            <span
-              key={`art-${active ? reaction.id : party}`}
-              className="gs-character-art"
-            >
-              <Mascot kind={member.kind} aria-hidden="true" />
+            <span className="gs-character-art">
+              <Mascot
+                kind={member.kind}
+                mood={active || spinning ? "celebrate" : "happy"}
+                paused={paused}
+                reaction={(greetings.current[member.kind] || 0) + party * 1000}
+                aria-hidden="true"
+              />
             </span>
             {active && (
               <span className="gs-reaction" key={`bubble-${reaction.id}`}>
