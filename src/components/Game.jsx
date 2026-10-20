@@ -170,7 +170,7 @@ export default function Game({
             aria-label={`${p.name}: ${p.score} points${active === i && !finished ? ", " + playerStatus : ""}. View companion`}
           >
             <div className="score-avatar">
-              <Mascot kind={p.kind} />
+              <Mascot kind={p.kind} portrait />
             </div>
             <div>
               <strong title={p.name}>
@@ -465,7 +465,7 @@ export default function Game({
                           .length}
                     </span>
                     <span className="result-avatar">
-                      <Mascot kind={p.kind} />
+                      <Mascot kind={p.kind} portrait />
                     </span>
                     <span className="result-player">
                       <strong>

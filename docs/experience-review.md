@@ -1,11 +1,13 @@
-# Kinesa experience review — 0.7
+# Kinesa experience review — 0.8
 
-This pass covered the existing frontend from entry through a completed match, keeping the liquid-glass direction and the original Gospel companions.
+This pass adds a cohesive family of rounded, softly shaded 3D-style companions to the liquid-glass interface. Leo, Lou, Juno, and Mattie each have idle, blink, and celebration poses, with fixed scale and grounding across expression changes. Juno retains a white eagle head, brown feathered wings, hooked golden beak, and talons. Small player icons use face framing; larger scenes show the full character. A single transparent, self-hosted atlas serves all four companions without a 3D runtime.
+
+The scene owns travel and floor shadows; the companion renderer owns expression and gentle breathing elsewhere. High-fives, practice spins, card focus, correct answers, and results select the appropriate pose. Pausing freezes scene animation, and reduced motion keeps one static expression visible. All existing game flows were preserved and rechecked.
 
 | Area                    | Reviewed and improved                                                                                                | Verification                                                                                           |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
 | Home and navigation     | Clear practice/friends entry, resume card, browser Back/Forward, page-heading focus, skip link, sound feedback       | Desktop and phone layouts; history and focus browser tests                                             |
-| Character scene         | Cycling high-fives, accurate category landing, pause/resume animation, Juno’s eagle artwork                          | Repeated interactions; 320px character bounds; reduced-motion and practice-spin tests                  |
+| Character scene         | Sculpted 3D-style companions, blinks, celebration poses, cycling high-fives, accurate category landing, pause/resume | All 12 poses visually reviewed; repeated interactions; 320px bounds; reduced-motion and spin tests     |
 | Friends rooms           | Seat occupancy, focused name editing, copy feedback, full-room protection, saved-room recovery                       | Invalid/sample/full room flows; roster preservation and reveal editing tests                           |
 | Practice matchmaking    | Explicit bot labels, animated readiness cards, cancellation, unique companion dealing                                | Full bot flow, cancellation, bot turns and collection exclusion                                        |
 | Companion reveal        | Identity colors, layouts for 2–4 players, completed reveal before entry, edit roster                                 | Unique deals, fresh rematches, exact revealed companions carried into the match                        |

@@ -21,6 +21,72 @@ async function capture(page, path) {
   });
   await page.screenshot({ path, fullPage: true });
 }
+
+// Review the real renderer's three poses at a fixed scale, without adding a
+// development-only gallery to the product itself.
+async function captureCompanions(page) {
+  await page.evaluate(async () => {
+    const art = new Image();
+    art.src = "/characters/kinesa-companions-3d.png";
+    await art.decode();
+    const originals = ["lion", "ox", "eagle", "human"].map((kind) =>
+      document.querySelector(`.gs-character-art .mascot-${kind}`),
+    );
+    const gallery = document.createElement("div");
+    gallery.id = "companion-preview";
+    gallery.style =
+      "position:fixed;left:0;top:0;width:1440px;height:1080px;z-index:10000;padding:32px 55px;background:#edf2fb;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(3,1fr);gap:12px;";
+    ["idle", "blink", "celebrate"].forEach((pose, row) => {
+      originals.forEach((original, col) => {
+        const cell = document.createElement("div");
+        cell.dataset.kind = ["lion", "ox", "eagle", "human"][col];
+        cell.style =
+          "display:flex;flex-direction:column;align-items:center;justify-content:center;";
+        const svg = original.cloneNode(true);
+        svg.style = "width:280px;height:280px;overflow:visible;";
+        svg.querySelectorAll("[id]").forEach((element) => {
+          const before = element.id;
+          element.id += `-review-${row}`;
+          svg.querySelectorAll("[clip-path]").forEach((group) => {
+            if (group.getAttribute("clip-path") === `url(#${before})`)
+              group.setAttribute("clip-path", `url(#${element.id})`);
+          });
+        });
+        svg.querySelector(".mascot-body").style =
+          "animation:none!important;transform:none!important;";
+        ["idle", "blink", "celebrate"].forEach((frame) => {
+          svg.querySelector(`.mascot-render-${frame}`).style =
+            `animation:none!important;opacity:${frame === pose ? 1 : 0}!important;`;
+        });
+        const label = document.createElement("span");
+        label.style = "font:500 14px 'DM Sans',sans-serif;color:#64728c;";
+        label.textContent = `${["Leo", "Lou", "Juno", "Mattie"][col]} · ${pose}`;
+        cell.append(svg, label);
+        gallery.append(cell);
+      });
+    });
+    document.body.append(gallery);
+  });
+  await page.locator("#companion-preview").screenshot({
+    path: "docs/kinesa-companions.png",
+  });
+  await page.evaluate(() => {
+    const gallery = document.querySelector("#companion-preview");
+    gallery.querySelectorAll("[data-kind]").forEach((cell) => {
+      if (cell.dataset.kind !== "eagle") cell.remove();
+    });
+    gallery.style.width = "1120px";
+    gallery.style.height = "390px";
+    gallery.style.gridTemplateColumns = "repeat(3,1fr)";
+    gallery.style.gridTemplateRows = "1fr";
+  });
+  await page.locator("#companion-preview").screenshot({
+    path: "docs/kinesa-juno.png",
+  });
+  await page.evaluate(() =>
+    document.querySelector("#companion-preview").remove(),
+  );
+}
 const watch = (page) =>
   page.on("pageerror", (error) => errors.push(error.message));
 const context = await browser.newContext({
@@ -32,6 +98,7 @@ watch(page);
 await page.goto("http://localhost:5173");
 await expect(page.getByRole("button", { name: /Random game/ })).toBeVisible();
 await page.evaluate(() => document.fonts.ready);
+await captureCompanions(page);
 await capture(page, "docs/kinesa-desktop.png");
 await page.setViewportSize({ width: 390, height: 844 });
 await capture(page, "docs/kinesa-mobile.png");

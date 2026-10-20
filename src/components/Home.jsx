@@ -42,7 +42,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
       {ongoing && (
         <button className="resume-banner" onClick={() => navigate("game")}>
           <span className="resume-companion" aria-hidden="true">
-            <Mascot kind={activePlayer.kind} />
+            <Mascot kind={activePlayer.kind} portrait />
           </span>
           <span className="resume-copy">
             <span className="resume-eyebrow">
@@ -227,7 +227,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
         <span className="companion-portraits" aria-hidden="true">
           {["lion", "ox", "eagle", "human"].map((kind) => (
             <span key={kind}>
-              <Mascot kind={kind} />
+              <Mascot kind={kind} portrait />
             </span>
           ))}
         </span>

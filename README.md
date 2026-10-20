@@ -30,6 +30,7 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 - **Guided setup:** a three-step indicator explains setup, companion reveal, and play. Desktop setup includes an illustrated rules panel, with a compact layout on phones.
 - **Animated reveal:** each player's companion appears on a flipping card before gameplay begins. Card colors follow the companion's identity. Players can return to edit the roster, then deal a new set before starting.
 - **Interactive game scene:** character high-fives cycle distinct greetings, and practice spins land on and announce the actual category. Scene animation can be paused. Reduced-motion preferences disable ambient movement and shorten deliberate spins.
+- **Sculpted companions:** softly lit, rounded 3D-style artwork gives the four companions a cohesive cartoon look. Idle, blink, and celebration poses share a fixed camera and foot position; high-fives, correct answers, and wins bring out their joyful expressions. Small player icons use face-focused framing. One self-hosted transparent atlas supplies every pose, with no 3D runtime or external asset requests.
 - **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during room setup and matches so it cannot crowd the reveal or cover answers.
 - **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
 - **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. The home screen shows the active companion, current turn, and round with a direct resume action. Invalid saves are rejected.
@@ -65,7 +66,8 @@ src/
     game-scene.css         Scoped arena motion and layout
     Lobby.jsx              Game modes, room previews, matching and assignment reveal
     Game.jsx               Wheel, answers, scores and results
-    Mascot.jsx             Four original SVG companions and metadata
+    Mascot.jsx             Accessible companion renderer, atlas framing and metadata
+    companion-motion.css   Blinks, reactions, breathing and reduced-motion poses
     Wheel.jsx              Six-category wheel and icons
     *-experience.css       Scoped layout and interaction styling
   engine.js                Random assignment, scoring, turns, sample selection
@@ -77,6 +79,7 @@ src/
   app-experience.css       Shared dialog, focus and toast details
   useGlassLight.js          Desktop pointer lighting without React re-renders
 public/fonts/              Self-hosted fonts and OFL licenses
+public/characters/         Original rendered companion artwork and frame notes
 tests/                     Unit and browser tests
 ```
 
@@ -109,4 +112,4 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 
 Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). DM Sans is bundled under the SIL Open Font License in `public/fonts/`.
 
-[Mobile preview](docs/kinesa-mobile.png) · [Discover](docs/kinesa-discover.png) · [Collection](docs/kinesa-collection.png) · [Results](docs/kinesa-results.png) · [Companion details](docs/kinesa-companion.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)
+[Mobile preview](docs/kinesa-mobile.png) · [3D companions](docs/kinesa-companions.png) · [Discover](docs/kinesa-discover.png) · [Collection](docs/kinesa-collection.png) · [Results](docs/kinesa-results.png) · [Companion details](docs/kinesa-companion.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)
