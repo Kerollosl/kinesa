@@ -306,3 +306,129 @@ test("the original artwork and high-fives work without graphics workers or WebGL
   await expect(page.locator(".gs-juno .gs-reaction")).toBeVisible();
   await expect(page.getByRole("button", { name: /Random game/ })).toBeEnabled();
 });
+
+test("the crew keeps dancing, blends a greeting into the rhythm, and winds down without replacing artwork", async ({
+  page,
+}) => {
+  await readyScene(page);
+  const dance = page.getByRole("button", {
+    name: "Dance with the crew",
+    exact: true,
+  });
+  await dance.click();
+  await expect(dance).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(`${sceneRigs}[data-dancing='true']`)).toHaveCount(
+    4,
+  );
+  // A session remains live beyond the lifetime of a one-shot greeting.
+  await page.waitForTimeout(5200);
+  const dancing = await sampleRig(page, { frames: 40, greetAt: [4, 18] });
+  expect(range(dancing, "body")).toBeGreaterThan(1);
+  expect(range(dancing, "head")).toBeGreaterThan(0.5);
+  expect(await sameCompanions(page)).toBe(true);
+  await expect(dance).toHaveAttribute("aria-pressed", "true");
+  await dance.click();
+  await expect(dance).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator(`${sceneRigs}[data-dancing='false']`)).toHaveCount(
+    4,
+  );
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("holding a companion sends love once, pause freezes the effects, and movement cancels a hold", async ({
+  page,
+}) => {
+  await readyScene(page);
+  const leo = page.getByRole("button", { name: "High-five Leo", exact: true });
+  const box = await leo.boundingBox();
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height * 0.5);
+  await page.mouse.down();
+  await expect(page.locator(".gs-leo .mascot-rig")).toHaveAttribute(
+    "data-action",
+    "cuddle",
+  );
+  await page.mouse.up();
+  await expect(page.locator(".gs-leo .gs-reaction")).toHaveText(
+    "Sending a little love your way.",
+  );
+  await expect
+    .poll(() =>
+      page
+        .locator(".gs-leo [data-emote='hearts']")
+        .evaluateAll((nodes) =>
+          nodes.some((node) => Number(node.getAttribute("opacity")) > 0.02),
+        ),
+    )
+    .toBe(true);
+  await page
+    .getByRole("button", { name: "Pause scene animation", exact: true })
+    .click();
+  await expect(leo).toBeDisabled();
+  await expect(
+    page.getByRole("button", {
+      name: "Give the trivia wheel a practice spin",
+      exact: true,
+    }),
+  ).toBeEnabled();
+  const readEffects = () =>
+    page
+      .locator(".gs-leo [data-emote]")
+      .evaluateAll((nodes) =>
+        nodes.map((node) => [
+          node.getAttribute("transform"),
+          node.getAttribute("opacity"),
+        ]),
+      );
+  const frozen = await readEffects();
+  await page.waitForTimeout(250);
+  expect(await readEffects()).toEqual(frozen);
+  await page
+    .getByRole("button", { name: "Resume scene animation", exact: true })
+    .click();
+  const lou = page.getByRole("button", { name: "High-five Lou", exact: true });
+  await lou.dispatchEvent("pointerdown", {
+    pointerType: "touch",
+    button: 0,
+    clientX: 50,
+    clientY: 50,
+  });
+  await lou.dispatchEvent("pointermove", {
+    pointerType: "touch",
+    clientX: 90,
+    clientY: 90,
+  });
+  await lou.dispatchEvent("pointercancel", { pointerType: "touch" });
+  await page.waitForTimeout(650);
+  await expect(page.locator(".gs-lou .mascot-rig")).toHaveAttribute(
+    "data-action",
+    "hello",
+  );
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("opening help during a practice spin freezes the wheel and defers its result until closed", async ({
+  page,
+}) => {
+  await readyScene(page);
+  await page
+    .getByRole("button", {
+      name: "Give the trivia wheel a practice spin",
+      exact: true,
+    })
+    .click();
+  await page.waitForTimeout(400);
+  await page
+    .getByRole("banner")
+    .getByRole("button", { name: "How to play", exact: true })
+    .click();
+  const wheel = page.locator(".game-scene .wheel");
+  const rotation = () =>
+    wheel.evaluate((node) => getComputedStyle(node).transform);
+  const frozen = await rotation();
+  await page.waitForTimeout(400);
+  expect(await rotation()).toEqual(frozen);
+  await expect(page.getByText("Landed on", { exact: false })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Landed on", { exact: false })).toBeVisible();
+  expect(await rotation()).not.toEqual(frozen);
+});

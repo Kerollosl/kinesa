@@ -3,10 +3,38 @@ export const MAX_FRAME_DELTA = 1 / 15;
 const MAX_STEP = 1 / 120;
 
 const PERSONALITIES = {
-  lion: { breath: 0.25, curiosity: 1.15, wing: 1.7, wave: 1.0 },
-  ox: { breath: 0.2, curiosity: 0.72, wing: 1.25, wave: 0.72 },
-  eagle: { breath: 0.29, curiosity: 1.3, wing: 2.7, wave: 0.8 },
-  human: { breath: 0.23, curiosity: 1.05, wing: 1.55, wave: 1.1 },
+  lion: {
+    breath: 0.25,
+    curiosity: 1.15,
+    wing: 1.7,
+    wave: 1.0,
+    energy: 1.0,
+    beat: 4.7,
+  },
+  ox: {
+    breath: 0.2,
+    curiosity: 0.72,
+    wing: 1.25,
+    wave: 0.72,
+    energy: 0.72,
+    beat: 3.8,
+  },
+  eagle: {
+    breath: 0.29,
+    curiosity: 1.3,
+    wing: 2.7,
+    wave: 0.8,
+    energy: 1.1,
+    beat: 5.1,
+  },
+  human: {
+    breath: 0.23,
+    curiosity: 1.05,
+    wing: 1.55,
+    wave: 1.1,
+    energy: 0.95,
+    beat: 4.4,
+  },
 };
 
 const JOINT_PROPERTIES = {
@@ -14,8 +42,8 @@ const JOINT_PROPERTIES = {
   head: { x: 0, y: 0, r: 0 },
   wingLeft: { r: 0 },
   wingRight: { r: 0 },
-  armLeft: { r: 0 },
-  armRight: { r: 0 },
+  armLeft: { x: 0, y: 0, r: 0 },
+  armRight: { x: 0, y: 0, r: 0 },
   halo: { y: 0, r: 0 },
 };
 
@@ -101,6 +129,10 @@ export function advanceMotionClock(clock, timestamp, active = true) {
   return { last: timestamp, elapsed: clock.elapsed + delta, delta };
 }
 
+const ACTION_DURATION = { hello: 2.4, dance: 3.8, celebrate: 3.0, cuddle: 3.1 };
+const BEHAVIORS = ["glance", "stretch", "shuffle", "sway"];
+const spring = () => ({ value: 0, velocity: 0 });
+
 export function createCompanionState({
   kind = "lion",
   portrait = false,
@@ -112,12 +144,32 @@ export function createCompanionState({
     portrait: Boolean(portrait),
     phase: phase * TAU,
     elapsed: 0,
-    intent: { mood: "happy", reaction: 0, look: { x: 0, y: 0 } },
+    intent: {
+      mood: "happy",
+      action: "hello",
+      dancing: false,
+      reaction: 0,
+      look: { x: 0, y: 0 },
+    },
     greetingUntil: 0,
-    greeting: { value: 0, velocity: 0 },
-    gesture: { value: 0, velocity: 0 },
+    greeting: spring(),
+    actions: Object.fromEntries(
+      Object.keys(ACTION_DURATION).map((name) => [
+        name,
+        { ...spring(), started: 0, until: 0 },
+      ]),
+    ),
+    attention: { x: spring(), y: spring() },
+    gesture: spring(),
     gestureUntil: 0,
-    nextGesture: 3.6 + phase * 4.1,
+    nextGesture: 2.1 + phase * 3.1,
+    behavior: {
+      name: "rest",
+      started: 0,
+      until: 0,
+      cycle: Math.floor(phase * 4),
+    },
+    ambient: Object.fromEntries(BEHAVIORS.map((name) => [name, spring()])),
     nextBlink: 1.2 + phase * 3.4,
     blinkStart: -1,
     blink: 0,
@@ -138,22 +190,58 @@ export function createCompanionState({
 export function retargetCompanion(state, options = {}) {
   const mood = options.mood ?? state.intent.mood;
   const reaction = finite(options.reaction, state.intent.reaction);
-  const greeting =
+  const dancing = Boolean(options.dancing ?? state.intent.dancing);
+  const entersCelebration =
+    mood === "celebrate" && state.intent.mood !== "celebrate";
+  const requestedAction = Object.hasOwn(ACTION_DURATION, options.action)
+    ? options.action
+    : entersCelebration
+      ? "celebrate"
+      : state.intent.action;
+  const trigger =
     reaction !== state.intent.reaction ||
-    (mood === "celebrate" && state.intent.mood !== "celebrate");
+    entersCelebration ||
+    requestedAction !== state.intent.action;
+  let actions = state.actions;
+  if (trigger) {
+    actions = Object.fromEntries(
+      Object.entries(state.actions).map(([name, channel]) => [
+        name,
+        {
+          ...channel,
+          // Repeated taps extend the existing performance, preserving its rhythm.
+          started:
+            name === requestedAction && channel.until <= state.elapsed
+              ? state.elapsed
+              : channel.started,
+          until:
+            name === requestedAction
+              ? Math.max(channel.until, state.elapsed + ACTION_DURATION[name])
+              : Math.min(channel.until, state.elapsed),
+        },
+      ]),
+    );
+  }
+  if (state.intent.dancing && !dancing) {
+    actions = { ...actions, dance: { ...actions.dance, until: state.elapsed } };
+  }
+  const look = options.look ?? state.intent.look;
   return {
     ...state,
     kind: PERSONALITIES[options.kind] ? options.kind : state.kind,
     portrait: options.portrait ?? state.portrait,
-    greetingUntil: greeting
-      ? Math.max(state.greetingUntil, state.elapsed + 1.45)
+    greetingUntil: trigger
+      ? Math.max(state.greetingUntil, state.elapsed + 2.4)
       : state.greetingUntil,
+    actions,
     intent: {
       mood,
+      action: requestedAction,
+      dancing,
       reaction,
       look: {
-        x: clamp(finite(options.look?.x), -1, 1),
-        y: clamp(finite(options.look?.y), -1, 1),
+        x: clamp(finite(look?.x), -1, 1),
+        y: clamp(finite(look?.y), -1, 1),
       },
     },
   };
@@ -166,62 +254,193 @@ function blinkAt(time) {
   return 1 - smooth((time - 0.11) / 0.12);
 }
 
+/** One deliberate hop: anticipation, airborne arc, and a soft landing. The
+ * enclosing springs connect every phase, even when another action interrupts. */
+function leapAt(time) {
+  if (time < 0 || time > 0.94) return { lift: 0, squash: 0, wing: 0 };
+  if (time < 0.2)
+    return { lift: 0, squash: Math.sin((time / 0.2) * Math.PI), wing: 0 };
+  if (time < 0.7) {
+    const flight = (time - 0.2) / 0.5;
+    return {
+      lift: Math.sin(flight * Math.PI),
+      squash: -Math.sin(flight * Math.PI) * 0.35,
+      wing: Math.sin(flight * Math.PI),
+    };
+  }
+  return {
+    lift: 0,
+    squash: Math.sin(((time - 0.7) / 0.24) * Math.PI) * 0.7,
+    wing: 0,
+  };
+}
+
 function targetsFor(state) {
   const profile = PERSONALITIES[state.kind];
   const t = state.elapsed;
   const phase = state.phase;
-  const travel = state.portrait ? 0.36 : 1;
-  const turn = state.portrait ? 0.62 : 1;
+  const travel = state.portrait ? 0.28 : 1;
+  const turn = state.portrait ? 0.48 : 1;
   const breath = Math.sin(t * TAU * profile.breath + phase);
   const lean = Math.sin(t * 0.46 + phase * 0.7);
   const curiosity =
     Math.sin(t * 0.63 + phase * 1.3) * 1.1 + Math.sin(t * 0.27 + phase) * 0.6;
-  const look = state.intent.look;
-  const greet = state.greeting.value;
-  const gesture = state.gesture.value;
+  const look = { x: state.attention.x.value, y: state.attention.y.value };
+  const greet = state.actions.hello.value;
+  const dance = state.actions.dance.value;
+  const joy = state.actions.celebrate.value;
+  const hug = state.actions.cuddle.value;
+  const glance = state.ambient.glance.value;
+  const stretch = state.ambient.stretch.value;
+  const shuffle = state.ambient.shuffle.value;
+  const sway = state.ambient.sway.value;
   const wave = Math.sin(t * 7.1 + phase);
+  const beat = Math.sin(t * profile.beat * 2 + phase);
+  const groove = Math.sin(t * profile.beat + phase);
+  const local = t - state.behavior.started;
+  const glanceDirection = Math.sin(local * 0.85 + phase);
+  const foot = Math.sin(t * 3.6 + phase);
   const wing = Math.sin(t * 1.32 + phase) * profile.wing;
+  const flutter =
+    Math.sin(t * 3.3 + phase) *
+    Math.sin(t * 0.71 + phase * 0.4) *
+    (state.kind === "eagle" ? 1.6 : 0.55);
+  const fidget =
+    Math.sin(t * 3.7 + phase) *
+    Math.sin(t * 0.59 + phase) *
+    (state.kind === "human" ? 2.1 : 0.75);
   const headTurn =
-    (curiosity * profile.curiosity + look.x * 2.15 - gesture * 1.8) * turn;
+    (curiosity * profile.curiosity +
+      look.x * 3.3 +
+      glance * glanceDirection * 3.2) *
+    turn;
+  const actionAge = t - state.actions.celebrate.started;
+  const leap = leapAt(actionAge % 1.1);
+  const lift = leap.lift * joy * profile.energy;
+  const squash = leap.squash * joy;
+  const flap = leap.wing * joy;
+  const shuffleShift = shuffle * foot;
+  const stretchReach = stretch * (0.75 + Math.sin(local * 0.8) * 0.25);
+  const human = state.kind === "human";
+  const armWave = human ? 1 : 0.36;
+  const armLimit = (angle) => clamp(angle, human ? -55 : -30, human ? 55 : 30);
 
   return {
     body: {
-      x: (lean * 0.28 + look.x * 0.25) * travel,
-      y: (-breath * 0.55 - greet * 0.3) * travel,
-      r: (lean * 0.5 + look.x * 0.25 - gesture * 0.3) * turn,
-      sx: 1 + breath * 0.003 + greet * 0.006,
-      sy: 1 + breath * 0.007 - greet * 0.003,
+      x:
+        (lean * 0.35 +
+          look.x * 0.4 +
+          shuffleShift * 0.9 +
+          dance * groove * 4.8 * profile.energy +
+          sway * Math.sin(local * 1.1) * 1.0) *
+        travel,
+      y:
+        (-breath * 0.65 -
+          lift * (state.kind === "eagle" ? 10 : 7) +
+          squash * 1.1 -
+          stretchReach * 1.1 -
+          dance * (1 + beat) * 0.75 +
+          hug * 0.55) *
+        travel,
+      r:
+        (lean * 0.6 +
+          look.x * 0.35 +
+          shuffleShift * 0.75 +
+          dance * groove * 4.7 * profile.energy +
+          sway * Math.sin(local * 1.1) * 1.3 -
+          hug * 1.2) *
+        turn,
+      sx:
+        1 +
+        (breath * 0.003 + squash * 0.022 - lift * 0.006 + hug * 0.008) * travel,
+      sy:
+        1 +
+        (breath * 0.007 - squash * 0.028 + lift * 0.012 - hug * 0.008) * travel,
     },
     head: {
-      x: (Math.sin(t * 0.4 + phase) * 0.25 + look.x * 1.4) * travel,
-      y: (breath * 0.25 + look.y * 1.15 + gesture * 0.4) * travel,
-      r: headTurn + greet * Math.sin(t * 3.7 + phase) * 0.9 * turn,
+      x:
+        (Math.sin(t * 0.4 + phase) * 0.25 +
+          look.x * 1.65 +
+          glance * glanceDirection * 0.6) *
+        travel,
+      y:
+        (breath * 0.25 +
+          look.y * 1.45 +
+          stretchReach * 0.5 +
+          dance * beat * 0.65 +
+          hug * 0.7) *
+        travel,
+      r:
+        headTurn +
+        (greet * Math.sin(t * 3.7 + phase) * 1.1 -
+          dance * groove * 3.2 -
+          hug * 3.8 -
+          stretchReach * 1.5) *
+          turn,
     },
     wingLeft: {
-      r: (wing + greet * (6 + wave * 3.5) + gesture * 2.1) * turn,
+      r:
+        (wing +
+          flutter +
+          greet * (7 + wave * 4) +
+          stretchReach * 8.5 +
+          dance * (5 + beat * 5) * profile.energy +
+          flap * 17 +
+          hug * 16) *
+        turn,
     },
     wingRight: {
-      r: (-wing - greet * (6 + wave * 3.5) - gesture * 1.5) * turn,
+      r:
+        (-wing -
+          flutter -
+          greet * (7 + wave * 4) -
+          stretchReach * 8.5 -
+          dance * (5 - beat * 5) * profile.energy -
+          flap * 17 -
+          hug * 16) *
+        turn,
     },
     armLeft: {
+      x: shuffleShift * 0.4 * travel,
+      y:
+        (-Math.max(0, foot) * shuffle * 1.5 -
+          dance * Math.max(0, beat) * (human ? 0.6 : 1.2)) *
+        travel,
       r:
-        (lean * 1.2 +
-          greet *
-            (state.kind === "human" ? 24 + wave * 7 : 9 + wave * 4) *
-            profile.wave) *
-        turn,
+        armLimit(
+          lean * 1.2 +
+            fidget +
+            greet * (human ? 24 + wave * 7 : 9 + wave * 4) * profile.wave +
+            dance * (human ? 14 + beat * 10 : beat * 6) * profile.energy +
+            hug * 18 * armWave +
+            joy * (human ? 12 + flap * 8 : flap * 3) +
+            stretchReach * 3,
+        ) * turn,
     },
     armRight: {
+      x: shuffleShift * 0.4 * travel,
+      y:
+        (-Math.max(0, -foot) * shuffle * 1.5 -
+          dance * Math.max(0, -beat) * (human ? 0.6 : 1.2)) *
+        travel,
       r:
-        (-lean * 1.5 -
-          greet *
-            (state.kind === "human" ? 38 + wave * 9 : 12 + wave * 5) *
-            profile.wave) *
-        turn,
+        armLimit(
+          -lean * 1.5 -
+            fidget -
+            greet * (human ? 38 + wave * 9 : 12 + wave * 5) * profile.wave -
+            dance * (human ? 20 - beat * 12 : -beat * 6) * profile.energy -
+            hug * 24 * armWave -
+            joy * (human ? 16 + flap * 8 : flap * 3) -
+            stretchReach * 3,
+        ) * turn,
     },
     halo: {
-      y: Math.sin(t * 1.08 + phase) * 0.5 * travel,
-      r: (Math.sin(t * 0.7 + phase) * 0.9 - headTurn * 0.2) * turn,
+      y: (Math.sin(t * 1.08 + phase) * 0.5 - lift * 0.9) * travel,
+      r:
+        (Math.sin(t * 0.7 + phase) * 0.9 -
+          headTurn * 0.2 +
+          dance * beat * 1.2) *
+        turn,
     },
   };
 }
@@ -230,14 +449,19 @@ function substep(state, seconds) {
   const elapsed = state.elapsed + seconds;
   let next = { ...state, elapsed };
   if (elapsed >= next.nextGesture) {
-    next.gestureUntil = elapsed + 0.55;
+    const cycle = state.behavior.cycle + 1;
+    const name = BEHAVIORS[cycle % BEHAVIORS.length];
+    const started = next.nextGesture;
+    const duration = 2.6 + (1 + Math.sin(cycle * 2.3 + state.phase)) * 0.7;
+    next.behavior = { name, started, until: started + duration, cycle };
+    next.gestureUntil = started + duration;
     next.nextGesture =
-      elapsed + 5.3 + (1 + Math.sin(elapsed + state.phase)) * 2;
+      started + duration + 1.0 + (1 + Math.sin(cycle + state.phase)) * 0.65;
   }
   if (elapsed >= next.nextBlink) {
-    next.blinkStart = elapsed;
-    next.nextBlink =
-      elapsed + 3.9 + (1 + Math.sin(elapsed * 1.7 + state.phase)) * 1.15;
+    next.blinkStart = next.nextBlink;
+    next.nextBlink +=
+      3.9 + (1 + Math.sin(next.nextBlink * 1.7 + state.phase)) * 1.15;
   }
   next.greeting = advanceSpring(
     state.greeting,
@@ -245,11 +469,55 @@ function substep(state, seconds) {
     seconds,
     { frequency: 2.7, damping: 0.86 },
   );
+  next.actions = Object.fromEntries(
+    Object.entries(state.actions).map(([name, channel]) => [
+      name,
+      {
+        ...channel,
+        ...advanceSpring(
+          channel,
+          elapsed < channel.until
+            ? 1
+            : name === "dance" && state.intent.dancing
+              ? 0.72
+              : 0,
+          seconds,
+          {
+            frequency: name === "cuddle" ? 1.8 : 2.4,
+            damping: name === "cuddle" ? 0.9 : 0.84,
+          },
+        ),
+      },
+    ]),
+  );
+  next.attention = {
+    x: advanceSpring(state.attention.x, state.intent.look.x, seconds, {
+      frequency: 2.3,
+      damping: 0.88,
+    }),
+    y: advanceSpring(state.attention.y, state.intent.look.y, seconds, {
+      frequency: 2.3,
+      damping: 0.88,
+    }),
+  };
   next.gesture = advanceSpring(
     state.gesture,
     elapsed < next.gestureUntil ? 1 : 0,
     seconds,
     { frequency: 1.9, damping: 0.9 },
+  );
+  // Independent channels make the next idle behavior blend over the previous
+  // one's follow-through instead of replacing a pose or restarting a clip.
+  next.ambient = Object.fromEntries(
+    Object.entries(state.ambient).map(([name, channel]) => [
+      name,
+      advanceSpring(
+        channel,
+        next.behavior.name === name && elapsed < next.behavior.until ? 1 : 0,
+        seconds,
+        { frequency: 1.35, damping: 0.92 },
+      ),
+    ]),
   );
   next.blink = blinkAt(elapsed - next.blinkStart);
   const targets = targetsFor(next);
@@ -257,11 +525,16 @@ function substep(state, seconds) {
     Object.entries(state.joints).map(([joint, properties]) => [
       joint,
       Object.fromEntries(
-        Object.entries(properties).map(([property, spring]) => [
+        Object.entries(properties).map(([property, jointSpring]) => [
           property,
-          advanceSpring(spring, targets[joint][property], seconds, {
-            frequency: joint === "head" ? 2.15 : 2.7,
-            damping: joint.startsWith("arm") ? 0.7 : 0.86,
+          advanceSpring(jointSpring, targets[joint][property], seconds, {
+            frequency:
+              joint === "head"
+                ? 2.15
+                : property === "sy" || property === "sx"
+                  ? 3.4
+                  : 2.7,
+            damping: joint.startsWith("arm") ? 0.76 : 0.86,
           }),
         ]),
       ),
@@ -284,15 +557,27 @@ export function companionPose(state) {
     Object.entries(state.joints).map(([joint, properties]) => [
       joint,
       Object.fromEntries(
-        Object.entries(properties).map(([key, spring]) => [key, spring.value]),
+        Object.entries(properties).map(([key, jointSpring]) => [
+          key,
+          jointSpring.value,
+        ]),
       ),
     ]),
   );
-  const lift = Math.min(2.5, Math.abs(joints.body.y));
+  const lift = clamp(-joints.body.y, 0, 12);
+  const joy = clamp(state.actions.celebrate.value, 0, 1);
+  const hug = clamp(state.actions.cuddle.value, 0, 1);
   return {
     joints,
     blink: clamp(state.blink, 0, 1),
-    shadow: { scale: 1 - lift * 0.018, opacity: 0.15 - lift * 0.012 },
+    blinkLeft: clamp(state.blink, 0, 1),
+    blinkRight: clamp(blinkAt(state.elapsed - state.blinkStart - 0.012), 0, 1),
+    effects: {
+      sparkles: state.portrait ? 0 : joy,
+      hearts: state.portrait ? 0 : hug,
+      phase: state.elapsed,
+    },
+    shadow: { scale: 1 - lift * 0.028, opacity: 0.15 - lift * 0.0075 },
   };
 }
 
@@ -305,11 +590,14 @@ export function staticCompanionPose({ mood = "happy", portrait = false } = {}) {
       head: { x: 0, y: 0, r: greeting ? -1.3 * amount : 0 },
       wingLeft: { r: greeting ? 5 * amount : 0 },
       wingRight: { r: greeting ? -5 * amount : 0 },
-      armLeft: { r: greeting ? 7 * amount : 0 },
-      armRight: { r: greeting ? -11 * amount : 0 },
+      armLeft: { x: 0, y: 0, r: greeting ? 7 * amount : 0 },
+      armRight: { x: 0, y: 0, r: greeting ? -11 * amount : 0 },
       halo: { y: 0, r: 0 },
     },
     blink: 0,
+    blinkLeft: 0,
+    blinkRight: 0,
+    effects: { sparkles: 0, hearts: 0, phase: 0 },
     shadow: { scale: 1, opacity: 0.15 },
   };
 }

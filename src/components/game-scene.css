@@ -214,6 +214,7 @@
   overflow: visible;
   transition: filter 0.2s;
   box-shadow: none;
+  -webkit-touch-callout: none;
 }
 .gs-character-art {
   display: block;
@@ -463,5 +464,116 @@
     opacity: 1;
     transform: rotate(-5deg);
     font-size: clamp(7px, 1.8cqw, 11px);
+  }
+}
+
+.crew-playground {
+  min-width: 0;
+  width: 100%;
+}
+.crew-play-controls {
+  position: relative;
+  z-index: 6;
+  padding: 0 8px 4px;
+}
+.crew-play-actions {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.crew-play-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 9px 13px;
+  border: 1px solid #ffffffc9;
+  border-radius: 16px;
+  background: #ffffffa3;
+  color: #66547f;
+  box-shadow:
+    0 3px 9px #76628e0a,
+    inset 0 1px #fff;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.18s,
+    transform 0.18s,
+    box-shadow 0.18s;
+}
+.crew-play-actions button:hover {
+  background: #ffffffed;
+  box-shadow: 0 4px 12px #76628e15;
+  transform: translateY(-2px);
+}
+.crew-play-actions button:active {
+  transform: translateY(0) scale(0.97);
+}
+.crew-play-actions button:focus-visible {
+  outline: 3px solid #8070d7;
+  outline-offset: 3px;
+}
+.crew-play-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+.crew-play-actions button:nth-child(2) {
+  color: #8760ae;
+}
+.crew-play-actions button:nth-child(3) {
+  color: #977027;
+}
+.crew-play-actions button:nth-child(4) {
+  color: #ac617f;
+}
+.crew-play-actions button[aria-pressed="true"] {
+  background: #e8dffb;
+  border-color: #d3c0ef;
+  box-shadow:
+    inset 0 1px #fff,
+    0 3px 10px #8c68bb17;
+}
+.crew-play-hint {
+  min-height: 2.6em;
+  margin: 10px 0 0;
+  color: #81768e;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+@media (max-width: 480px) {
+  .crew-play-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    max-width: 290px;
+    margin: auto;
+  }
+  .crew-play-actions button {
+    padding: 10px 9px;
+    gap: 5px;
+    font-size: 11px;
+    min-height: 44px;
+    border-radius: 14px;
+  }
+  .crew-play-hint {
+    font-size: 10px;
+    margin-top: 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .crew-play-actions button {
+    transition: none;
+  }
+  .crew-play-actions button:hover,
+  .crew-play-actions button:active {
+    transform: none;
   }
 }

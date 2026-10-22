@@ -31,6 +31,7 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 - **Animated reveal:** each player's companion appears on a flipping card before gameplay begins. Card colors follow the companion's identity. Players can return to edit the roster, then deal a new set before starting.
 - **Interactive game scene:** character high-fives cycle distinct greetings, and practice spins land on and announce the actual category. Scene animation can be paused. Reduced-motion preferences disable ambient movement and shorten deliberate spins.
 - **Original illustrated companions:** the soft, expressive artwork returns with fluffy manes, feathered wings, warm eyes and friendly faces. Painted heads, bodies, wings and arms stay assembled on persistent articulated joints; damped springs blend breathing, curiosity, pointer attention and high-fives without swapping whole-character action frames. Repeated taps retain motion position and velocity, then settle into the ongoing idle. Blinks use matching painted eyelids, and Mattie’s halo follows the head with its own gentle movement. A shared animation scheduler pauses hidden and offscreen companions; scene pause preserves the pose and reduced motion uses a static pose. Face-focused portraits use the same artwork. These are illustrated characters with dimensional shading and articulated motion, rather than rotatable 3D models.
+- **A continuously lively crew:** a behavior director blends glances, wing stretches, little shuffles and sways over breathing, blinking and attention. Each companion has its own timing and energy. Dance starts an ongoing groove; greetings, celebrations and hugs blend over it. Celebrate adds anticipated hops, soft landings and sparkles. Send love adds a wing hug and floating hearts; holding a companion does the same, while scrolling cancels the hold. Motion retains its position and momentum across interactions. Pause freezes companions and effects while deliberate practice spins remain available; hidden tabs and dialogs suspend the scene and active spins. All of this runs in the existing React/SVG frontend, with no native app or Apple-only frameworks required.
 - **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during room setup and matches so it cannot crowd the reveal or cover answers.
 - **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
 - **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. The home screen shows the active companion, current turn, and round with a direct resume action. Invalid saves are rejected.
@@ -68,7 +69,7 @@ src/
     Game.jsx               Wheel, answers, scores and results
     Mascot.jsx             Accessible assembled artwork and Gospel metadata
     companion-rig.js       Painted-part source windows, placement and pivots
-    companion-physics.js   Continuous spring poses, idle and blended greetings
+    companion-physics.js   Spring poses, continuous behavior director and layered reactions
     useCompanionMotion.js  Shared animation scheduler and pointer attention
     companion-motion.css   Full-body and portrait framing
     Wheel.jsx              Six-category wheel and icons
@@ -101,7 +102,7 @@ npm run build
 
 Unit coverage enumerates all 24 four-player companion permutations, verifies no duplicates, proves submitted character choices are ignored, and checks fresh rematches, scoring, shared wins, turns, and the sample deck.
 
-Motion coverage checks spring integration across frame rates, interruption continuity, bounded delayed frames, blinking, reduced-motion poses and return to idle. Browser motion checks inspect persistent articulated parts, repeated greetings, pointer attention, pause/resume and dynamic reduced-motion changes.
+Motion coverage checks spring integration across frame rates, interruption continuity, bounded delayed frames, ongoing dance, varied long-running idle behavior, jump anticipation and landing, effect release, portrait restraint and reduced-motion poses. Browser motion checks inspect persistent articulated parts, repeated greetings, pointer and touch attention, long holds, scroll cancellation, dance sessions, exact pause/resume and dynamic reduced-motion changes.
 
 Browser coverage also includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, revising a room after the companion reveal, browser history/focus, mobile rules/focus return, interrupted spins, rapid keyboard input, unfinished-match replacement, room recovery, unscored discovery, interactive collection badges, and scene motion controls.
 

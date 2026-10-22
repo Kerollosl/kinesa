@@ -97,6 +97,7 @@ function Eyelids({ rig, id }) {
         </defs>
         <g
           data-lid
+          data-eye={index}
           visibility="hidden"
           data-pivot={`${eye.x} ${eye.y - eye.ry}`}
           transform={`translate(0 ${eye.y - eye.ry}) scale(1 0) translate(0 ${-eye.y + eye.ry})`}
@@ -123,6 +124,8 @@ export default function Mascot({
   portrait = false,
   paused = false,
   reaction = 0,
+  action = "hello",
+  dancing = false,
   look = null,
   ...props
 }) {
@@ -136,6 +139,8 @@ export default function Mascot({
     portrait,
     paused,
     reaction,
+    action,
+    dancing,
     look,
   });
   const joint = (name) => ({
@@ -153,6 +158,8 @@ export default function Mascot({
       className={`mascot mascot-rig mascot-${companion.kind} ${portrait ? "mascot-portrait" : ""} ${className}`}
       data-renderer="painted"
       data-mood={mood}
+      data-action={action}
+      data-dancing={dancing}
       {...props}
     >
       {!portrait && (
@@ -249,6 +256,36 @@ export default function Mascot({
           )}
         </g>
       </g>
+      {!portrait && (
+        <g className="companion-emotes" aria-hidden="true" pointerEvents="none">
+          {[0, 1, 2].map((index) => (
+            <g
+              key={`heart-${index}`}
+              data-emote="hearts"
+              data-index={index}
+              opacity="0"
+            >
+              <path
+                d="M0 3C-13-6-13-13-7-14C-3-15 0-12 0-10C1-15 7-16 11-12C17-6 7 0 0 3Z"
+                fill={["#EF8DAB", "#F3A1B7", "#D989B9"][index]}
+              />
+            </g>
+          ))}
+          {[0, 1, 2, 3].map((index) => (
+            <g
+              key={`sparkle-${index}`}
+              data-emote="sparkles"
+              data-index={index}
+              opacity="0"
+            >
+              <path
+                d="M0-7L2-2L7 0L2 2L0 7L-2 2L-7 0L-2-2Z"
+                fill={index % 2 ? "#B4A3E4" : "#EDBC60"}
+              />
+            </g>
+          ))}
+        </g>
+      )}
     </svg>
   );
 }

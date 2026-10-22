@@ -258,6 +258,22 @@ if (!process.argv.includes("--stills-only")) {
     .click();
   await demo.waitForTimeout(800);
   await demo
+    .getByRole("button", { name: "Dance with the crew", exact: true })
+    .click();
+  await demo.waitForTimeout(5600);
+  await demo
+    .getByRole("button", { name: "Celebrate with the crew", exact: true })
+    .click();
+  await demo.waitForTimeout(2800);
+  await demo
+    .getByRole("button", { name: "Send love with the crew", exact: true })
+    .click();
+  await demo.waitForTimeout(2500);
+  await demo
+    .getByRole("button", { name: "Dance with the crew", exact: true })
+    .click();
+  await demo.waitForTimeout(1600);
+  await demo
     .getByRole("button", { name: "Give the trivia wheel a practice spin" })
     .click();
   await demo.waitForTimeout(2900);

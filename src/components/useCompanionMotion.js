@@ -93,6 +93,7 @@ function collectParts(root) {
     lids: entries("[data-lid]"),
     lidLines: [...root.querySelectorAll("[data-lid-line]")],
     shadows: entries("[data-contact-shadow]"),
+    emotes: [...root.querySelectorAll("[data-emote]")],
   };
 }
 
@@ -102,16 +103,11 @@ function paint(parts, pose) {
     if (joint) writeAttribute(element, "transform", transformFor(joint, pivot));
   }
   for (const { element, pivot } of parts.lids) {
-    writeAttribute(
-      element,
-      "visibility",
-      pose.blink > 0.001 ? "visible" : "hidden",
-    );
-    writeAttribute(
-      element,
-      "transform",
-      transformFor({ sy: pose.blink }, pivot),
-    );
+    const blink =
+      (element.dataset.eye === "1" ? pose.blinkRight : pose.blinkLeft) ??
+      pose.blink;
+    writeAttribute(element, "visibility", blink > 0.001 ? "visible" : "hidden");
+    writeAttribute(element, "transform", transformFor({ sy: blink }, pivot));
   }
   for (const element of parts.lidLines) {
     writeAttribute(
@@ -127,6 +123,35 @@ function paint(parts, pose) {
       transformFor({ sx: pose.shadow.scale }, pivot),
     );
     writeAttribute(element, "opacity", number(pose.shadow.opacity));
+  }
+  for (const element of parts.emotes) {
+    const index = Number(element.dataset.index);
+    const strength = pose.effects?.[element.dataset.emote] || 0;
+    if (strength < 0.001) {
+      writeAttribute(element, "opacity", 0);
+      continue;
+    }
+    const phase = pose.effects?.phase || 0;
+    const heart = element.dataset.emote === "hearts";
+    const drift = (phase * (heart ? 0.42 : 0.34) + index * 0.27) % 1;
+    const alpha = strength * Math.sin(drift * Math.PI);
+    const x = 100 + Math.sin(index * 2.7 + phase * 0.5) * (heart ? 56 : 72);
+    const y = (heart ? 92 : 108) - drift * (heart ? 66 : 94);
+    writeAttribute(element, "opacity", number(Math.max(0, alpha)));
+    writeAttribute(
+      element,
+      "transform",
+      transformFor(
+        {
+          x,
+          y,
+          r: Math.sin(phase + index) * 14,
+          sx: 0.45 + alpha * 0.3,
+          sy: 0.45 + alpha * 0.3,
+        },
+        { x: 0, y: 0 },
+      ),
+    );
   }
 }
 
@@ -146,6 +171,7 @@ function makeController(root, initialOptions) {
   let intersecting = true;
   let disposed = false;
   let unsubscribe = null;
+  let touchActive = false;
 
   function retarget() {
     state = retargetCompanion(state, {
@@ -155,7 +181,7 @@ function makeController(root, initialOptions) {
   }
 
   function onPointerMove(event) {
-    if (event.pointerType === "touch") return;
+    if (event.pointerType === "touch" && !touchActive) return;
     const bounds = root.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return;
     pointerLook = {
@@ -172,8 +198,19 @@ function makeController(root, initialOptions) {
   }
 
   function onPointerLeave() {
+    touchActive = false;
     pointerLook = { x: 0, y: 0 };
     retarget();
+  }
+
+  function onPointerDown(event) {
+    touchActive = true;
+    onPointerMove(event);
+  }
+
+  function onPointerUp(event) {
+    touchActive = false;
+    if (event.pointerType === "touch") onPointerLeave();
   }
 
   function onFocusIn() {
@@ -241,6 +278,13 @@ function makeController(root, initialOptions) {
     passive: true,
   });
   pointerTarget.addEventListener("pointerleave", onPointerLeave);
+  pointerTarget.addEventListener("pointerdown", onPointerDown, {
+    passive: true,
+  });
+  pointerTarget.addEventListener("pointerup", onPointerUp, { passive: true });
+  pointerTarget.addEventListener("pointercancel", onPointerLeave, {
+    passive: true,
+  });
   pointerTarget.addEventListener("focusin", onFocusIn);
   pointerTarget.addEventListener("focusout", onFocusOut);
   media.addEventListener?.("change", onMotionPreference);
@@ -271,6 +315,9 @@ function makeController(root, initialOptions) {
       document.removeEventListener("visibilitychange", onVisibility);
       pointerTarget.removeEventListener("pointermove", onPointerMove);
       pointerTarget.removeEventListener("pointerleave", onPointerLeave);
+      pointerTarget.removeEventListener("pointerdown", onPointerDown);
+      pointerTarget.removeEventListener("pointerup", onPointerUp);
+      pointerTarget.removeEventListener("pointercancel", onPointerLeave);
       pointerTarget.removeEventListener("focusin", onFocusIn);
       pointerTarget.removeEventListener("focusout", onFocusOut);
       media.removeEventListener?.("change", onMotionPreference);
@@ -286,12 +333,23 @@ export default function useCompanionMotion({
   portrait = false,
   paused = false,
   reaction = 0,
+  action = "hello",
+  dancing = false,
   look = null,
 }) {
   const rootRef = useRef(null);
   const controllerRef = useRef(null);
   const optionsRef = useRef(null);
-  optionsRef.current = { kind, mood, portrait, paused, reaction, look };
+  optionsRef.current = {
+    kind,
+    mood,
+    portrait,
+    paused,
+    reaction,
+    action,
+    dancing,
+    look,
+  };
 
   useEffect(() => {
     if (!rootRef.current) return undefined;
@@ -305,7 +363,7 @@ export default function useCompanionMotion({
 
   useEffect(() => {
     controllerRef.current?.update(optionsRef.current);
-  }, [kind, mood, portrait, paused, reaction, look]);
+  }, [kind, mood, portrait, paused, reaction, action, dancing, look]);
 
   return rootRef;
 }
