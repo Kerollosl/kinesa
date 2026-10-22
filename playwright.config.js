@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
-  // Browser checks share a software GPU; serialize them for stable frame timing.
+  // Keep motion sampling and interruption checks deterministic.
   workers: 1,
   use: {
     baseURL: "http://127.0.0.1:5173",

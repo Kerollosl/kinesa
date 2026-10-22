@@ -220,7 +220,7 @@
   width: 100%;
   height: 100%;
   filter: none;
-  /* Native model joints own the character motion. */
+  /* Painted joints own the character motion. */
   animation: none;
 }
 .gs-character .mascot {
@@ -242,7 +242,7 @@
   border-radius: 50%;
   filter: blur(2px);
   z-index: -1;
-  /* Fallback scene grounding; native 3D supplies its own soft contact pool. */
+  /* The stage supplies a soft contact pool beneath each companion. */
   animation: none;
   pointer-events: none;
 }

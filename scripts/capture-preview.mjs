@@ -1,6 +1,5 @@
 import { chromium, expect } from "@playwright/test";
 import { questions } from "../src/data.js";
-import { mkdir, writeFile } from "node:fs/promises";
 // Run against `npm run dev` to regenerate the repository's visual previews.
 const browser = await chromium.launch({
   headless: true,
@@ -14,99 +13,19 @@ const errors = [];
 // Translucent panes are otherwise sometimes omitted after a viewport resize.
 async function readyCompanions(page) {
   await page.evaluate(async () => {
-    const rendererURL =
-      performance
-        .getEntriesByType("resource")
-        .find((entry) =>
-          new URL(entry.name).pathname.endsWith("/src/three/renderer.js"),
-        )?.name || "/src/three/renderer.js";
-    const { getCompanionDiagnostics } = await import(rendererURL);
-    const deadline = performance.now() + 20000;
-    let stable = 0;
-    let previous = "";
-    let latest = [];
-    while (performance.now() < deadline) {
-      latest = [...document.querySelectorAll("svg.mascot-webgl")]
-        .filter((root) => {
-          const box = root.getBoundingClientRect();
-          return (
-            box.width > 0 &&
-            box.height > 0 &&
-            box.top < innerHeight &&
-            box.bottom > 0
-          );
-        })
-        .map((root) => {
-          const box = root.getBoundingClientRect();
-          const expected = Math.max(
-            48,
-            Math.min(
-              512,
-              Math.round(
-                Math.max(box.width, box.height) *
-                  Math.min(devicePixelRatio || 1, 1.75),
-              ),
-            ),
-          );
-          const diagnostics = getCompanionDiagnostics(root);
-          const canvas = root.querySelector("canvas");
-          const size =
-            diagnostics?.pixelSize ?? diagnostics?.size ?? canvas?.width;
-          return {
-            kind: root.dataset.kind || root.getAttribute("aria-label"),
-            expected,
-            size,
-            ready:
-              root.dataset.renderer === "webgl" &&
-              diagnostics?.drawn &&
-              size === expected,
-          };
-        });
-      const key = JSON.stringify(latest);
-      stable =
-        latest.every((entry) => entry.ready) && key === previous
-          ? stable + 1
-          : 0;
-      if (stable >= 2) {
-        let painted = true;
-        for (const root of document.querySelectorAll("svg.mascot-webgl")) {
-          const box = root.getBoundingClientRect();
-          if (box.top >= innerHeight || box.bottom <= 0 || box.width <= 0)
-            continue;
-          const bitmap = await createImageBitmap(root.querySelector("canvas"));
-          const snapshot = document.createElement("canvas");
-          snapshot.width = bitmap.width;
-          snapshot.height = bitmap.height;
-          const context = snapshot.getContext("2d", {
-            willReadFrequently: true,
-          });
-          context.drawImage(bitmap, 0, 0);
-          bitmap.close();
-          const pixels = context.getImageData(
-            0,
-            0,
-            snapshot.width,
-            snapshot.height,
-          ).data;
-          let opaque = false;
-          for (let index = 3; index < pixels.length; index += 4)
-            if (pixels[index] > 128) {
-              opaque = true;
-              break;
-            }
-          if (!opaque) {
-            painted = false;
-            break;
-          }
-        }
-        if (painted) return;
-        stable = 0;
-      }
-      previous = key;
-      await new Promise(requestAnimationFrame);
-    }
-    throw new Error(
-      `3D companions did not finish painting at their current size: ${JSON.stringify(latest)}`,
+    await Promise.all(
+      [
+        "/characters/kinesa-companion-rig.webp",
+        "/characters/kinesa-companion-torsos.webp",
+        "/characters/kinesa-companion-eyelids.webp",
+      ].map(async (src) => {
+        const artwork = new Image();
+        artwork.src = src;
+        await artwork.decode();
+      }),
+    );
+    await new Promise((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
     );
   });
 }
@@ -130,106 +49,46 @@ async function capture(page, path) {
   await page.screenshot({ path, fullPage: true });
 }
 
-// Render the same native 3D models used by the app at poster resolution.
-// A cloned canvas has no bitmap, so gallery images use each rendered data URL.
+// Capture the assembled rigs; the motion recording below demonstrates their
+// actual continuous animation rather than a set of hand-picked action frames.
 async function captureCompanions(page) {
-  const posters = await page.evaluate(async () => {
-    const rendererURL =
-      performance
-        .getEntriesByType("resource")
-        .find((entry) =>
-          new URL(entry.name).pathname.endsWith("/src/three/renderer.js"),
-        )?.name || "/src/three/renderer.js";
-    const { mountCompanion } = await import(rendererURL);
-    const posters = [];
-    for (const kind of ["lion", "ox", "eagle", "human"]) {
-      const host = document.createElement("div");
-      host.style =
-        "position:fixed;left:0;top:0;width:512px;height:512px;z-index:10000;";
-      const canvas = document.createElement("canvas");
-      canvas.style = "display:block;width:100%;height:100%;";
-      host.append(canvas);
-      document.body.append(host);
-      let controller;
-      let timer;
-      try {
-        const ready = new Promise((resolve, reject) => {
-          timer = setTimeout(
-            () => reject(new Error(`Timed out rendering the ${kind} poster.`)),
-            20000,
-          );
-          controller = mountCompanion({
-            host,
-            canvas,
-            kind,
-            options: { mood: "happy", paused: true, portrait: false },
-            onReady: resolve,
-            onError: () =>
-              reject(new Error(`Could not render the ${kind} poster.`)),
-          });
-        });
-        await ready;
-        // A worker acknowledgement can arrive before its placeholder bitmap
-        // reaches the page compositor. Check pixels rather than guessing a delay.
-        const snapshot = document.createElement("canvas");
-        let image = null;
-        const deadline = performance.now() + 20000;
-        while (performance.now() < deadline) {
-          const bitmap = await createImageBitmap(canvas);
-          snapshot.width = bitmap.width;
-          snapshot.height = bitmap.height;
-          const context = snapshot.getContext("2d", {
-            willReadFrequently: true,
-          });
-          context.drawImage(bitmap, 0, 0);
-          bitmap.close();
-          const pixels = context.getImageData(
-            0,
-            0,
-            snapshot.width,
-            snapshot.height,
-          ).data;
-          let painted = 0;
-          for (let index = 3; index < pixels.length; index += 4)
-            if (pixels[index] > 128) painted++;
-          if (painted > 200) {
-            image = snapshot.toDataURL("image/png");
-            break;
-          }
-          await new Promise((resolve) => setTimeout(resolve, 50));
-        }
-        if (!image) throw new Error(`The ${kind} poster stayed transparent.`);
-        posters.push({ kind, image });
-      } finally {
-        clearTimeout(timer);
-        controller?.dispose();
-        host.remove();
-      }
-    }
-    return posters;
-  });
-  await mkdir("public/characters", { recursive: true });
-  for (const poster of posters) {
-    await writeFile(
-      `public/characters/${poster.kind}-3d.png`,
-      Buffer.from(poster.image.split(",")[1], "base64"),
+  await page.evaluate(async () => {
+    await Promise.all(
+      [
+        "/characters/kinesa-companion-rig.webp",
+        "/characters/kinesa-companion-torsos.webp",
+        "/characters/kinesa-companion-eyelids.webp",
+      ].map(async (src) => {
+        const art = new Image();
+        art.src = src;
+        await art.decode();
+      }),
     );
-  }
-  await page.evaluate(async (posters) => {
     const gallery = document.createElement("div");
     gallery.id = "companion-preview";
     gallery.style =
-      "position:fixed;left:0;top:0;width:1440px;height:430px;box-sizing:border-box;z-index:10000;padding:24px 45px;background:#edf2fb;display:grid;grid-template-columns:repeat(4,1fr);place-items:center;gap:12px;";
-    for (const [index, poster] of posters.entries()) {
+      "position:fixed;left:0;top:0;width:1440px;height:430px;z-index:10000;padding:24px 45px;background:#edf2fb;display:grid;grid-template-columns:repeat(4,1fr);place-items:center;gap:12px;";
+    ["lion", "ox", "eagle", "human"].forEach((kind, col) => {
       const cell = document.createElement("div");
-      cell.dataset.kind = poster.kind;
+      cell.dataset.kind = kind;
       cell.style =
         "display:flex;flex-direction:column;align-items:center;justify-content:center;";
-      const image = new Image();
-      image.src = poster.image;
-      image.width = image.height = 310;
-      image.alt = `${poster.kind} companion rendered in 3D`;
-      await image.decode();
+      const svg = document
+        .querySelector(`.gs-character-art .mascot-${kind}`)
+        .cloneNode(true);
+      svg.style = "width:310px;height:310px;overflow:visible;";
+      svg.querySelectorAll("[id]").forEach((element) => {
+        const before = element.id;
+        element.id += "-review";
+        svg
+          .querySelectorAll("[clip-path], [fill], [stroke], [mask]")
+          .forEach((group) => {
+            ["clip-path", "fill", "stroke", "mask"].forEach((attr) => {
+              if (group.getAttribute(attr) === `url(#${before})`)
+                group.setAttribute(attr, `url(#${element.id})`);
+            });
+          });
+      });
       const label = document.createElement("span");
       label.style = "font:500 15px 'DM Sans',sans-serif;color:#64728c;";
       label.textContent = [
@@ -237,12 +96,12 @@ async function captureCompanions(page) {
         "Lou · Luke",
         "Juno · John",
         "Mattie · Matthew",
-      ][index];
-      cell.append(image, label);
+      ][col];
+      cell.append(svg, label);
       gallery.append(cell);
-    }
+    });
     document.body.append(gallery);
-  }, posters);
+  });
   await page
     .locator("#companion-preview")
     .screenshot({ path: "docs/kinesa-companions.png" });
@@ -278,9 +137,7 @@ if (!process.argv.includes("--motion-only")) {
   if (process.argv.includes("--companions-only")) {
     await browser.close();
     if (errors.length) throw new Error(errors.join("\n"));
-    console.log(
-      "Native 3D posters and companion previews saved. No browser errors.",
-    );
+    console.log("Illustrated companion previews saved. No browser errors.");
     process.exit(0);
   }
   await capture(page, "docs/kinesa-desktop.png");

@@ -1,78 +1,48 @@
 import { test, expect } from "@playwright/test";
 
-// Motion samples share the software GPU; keep this file sequential even when
-// independent game-flow specs use separate browser workers.
-test.describe.configure({ mode: "serial", timeout: 90000 });
-
 test.use({
   reducedMotion: "no-preference",
   viewport: { width: 1440, height: 1000 },
 });
 
 const sceneRigs =
-  ".game-scene .gs-character > .gs-character-art > svg.mascot-webgl";
+  ".game-scene .gs-character > .gs-character-art > svg.mascot-rig";
 
 async function readyScene(page) {
-  await page.addInitScript(() => {
-    const NativeWorker = window.Worker;
-    window.__companionWorkerCount = 0;
-    window.Worker = class extends NativeWorker {
-      constructor(...args) {
-        super(...args);
-        window.__companionWorkerCount++;
-      }
-    };
-  });
   await page.goto("/");
   await expect(page.locator(sceneRigs)).toHaveCount(4);
-  await expect(page.locator(`${sceneRigs}[data-renderer='webgl']`)).toHaveCount(
-    4,
-    {
-      timeout: 30000,
-    },
-  );
-  await page.evaluate(async (selector) => {
-    // Import the same module instance used by Mascot, including Vite's HMR
-    // timestamp. A bare URL can create a fresh module with an empty WeakMap.
-    const rendererURL = performance
-      .getEntriesByType("resource")
-      .find(
-        (entry) => new URL(entry.name).pathname === "/src/three/renderer.js",
-      ).name;
-    const { getCompanionDiagnostics } = await import(rendererURL);
-    window.__getCompanionDiagnostics = getCompanionDiagnostics;
-    window.__originalSceneCompanions = [...document.querySelectorAll(selector)];
-    window.__nextCompanionFrame = async (root, after) => {
-      const started = performance.now();
-      while (performance.now() - started < 20000) {
-        await new Promise(requestAnimationFrame);
-        const diagnostics = getCompanionDiagnostics(root);
-        if (diagnostics && diagnostics.drawCount > after) {
-          return {
-            timestamp: performance.now(),
-            ...structuredClone(diagnostics),
-          };
-        }
-      }
-      throw new Error("The companion worker did not paint a new frame");
-    };
-  }, sceneRigs);
+  await expect(
+    page.locator(
+      `${sceneRigs} [data-joint='head'] > .companion-painted-part > image`,
+    ),
+  ).toHaveCount(4);
+  await page.evaluate(async () => {
+    await Promise.all(
+      ["rig", "torsos", "eyelids"].map(async (part) => {
+        const image = new Image();
+        image.src = `/characters/kinesa-companion-${part}.webp`;
+        await image.decode();
+      }),
+    );
+  });
   await expect
-    .poll(
-      () =>
-        page.locator(sceneRigs).evaluateAll((roots) =>
-          roots.every((root) => {
-            const diagnostics = window.__getCompanionDiagnostics(root);
-            return (
-              diagnostics?.worker &&
-              diagnostics.renderThread === "worker" &&
-              diagnostics.drawn
-            );
-          }),
+    .poll(() =>
+      page
+        .locator(sceneRigs)
+        .evaluateAll((roots) =>
+          roots.every((root) =>
+            [...root.querySelectorAll("[data-joint]")].every((joint) =>
+              joint.hasAttribute("transform"),
+            ),
+          ),
         ),
-      { timeout: 15000 },
     )
     .toBe(true);
+  await page.locator(".game-scene").evaluate((scene) => {
+    window.__originalSceneCompanions = [
+      ...scene.querySelectorAll(".gs-character-art > svg.mascot-rig"),
+    ];
+  });
 }
 
 async function sameCompanions(page) {
@@ -85,21 +55,26 @@ async function sameCompanions(page) {
     );
 }
 
-// Read physical Three joint quaternions only after the worker paints a new
-// frame. Main-thread RAFs keep running while the GPU works and are not evidence
-// that a new character pose reached the screen.
-async function sampleRig(page, { frames = 8, greetAt = [] } = {}) {
-  return page.locator(".gs-leo .mascot-webgl").evaluate(
+// Sample the real SVG joint attributes on painted frames. This deliberately
+// checks local transforms: moving the entire illustration cannot satisfy it.
+async function sampleRig(page, { frames = 24, greetAt = [] } = {}) {
+  return page.locator(".gs-leo .mascot-rig").evaluate(
     async (root, { frames, greetAt }) => {
       const snapshots = [];
       const button = root.closest("button");
-      let previous = window.__getCompanionDiagnostics(root).drawCount;
       for (let index = 0; index < frames; index++) {
-        const diagnostics = await window.__nextCompanionFrame(root, previous);
-        previous = diagnostics.drawCount;
+        const timestamp = await new Promise(requestAnimationFrame);
         snapshots.push({
-          ...diagnostics,
+          timestamp,
           greetingVisible: Boolean(button.querySelector(".gs-reaction")),
+          angles: Object.fromEntries(
+            [...root.querySelectorAll("[data-joint]")].map((joint) => [
+              joint.dataset.joint,
+              Number(
+                joint.getAttribute("transform").match(/rotate\(([^)]+)\)/)?.[1],
+              ),
+            ]),
+          ),
         });
         if (greetAt.includes(index)) button.click();
       }
@@ -109,155 +84,38 @@ async function sampleRig(page, { frames = 8, greetAt = [] } = {}) {
   );
 }
 
-function quaternionDistance(a, b) {
-  const dot = a.reduce((sum, value, index) => sum + value * b[index], 0);
-  return 2 * Math.acos(Math.min(1, Math.abs(dot)));
+function range(samples, joint) {
+  const values = samples.map((sample) => sample.angles[joint]);
+  return Math.max(...values) - Math.min(...values);
 }
 
-function motionRange(samples, joint) {
-  const first = samples[0].joints[joint].quaternion;
-  return Math.max(
-    ...samples.map((sample) =>
-      quaternionDistance(first, sample.joints[joint].quaternion),
-    ),
-  );
-}
-
-async function scenePose(page) {
-  return page.locator(sceneRigs).evaluateAll((roots) =>
-    roots.map((root) => {
-      const diagnostics = window.__getCompanionDiagnostics(root);
-      return { joints: diagnostics.joints, pose: diagnostics.pose };
-    }),
-  );
-}
-
-async function waitSceneState(page, field, value) {
-  await expect
-    .poll(
-      () =>
-        page
-          .locator(sceneRigs)
-          .evaluateAll(
-            (roots, { field, value }) =>
-              roots.every(
-                (root) =>
-                  window.__getCompanionDiagnostics(root)?.[field] === value,
-              ),
-            { field, value },
-          ),
-      { timeout: 15000 },
-    )
-    .toBe(true);
-}
-
-async function staticSceneSamples(page) {
-  return page.locator(".game-scene").evaluate(async (scene) => {
+async function sampleScene(page, frames = 16) {
+  return page.locator(".game-scene").evaluate(async (scene, count) => {
     const snapshots = [];
-    for (let index = 0; index < 16; index++) {
+    for (let index = 0; index < count; index++) {
       await new Promise(requestAnimationFrame);
       snapshots.push(
-        [...scene.querySelectorAll(".mascot-webgl")].map((root) => {
-          const diagnostics = window.__getCompanionDiagnostics(root);
-          return { joints: diagnostics.joints, pose: diagnostics.pose };
-        }),
+        [...scene.querySelectorAll(".mascot-rig [data-joint]")].map((joint) =>
+          joint.getAttribute("transform"),
+        ),
       );
     }
     return snapshots;
-  });
+  }, frames);
 }
 
-test("four sculpted characters share one render worker and blend continuous 3D gestures", async ({
+test("rendered heads, wings, and arms idle independently and greet without pose resets", async ({
   page,
 }) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await readyScene(page);
-  expect(await page.evaluate(() => window.__companionWorkerCount)).toBe(1);
-
-  const rendered = await page.locator(sceneRigs).evaluateAll(async (roots) =>
-    Promise.all(
-      roots.map(async (root) => {
-        const diagnostics = window.__getCompanionDiagnostics(root);
-        const canvas = root.querySelector("canvas");
-        // The visible canvas is owned by OffscreenCanvas in the worker. Snapshot
-        // its displayed bitmap without asking it for a second drawing context.
-        const bitmap = await createImageBitmap(canvas);
-        const sample = document.createElement("canvas");
-        sample.width = bitmap.width;
-        sample.height = bitmap.height;
-        const context = sample.getContext("2d");
-        context.drawImage(bitmap, 0, 0);
-        bitmap.close();
-        const pixels = context.getImageData(
-          0,
-          0,
-          sample.width,
-          sample.height,
-        ).data;
-        let painted = 0;
-        const colors = new Set();
-        for (let i = 0; i < pixels.length; i += 4) {
-          if (pixels[i + 3] > 100) {
-            painted++;
-            colors.add(
-              `${pixels[i] >> 4},${pixels[i + 1] >> 4},${pixels[i + 2] >> 4}`,
-            );
-          }
-        }
-        return {
-          kind: diagnostics.kind,
-          workerId: diagnostics.workerId,
-          contextCount: diagnostics.contextCount,
-          meshes: diagnostics.meshes,
-          vertices: diagnostics.vertices,
-          geometryBounds: diagnostics.geometryBounds,
-          painted,
-          colors: colors.size,
-        };
-      }),
-    ),
-  );
-  expect(rendered.map((character) => character.kind).sort()).toEqual([
-    "eagle",
-    "human",
-    "lion",
-    "ox",
-  ]);
-  expect(new Set(rendered.map((character) => character.workerId)).size).toBe(1);
-  expect(rendered[0].workerId).toBeTruthy();
-  for (const character of rendered) {
-    expect(
-      character.contextCount,
-      `${character.kind} uses the shared GPU context`,
-    ).toBe(1);
-    expect(
-      character.meshes,
-      `${character.kind} has articulated surfaces`,
-    ).toBeGreaterThan(10);
-    expect(
-      character.vertices,
-      `${character.kind} has real mesh geometry`,
-    ).toBeGreaterThan(10000);
-    expect(
-      character.geometryBounds[2],
-      `${character.kind} has sculpted depth`,
-    ).toBeGreaterThan(0.5);
-    expect(
-      character.painted,
-      `${character.kind} paints opaque pixels`,
-    ).toBeGreaterThan(200);
-    expect(
-      character.colors,
-      `${character.kind} has shaded depth`,
-    ).toBeGreaterThan(12);
-  }
-
   const idle = await sampleRig(page);
   const greeting = await sampleRig(page, {
-    frames: 24,
-    greetAt: [0, 6, 12, 18],
+    frames: 42,
+    greetAt: [0, 10, 22, 30],
   });
+
   for (const joint of [
     "head",
     "wingLeft",
@@ -266,80 +124,33 @@ test("four sculpted characters share one render worker and blend continuous 3D g
     "armRight",
   ]) {
     expect(
-      motionRange(idle, joint),
-      `${joint} idles independently`,
-    ).toBeGreaterThan(0.000001);
+      range(idle, joint),
+      `${joint} has independent idle motion`,
+    ).toBeGreaterThan(0);
     expect(
-      motionRange(greeting, joint),
-      `${joint} stays live during repeated greetings`,
-    ).toBeGreaterThan(0.0001);
-    for (let index = 1; index < greeting.length; index++) {
-      const step = quaternionDistance(
-        greeting[index - 1].joints[joint].quaternion,
-        greeting[index].joints[joint].quaternion,
+      range(greeting, joint),
+      `${joint} remains live during greetings`,
+    ).toBeGreaterThan(0);
+    const fullRange = range(greeting, joint);
+    for (let i = 1; i < greeting.length; i++) {
+      const elapsed =
+        (greeting[i].timestamp - greeting[i - 1].timestamp) / 1000;
+      const step = Math.abs(
+        greeting[i].angles[joint] - greeting[i - 1].angles[joint],
       );
-      // Account for coalesced worker messages, while rejecting an unblended
-      // jump across the gesture in one painted frame. Simulation caps dt1/15.
-      const frames = greeting[index].drawCount - greeting[index - 1].drawCount;
-      expect(step, `${joint} interpolates instead of restarting`).toBeLessThan(
-        0.5 * frames,
-      );
+      // Allow a delayed browser frame, while rejecting a jump across a large
+      // fraction of the gesture in an ordinary painted frame.
+      expect(step).toBeLessThan(fullRange * Math.min(0.7, elapsed * 12) + 0.5);
     }
   }
-  for (const axis of [0, 1, 2]) {
-    const values = greeting.map(
-      (sample) => sample.joints.wingLeft.quaternion[axis],
-    );
-    expect(
-      Math.max(...values) - Math.min(...values),
-      `wing rotates around axis ${axis}`,
-    ).toBeGreaterThan(0.0001);
-  }
-  expect(motionRange(greeting, "armRight")).toBeGreaterThan(
-    motionRange(idle, "armRight"),
-  );
-  expect(greeting.some((sample) => sample.greetingVisible)).toBe(true);
+  expect(range(greeting, "armRight")).toBeGreaterThan(range(idle, "armRight"));
   expect(await sameCompanions(page)).toBe(true);
+  await expect(page.locator(sceneRigs)).toHaveCount(4);
+  expect(greeting.some((sample) => sample.greetingVisible)).toBe(true);
   expect(errors).toEqual([]);
 });
 
-test("pointer focus turns physical heads in depth", async ({ page }) => {
-  await readyScene(page);
-  const root = page.locator(".gs-leo .mascot-webgl");
-  const box = await root.boundingBox();
-  await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.3);
-  await expect
-    .poll(
-      () =>
-        root.evaluate(
-          (node) => window.__getCompanionDiagnostics(node).pose.joints.head.ry,
-        ),
-      { timeout: 15000 },
-    )
-    .toBeLessThan(-0.12);
-  const left = await root.evaluate(
-    (node) => window.__getCompanionDiagnostics(node).joints.head.quaternion,
-  );
-  await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.3, {
-    steps: 8,
-  });
-  await expect
-    .poll(
-      () =>
-        root.evaluate(
-          (node) => window.__getCompanionDiagnostics(node).pose.joints.head.ry,
-        ),
-      { timeout: 15000 },
-    )
-    .toBeGreaterThan(0.12);
-  const right = await root.evaluate(
-    (node) => window.__getCompanionDiagnostics(node).joints.head.quaternion,
-  );
-  expect(quaternionDistance(left, right)).toBeGreaterThan(0.2);
-  expect(await sameCompanions(page)).toBe(true);
-});
-
-test("pause freezes physical joints and resumes the same four character instances", async ({
+test("scene pause freezes every joint and resumes the same four character instances", async ({
   page,
 }) => {
   await readyScene(page);
@@ -355,105 +166,143 @@ test("pause freezes physical joints and resumes the same four character instance
   await expect(
     page.getByRole("button", { name: "Resume scene animation", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
-  await waitSceneState(page, "paused", true);
-  const frozen = await staticSceneSamples(page);
+  const frozen = await sampleScene(page);
   for (const pose of frozen) expect(pose).toEqual(frozen[0]);
 
-  await page
-    .getByRole("button", { name: "Resume scene animation", exact: true })
-    .click();
-  await waitSceneState(page, "paused", false);
-  await expect
-    .poll(async () => JSON.stringify(await scenePose(page)), { timeout: 15000 })
-    .not.toBe(JSON.stringify(frozen[0]));
+  // Reading the first resumed frame catches remounts and pose resets without
+  // depending on an exact idle phase, frame rate, or pixel position.
+  const firstResumedPose = await page
+    .locator(".game-scene")
+    .evaluate(async (scene) => {
+      const button = document.querySelector(
+        "[aria-label='Resume scene animation']",
+      );
+      button.click();
+      await new Promise(requestAnimationFrame);
+      return [...scene.querySelectorAll(".mascot-rig [data-joint]")].map(
+        (joint) => joint.getAttribute("transform"),
+      );
+    });
+  expect(firstResumedPose).toEqual(frozen[0]);
+  const resumed = await sampleScene(page);
+  expect(
+    resumed.some((pose) => JSON.stringify(pose) !== JSON.stringify(frozen[0])),
+  ).toBe(true);
   expect(await sameCompanions(page)).toBe(true);
 });
 
-test("reduced-motion preference makes existing characters static and then live again", async ({
+test("changing reduced-motion preference makes the existing rigs static and then live again", async ({
   page,
 }) => {
   await readyScene(page);
-  const before = await scenePose(page);
-  await expect
-    .poll(async () => JSON.stringify(await scenePose(page)), { timeout: 15000 })
-    .not.toBe(JSON.stringify(before));
+  await page
+    .getByRole("button", { name: "High-five Lou", exact: true })
+    .click();
+  const moving = await sampleScene(page);
+  expect(
+    moving.some((pose) => JSON.stringify(pose) !== JSON.stringify(moving[0])),
+  ).toBe(true);
 
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await waitSceneState(page, "reduced", true);
-  const still = await staticSceneSamples(page);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => matchMedia("(prefers-reduced-motion: reduce)").matches,
+      ),
+    )
+    .toBe(true);
+  const still = await sampleScene(page);
   for (const pose of still) expect(pose).toEqual(still[0]);
-  const leo = page.locator(".gs-leo .mascot-webgl");
-  const paintedBefore = await leo.evaluate(
-    (root) => window.__getCompanionDiagnostics(root).drawCount,
-  );
+
+  // Interactions still respond while the accessibility setting is active.
   await page
     .getByRole("button", { name: "High-five Leo", exact: true })
     .click();
   await expect(page.locator(".gs-leo .gs-reaction")).toBeVisible();
-  await expect
-    .poll(
-      () =>
-        leo.evaluate(
-          (root) => window.__getCompanionDiagnostics(root).drawCount,
-        ),
-      { timeout: 15000 },
-    )
-    .toBeGreaterThan(paintedBefore);
-  // An explicit greeting may choose another accessible still. The earlier
-  // samples establish that reduced motion itself does not advance poses.
-  const staticGreeting = await scenePose(page);
+  const staticGreeting = await sampleScene(page);
+  for (const pose of staticGreeting) expect(pose).toEqual(staticGreeting[0]);
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
-  await waitSceneState(page, "reduced", false);
-  await expect
-    .poll(async () => JSON.stringify(await scenePose(page)), { timeout: 15000 })
-    .not.toBe(JSON.stringify(staticGreeting));
+  const liveAgain = await sampleScene(page);
+  expect(
+    liveAgain.some(
+      (pose) => JSON.stringify(pose) !== JSON.stringify(liveAgain[0]),
+    ),
+  ).toBe(true);
   expect(await sameCompanions(page)).toBe(true);
 });
 
-test("unavailable WebGL keeps the rendered 3D portraits and character interactions usable", async ({
+test("pointer attention follows smoothly while retaining the original painted face", async ({
   page,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => {
-    // Exercise the main-thread compatibility fallback, then make WebGL itself
-    // unavailable so the final rendered-poster fallback is covered as well.
-    Object.defineProperty(window, "OffscreenCanvas", {
-      value: undefined,
-      configurable: true,
-    });
-    Object.defineProperty(
-      HTMLCanvasElement.prototype,
-      "transferControlToOffscreen",
-      { value: undefined, configurable: true },
+  await readyScene(page);
+  const root = page.locator(".gs-leo .mascot-rig");
+  const head = root.locator("[data-joint='head']");
+  const artwork = await head
+    .locator(".companion-painted-part > image")
+    .getAttribute("href");
+  const box = await root.boundingBox();
+  const horizontalOffset = () =>
+    head.evaluate((node) =>
+      Number(node.getAttribute("transform").match(/translate\(([^ ]+)/)[1]),
     );
+  await page.mouse.move(box.x + box.width * 0.1, box.y + box.height * 0.3);
+  await expect.poll(horizontalOffset).toBeLessThan(-0.5);
+  await page.mouse.move(box.x + box.width * 0.9, box.y + box.height * 0.3, {
+    steps: 8,
+  });
+  await expect.poll(horizontalOffset).toBeGreaterThan(0.5);
+  await expect(head.locator(".companion-painted-part > image")).toHaveAttribute(
+    "href",
+    artwork,
+  );
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("opening help freezes background companions and closing it resumes their poses", async ({
+  page,
+}) => {
+  await readyScene(page);
+  await page
+    .getByRole("banner")
+    .getByRole("button", { name: "How to play", exact: true })
+    .click();
+  await expect(page.locator("main")).toHaveAttribute("inert", "");
+  const frozen = await sampleScene(page);
+  for (const pose of frozen) expect(pose).toEqual(frozen[0]);
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  const resumed = await sampleScene(page);
+  expect(
+    resumed.some((pose) => JSON.stringify(pose) !== JSON.stringify(frozen[0])),
+  ).toBe(true);
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("the original artwork and high-fives work without graphics workers or WebGL", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    window.Worker = class {
+      constructor() {
+        throw new Error("No workers available");
+      }
+    };
     const getContext = HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.getContext = function (type, ...args) {
-      if (/^(webgl2?|experimental-webgl)$/.test(type)) return null;
+      if (/^(webgl2?|experimental-webgl)$/.test(type))
+        throw new Error("No WebGL available");
       return getContext.call(this, type, ...args);
     };
   });
-  await page.goto("/");
+  await readyScene(page);
   await expect(
-    page.locator(`${sceneRigs}[data-renderer='poster']`),
+    page.locator(`${sceneRigs}[data-renderer='painted']`),
   ).toHaveCount(4);
-  await expect
-    .poll(() =>
-      page
-        .locator(`${sceneRigs} .companion-poster`)
-        .evaluateAll((images) =>
-          images.every(
-            (image) =>
-              image.complete &&
-              image.naturalWidth === 512 &&
-              image.naturalHeight === 512,
-          ),
-        ),
-    )
-    .toBe(true);
+  await expect(page.locator(`${sceneRigs} canvas`)).toHaveCount(0);
   await page
-    .getByRole("button", { name: "High-five Leo", exact: true })
+    .getByRole("button", { name: "High-five Juno", exact: true })
     .click();
-  await expect(page.locator(".gs-leo .gs-reaction")).toBeVisible();
+  await expect(page.locator(".gs-juno .gs-reaction")).toBeVisible();
   await expect(page.getByRole("button", { name: /Random game/ })).toBeEnabled();
 });
