@@ -257,6 +257,23 @@ export default function Mascot({
         </g>
       </g>
       {!portrait && (
+        <foreignObject
+          x="-24"
+          y="-22"
+          width="248"
+          height="244"
+          className="companion-soft-surface"
+          aria-hidden="true"
+          pointerEvents="none"
+        >
+          <canvas
+            xmlns="http://www.w3.org/1999/xhtml"
+            data-companion-surface
+            aria-hidden="true"
+          />
+        </foreignObject>
+      )}
+      {!portrait && (
         <g className="companion-emotes" aria-hidden="true" pointerEvents="none">
           {[0, 1, 2].map((index) => (
             <g

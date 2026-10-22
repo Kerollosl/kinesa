@@ -8,6 +8,7 @@ import {
   retargetCompanion,
   staticCompanionPose,
 } from "./companion-physics.js";
+import { createCompanionSurface } from "./companion-surface.js";
 
 // Every visible companion shares one RAF. Hidden tabs, offscreen characters,
 // paused scenes, and reduced-motion users leave the scheduler entirely.
@@ -172,6 +173,12 @@ function makeController(root, initialOptions) {
   let disposed = false;
   let unsubscribe = null;
   let touchActive = false;
+  let surface = null;
+
+  function drawPose(pose) {
+    paint(parts, pose);
+    surface?.draw(pose);
+  }
 
   function retarget() {
     state = retargetCompanion(state, {
@@ -227,10 +234,15 @@ function makeController(root, initialOptions) {
   function updateFrame(timestamp) {
     clock = advanceMotionClock(clock, timestamp);
     state = advanceCompanion(state, clock.delta);
-    paint(parts, companionPose(state));
+    drawPose(companionPose(state));
   }
 
   function refresh() {
+    if (!reduced && !options.portrait && !surface) {
+      surface = createCompanionSurface(root, options.kind);
+      surface?.draw(companionPose(state));
+    }
+    surface?.setEnabled(!reduced && !options.portrait);
     const active =
       !disposed &&
       visible &&
@@ -300,6 +312,8 @@ function makeController(root, initialOptions) {
         nextOptions.kind !== options.kind ||
         nextOptions.portrait !== options.portrait
       ) {
+        surface?.dispose();
+        surface = null;
         parts = collectParts(root);
       }
       options = nextOptions;
@@ -312,6 +326,7 @@ function makeController(root, initialOptions) {
       unsubscribe = null;
       observer?.disconnect();
       stopWatchingActivity();
+      surface?.dispose();
       document.removeEventListener("visibilitychange", onVisibility);
       pointerTarget.removeEventListener("pointermove", onPointerMove);
       pointerTarget.removeEventListener("pointerleave", onPointerLeave);

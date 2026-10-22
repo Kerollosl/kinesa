@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   MAX_FRAME_DELTA,
+  NEUTRAL_DEFORMATION,
   advanceCompanion,
   advanceMotionClock,
   advanceSpring,
@@ -357,4 +358,167 @@ test("a continuous groove can blend every reaction while keeping faces and limbs
       }
     }
   }
+});
+
+test("a greeting has coherent anticipation, one-handed reach and recovery while its support foot stays planted", () => {
+  let state = retargetCompanion(
+    createCompanionState({ kind: "human", seed: 0.15 }),
+    {
+      action: "hello",
+      reaction: 1,
+    },
+  );
+  let left = 0;
+  let right = 0;
+  let leftPlant = 1;
+  let rightPlant = 1;
+  const beats = new Set();
+  for (let frame = 0; frame < 144; frame++) {
+    state = advanceCompanion(state, 1 / 60);
+    const pose = companionPose(state);
+    left = Math.max(left, Math.abs(pose.joints.armLeft.r));
+    right = Math.max(right, Math.abs(pose.joints.armRight.r));
+    leftPlant = Math.min(leftPlant, pose.deform.plantLeft);
+    rightPlant = Math.min(rightPlant, pose.deform.plantRight);
+    beats.add(pose.performance);
+  }
+  assert.ok(right > 25, "The greeting has a deliberate reach");
+  assert.ok(
+    left < right * 0.4,
+    "The support arm does not mirror the waving arm",
+  );
+  assert.ok(leftPlant > 0.96);
+  assert.ok(rightPlant < 0.4);
+  assert.ok(beats.has("hello:anticipate"));
+  assert.ok(beats.has("hello:reach"));
+  assert.ok(beats.has("hello:wave"));
+  assert.ok(beats.has("hello:recover"));
+});
+
+test("a hug changes torso, expression and feather curvature together, and retargeting keeps every skin spring", () => {
+  let state = retargetCompanion(
+    createCompanionState({ kind: "lion", seed: 0.2 }),
+    {
+      action: "cuddle",
+      reaction: 1,
+    },
+  );
+  state = advanceFor(state, 1.25);
+  const pose = companionPose(state);
+  assert.ok(pose.deform.smile > 0.4);
+  assert.ok(pose.deform.headPitch > 0.25);
+  assert.ok(pose.deform.spine < -0.12);
+  assert.ok(pose.deform.wingFoldLeft > 0.45);
+  assert.ok(pose.deform.wingFoldRight > 0.5);
+  assert.ok(pose.deform.armBendRight > 0.35);
+  const snapshot = structuredClone(state);
+  const interrupted = retargetCompanion(state, {
+    action: "celebrate",
+    reaction: 2,
+    look: { x: 1, y: -1 },
+  });
+  assert.deepEqual(interrupted.deform, snapshot.deform);
+  assert.deepEqual(interrupted.joints, snapshot.joints);
+  const next = advanceCompanion(interrupted, 1 / 120);
+  for (const [name, channel] of Object.entries(snapshot.deform)) {
+    assert.ok(
+      Math.abs(next.deform[name].value - channel.value) < 0.08,
+      `${name} blends rather than snapping into a new shape`,
+    );
+  }
+  assert.deepEqual(state, snapshot);
+});
+
+test("long-running idle changes skin curvature and attention without losing ground contact", () => {
+  let state = createCompanionState({ kind: "lion", seed: 0.29 });
+  const values = Object.fromEntries(
+    ["turn", "headTurn", "headPitch", "spine", "mane"].map((name) => [
+      name,
+      [],
+    ]),
+  );
+  for (let frame = 0; frame < 60 * 35; frame++) {
+    state = advanceCompanion(state, 1 / 60);
+    const pose = companionPose(state);
+    for (const name of Object.keys(values))
+      values[name].push(pose.deform[name]);
+    assert.equal(pose.deform.ground, 1);
+  }
+  for (const [name, samples] of Object.entries(values)) {
+    assert.ok(
+      Math.max(...samples) - Math.min(...samples) > 0.06,
+      `${name} keeps organic follow-through beyond the first interaction`,
+    );
+  }
+});
+
+test("skin performances stay bounded and agree across frame rates, including a mid-flight interruption", () => {
+  const simulate = (fps, portrait = false) => {
+    let state = retargetCompanion(
+      createCompanionState({ kind: "eagle", seed: 0.23, portrait }),
+      {
+        dancing: true,
+        action: "celebrate",
+        reaction: 1,
+      },
+    );
+    const peaks = Object.fromEntries(
+      Object.keys(NEUTRAL_DEFORMATION).map((name) => [name, 0]),
+    );
+    const track = (seconds) => {
+      for (let frame = 0; frame < seconds * fps; frame++) {
+        state = advanceCompanion(state, 1 / fps);
+        for (const [name, value] of Object.entries(
+          companionPose(state).deform,
+        )) {
+          peaks[name] = Math.max(peaks[name], Math.abs(value));
+        }
+      }
+    };
+    track(0.5);
+    state = retargetCompanion(state, {
+      action: "cuddle",
+      reaction: 2,
+      look: { x: -1, y: 0.4 },
+    });
+    track(4);
+    return { pose: companionPose(state), peaks };
+  };
+  const slow = simulate(30);
+  const fast = simulate(120);
+  const portrait = simulate(60, true);
+  for (const [name, value] of Object.entries(slow.pose.deform)) {
+    assert.ok(Number.isFinite(value));
+    assert.ok(value >= -1 && value <= 1);
+    assert.ok(
+      Math.abs(value - fast.pose.deform[name]) < 0.025,
+      `${name} has the same physical performance at different refresh rates`,
+    );
+    if (!["ground", "plantLeft", "plantRight"].includes(name)) {
+      assert.ok(
+        portrait.peaks[name] <= fast.peaks[name] * 0.4 + 0.001,
+        `${name} is restrained in a portrait`,
+      );
+    }
+  }
+  assert.deepEqual(
+    staticCompanionPose({ mood: "celebrate" }).deform,
+    NEUTRAL_DEFORMATION,
+  );
+});
+
+test("the feet release for flight and recover contact as the body lands", () => {
+  let state = retargetCompanion(createCompanionState({ kind: "ox", seed: 0 }), {
+    action: "celebrate",
+    reaction: 1,
+  });
+  assert.equal(companionPose(state).deform.ground, 1);
+  state = advanceFor(state, 0.55);
+  const airborne = companionPose(state);
+  assert.ok(airborne.deform.ground < 0.15);
+  assert.ok(airborne.joints.body.y < -3);
+  state = advanceFor(state, 0.5);
+  assert.ok(companionPose(state).deform.ground > 0.85);
+  state = advanceFor(state, 4);
+  assert.ok(companionPose(state).deform.ground > 0.999);
 });

@@ -28,6 +28,24 @@
   overflow: hidden;
 }
 
+.companion-soft-surface {
+  visibility: hidden;
+  overflow: visible;
+  pointer-events: none;
+}
+.companion-soft-surface canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.mascot[data-skinning] > .mascot-body {
+  opacity: 0;
+}
+.mascot[data-skinning] > .companion-soft-surface {
+  visibility: visible;
+}
+
 .companion-portraits .mascot.mascot-portrait,
 .resume-companion .mascot.mascot-portrait,
 .score-avatar .mascot.mascot-portrait,

@@ -8,7 +8,7 @@ test.use({
 const sceneRigs =
   ".game-scene .gs-character > .gs-character-art > svg.mascot-rig";
 
-async function readyScene(page) {
+async function readyScene(page, { surface = true } = {}) {
   await page.goto("/");
   await expect(page.locator(sceneRigs)).toHaveCount(4);
   await expect(
@@ -38,6 +38,8 @@ async function readyScene(page) {
         ),
     )
     .toBe(true);
+  if (surface)
+    await expect(page.locator(`${sceneRigs}[data-skinning]`)).toHaveCount(4);
   await page.locator(".game-scene").evaluate((scene) => {
     window.__originalSceneCompanions = [
       ...scene.querySelectorAll(".gs-character-art > svg.mascot-rig"),
@@ -299,7 +301,9 @@ test("the original artwork and high-fives work without graphics workers or WebGL
   await expect(
     page.locator(`${sceneRigs}[data-renderer='painted']`),
   ).toHaveCount(4);
-  await expect(page.locator(`${sceneRigs} canvas`)).toHaveCount(0);
+  await expect(
+    page.locator(`${sceneRigs}[data-skinning='mesh-2d']`),
+  ).toHaveCount(4);
   await page
     .getByRole("button", { name: "High-five Juno", exact: true })
     .click();
@@ -431,4 +435,147 @@ test("opening help during a practice spin freezes the wheel and defers its resul
   await page.keyboard.press("Escape");
   await expect(page.getByText("Landed on", { exact: false })).toBeVisible();
   expect(await rotation()).not.toEqual(frozen);
+});
+
+test("the painted face curves through a turn and the rendered torso bends above planted feet", async ({
+  page,
+}) => {
+  await readyScene(page);
+  const root = page.locator(".gs-leo .mascot-rig");
+  const box = await root.boundingBox();
+  await page.mouse.move(box.x + box.width * 0.86, box.y + box.height * 0.45);
+  const headCurvature = () =>
+    root.locator("canvas").evaluate((canvas) => {
+      const [first, middle, last] = canvas.__kinesaMeshFrame.samples.head;
+      return Math.hypot(
+        middle[0] - (first[0] + last[0]) / 2,
+        middle[1] - (first[1] + last[1]) / 2,
+      );
+    });
+  await expect.poll(headCurvature).toBeGreaterThan(0.2);
+  await page
+    .getByRole("button", { name: "Dance with the crew", exact: true })
+    .click();
+  const samples = await root.locator("canvas").evaluate(async (canvas) => {
+    const frames = [];
+    for (let index = 0; index < 36; index++) {
+      await new Promise(requestAnimationFrame);
+      frames.push(structuredClone(canvas.__kinesaMeshFrame));
+    }
+    return frames;
+  });
+  const feet = samples[0].samples.body.at(-1);
+  for (const sample of samples)
+    expect(sample.samples.body.at(-1)).toEqual(feet);
+  expect(
+    new Set(samples.map((sample) => JSON.stringify(sample.samples.body[0])))
+      .size,
+  ).toBeGreaterThan(12);
+  expect(samples.some((sample) => Math.abs(sample.deform.spine) > 0.02)).toBe(
+    true,
+  );
+  expect(samples.every((sample) => sample.drawCalls >= 6)).toBe(true);
+  const paintedPixels = await root.locator("canvas").evaluate((canvas) => {
+    let pixels;
+    if (canvas.__kinesaMeshFrame.mode === "mesh-webgl") {
+      const gl = canvas.getContext("webgl");
+      pixels = new Uint8Array(canvas.width * canvas.height * 4);
+      gl.readPixels(
+        0,
+        0,
+        canvas.width,
+        canvas.height,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        pixels,
+      );
+    } else
+      pixels = canvas
+        .getContext("2d")
+        .getImageData(0, 0, canvas.width, canvas.height).data;
+    let count = 0;
+    for (let index = 3; index < pixels.length; index += 4)
+      if (pixels[index] > 30) count++;
+    return count;
+  });
+  expect(paintedPixels).toBeGreaterThan(500);
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("pause preserves the rendered soft surface and reduced motion restores the original still artwork", async ({
+  page,
+}) => {
+  await readyScene(page);
+  await page
+    .getByRole("button", { name: "Send love with the crew", exact: true })
+    .click();
+  await expect
+    .poll(() =>
+      page
+        .locator(".gs-leo canvas")
+        .evaluate((canvas) => canvas.__kinesaMeshFrame.deform.wingFoldLeft),
+    )
+    .toBeGreaterThan(0.1);
+  await page
+    .getByRole("button", { name: "Pause scene animation", exact: true })
+    .click();
+  const readMesh = () =>
+    page
+      .locator(`${sceneRigs} canvas`)
+      .evaluateAll((nodes) => nodes.map((node) => node.__kinesaMeshFrame));
+  const frozen = await readMesh();
+  await page.waitForTimeout(250);
+  expect(await readMesh()).toEqual(frozen);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect(page.locator(`${sceneRigs}[data-skinning]`)).toHaveCount(0);
+  await expect(page.locator(".gs-leo .mascot-body")).toHaveCSS("opacity", "1");
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page
+    .getByRole("button", { name: "Resume scene animation", exact: true })
+    .click();
+  await expect(page.locator(`${sceneRigs}[data-skinning]`)).toHaveCount(4);
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("graphics context loss shows the original moving artwork and restores the same soft rig", async ({
+  page,
+}) => {
+  await readyScene(page);
+  const root = page.locator(".gs-leo .mascot-rig");
+  const gpu = await root.getAttribute("data-skinning");
+  test.skip(
+    gpu !== "mesh-webgl",
+    "This browser uses the software mesh fallback",
+  );
+  await root.locator("canvas").evaluate((canvas) => {
+    const extension = canvas
+      .getContext("webgl")
+      .getExtension("WEBGL_lose_context");
+    window.__restoreKinesaSurface = () => extension.restoreContext();
+    extension.loseContext();
+  });
+  await expect(root).not.toHaveAttribute("data-skinning", /.+/);
+  await expect(root.locator(".mascot-body")).toHaveCSS("opacity", "1");
+  const fallback = await sampleRig(page);
+  expect(range(fallback, "head")).toBeGreaterThan(0);
+  await page.evaluate(() => window.__restoreKinesaSurface());
+  await expect(root).toHaveAttribute("data-skinning", "mesh-webgl");
+  expect(await sameCompanions(page)).toBe(true);
+});
+
+test("the illustrated fallback stays interactive when canvas is unavailable", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    HTMLCanvasElement.prototype.getContext = () => null;
+  });
+  await readyScene(page, { surface: false });
+  await expect(page.locator(`${sceneRigs}[data-skinning]`)).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "High-five Leo", exact: true })
+    .click();
+  await expect(page.locator(".gs-leo .gs-reaction")).toBeVisible();
+  const moving = await sampleRig(page);
+  expect(range(moving, "head")).toBeGreaterThan(0);
+  await expect(page.getByRole("button", { name: /Random game/ })).toBeEnabled();
 });
