@@ -1,33 +1,40 @@
-/* Painted parts move on persistent spring-driven joints. CSS never restarts a
-   character or replaces its silhouette when interaction state changes. */
-.mascot.mascot-rig {
+/* Each transparent canvas receives a native 3D render from the shared studio.
+   Model joints animate in Three.js; CSS only sizes their place in the UI. */
+.mascot.mascot-webgl {
   overflow: visible;
   isolation: isolate;
 }
-
-.mascot.mascot-rig .mascot-body,
-.mascot.mascot-rig .mascot-shadow {
-  animation: none !important;
-}
-
-.mascot.mascot-rig [data-joint],
-.mascot.mascot-rig [data-lid],
-.mascot.mascot-rig [data-contact-shadow] {
-  transform-box: view-box;
-  transform-origin: 0 0;
-}
-
-.companion-painted-part,
-.mascot-rig [data-lid],
-.mascot-rig [data-lid-line] {
+.companion-surface {
+  position: relative;
+  width: 200px;
+  height: 200px;
   pointer-events: none;
   user-select: none;
 }
-
-.mascot.mascot-rig.mascot-portrait {
+.companion-canvas,
+.companion-poster {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.companion-canvas {
+  visibility: hidden;
+}
+.mascot[data-renderer="webgl"] .companion-canvas {
+  visibility: visible;
+}
+.mascot[data-renderer="webgl"] .companion-poster {
+  visibility: hidden;
+}
+.mascot-portrait .companion-poster {
+  transform: scale(1.95) translateY(21%);
+}
+.mascot.mascot-webgl.mascot-portrait {
   overflow: hidden;
 }
-
 .companion-portraits .mascot.mascot-portrait,
 .resume-companion .mascot.mascot-portrait,
 .score-avatar .mascot.mascot-portrait,
@@ -38,23 +45,12 @@
   margin: 0;
   transform: none;
 }
-
 .score-avatar:has(.mascot-portrait),
 .result-avatar:has(.mascot-portrait) {
   overflow: hidden;
   border-radius: 50%;
   background: #ffffff70;
 }
-
-.gs-character .mascot.mascot-rig .mascot-shadow {
-  opacity: 0;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mascot.mascot-rig *,
-  .mascot.mascot-rig *::before,
-  .mascot.mascot-rig *::after {
-    animation: none !important;
-    transition: none !important;
-  }
+.gs-character:has(.mascot-webgl) .gs-character-shadow {
+  display: none;
 }

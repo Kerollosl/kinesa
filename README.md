@@ -30,7 +30,7 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 - **Guided setup:** a three-step indicator explains setup, companion reveal, and play. Desktop setup includes an illustrated rules panel, with a compact layout on phones.
 - **Animated reveal:** each player's companion appears on a flipping card before gameplay begins. Card colors follow the companion's identity. Players can return to edit the roster, then deal a new set before starting.
 - **Interactive game scene:** character high-fives cycle distinct greetings, and practice spins land on and announce the actual category. Scene animation can be paused. Reduced-motion preferences disable ambient movement and shorten deliberate spins.
-- **Fluid companion animation:** softly shaded 3D-style artwork is assembled into persistent articulated rigs. Heads, wings, paws, hands and Mattie’s halo move independently; painted eyelids close smoothly without replacing the face or body. Per-character breathing, curiosity, wing flex and occasional gestures continue through greetings. Pointer attention and repeated taps retarget damped springs from their current position and velocity, then settle back into the ongoing idle. One shared animation clock suspends offscreen characters and hidden tabs; scene pause freezes the exact pose and reduced motion stays static. Artwork is self-hosted and losslessly compressed.
+- **Native 3D companions:** original Three.js models with baby-like proportions, fuller cheeks, large warm eyes, sculpted muzzles, soft feathers, curved horns, curls, paws and hands. Turns reveal actual geometry. Curved irises and pupils sit on the eyeballs with visible cream rims and soft highlights. Physical eyelids blink, eyes lead pointer attention, and heads and torsos follow with different weight. Articulated shoulders, elbows, wrists, tails, ears and Mattie’s halo keep moving through greetings. Repeated taps preserve spring position and velocity, then settle back into continuous idle. One shared WebGL studio draws all characters and face-focused portraits in a background worker, keeping geometry, shader compilation and animation away from clicks and navigation; no GPU context is created per avatar. Browsers without transferable canvases use the same studio on the main thread. Offscreen characters and hidden tabs suspend, scene pause freezes the exact pose, and reduced motion remains static. Self-hosted rendered posters cover startup and unavailable WebGL.
 - **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during room setup and matches so it cannot crowd the reveal or cover answers.
 - **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
 - **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. The home screen shows the active companion, current turn, and round with a direct resume action. Invalid saves are rejected.
@@ -66,13 +66,20 @@ src/
     game-scene.css         Scoped arena motion and layout
     Lobby.jsx              Game modes, room previews, matching and assignment reveal
     Game.jsx               Wheel, answers, scores and results
-    Mascot.jsx             Accessible layered companion renderer and metadata
-    companion-rig.js        Painted-part framing, pivots and eyelid registration
-    companion-physics.js    Springs, continuous idle and interruptible gestures
-    useCompanionMotion.js   Shared animation clock, pointer input and suspension
-    companion-motion.css   Rig framing and motion accessibility styles
+    Mascot.jsx             Accessible canvas host, fallback and Gospel metadata
+    companion-motion.css   Full-body and portrait framing
     Wheel.jsx              Six-category wheel and icons
     *-experience.css       Scoped layout and interaction styling
+  three/
+    model-kit.js           Sculpting helpers, physical eyes, joints and rest poses
+    lion.js / ox.js         Original sculpted animal companions
+    eagle.js / human.js     Eagle feather/beak and human/tunic/hair models
+    motion.js              3D spring poses, continuous idle and blended greetings
+    spring.js              Exact damped-spring integration
+    renderer.js            Input, viewport lifecycle and worker orchestration
+    worker.js              Background animation and direct canvas presentation
+    studio.js              Shared WebGL studio, cameras, merging and disposal
+    renderer-main.js       Compatibility path for older browsers
   engine.js                Random assignment, scoring, turns, sample selection
   session.js               Safe local match persistence and restoration
   data.js                  Category definitions and sample deck
@@ -82,7 +89,7 @@ src/
   app-experience.css       Shared dialog, focus and toast details
   useGlassLight.js          Desktop pointer lighting without React re-renders
 public/fonts/              Self-hosted fonts and OFL licenses
-public/characters/         Original rendered companion artwork and frame notes
+public/characters/         Native 3D fallback posters and model notes
 tests/                     Unit and browser tests
 ```
 
@@ -101,7 +108,7 @@ npm run build
 
 Unit coverage enumerates all 24 four-player companion permutations, verifies no duplicates, proves submitted character choices are ignored, and checks fresh rematches, scoring, shared wins, turns, and the sample deck.
 
-Motion unit coverage checks frame-rate stability, interruptions, pause clocks, delayed frames, portrait restraint and return to idle. Browser motion regressions check live independent joints, persistent character nodes, repeated greetings, pause/resume and dynamic reduced-motion changes.
+Motion unit coverage checks 30/60/120Hz trajectories, interruption continuity, eye/head/body attention timing, native XYZ wing movement, grounded feet, asynchronous blinking, bounded delayed frames, reduced-motion poses and return to idle. Browser motion checks inspect actual geometry depth, rendered pixels, physical joint quaternions, persistent instances, repeated greetings, pointer yaw, exact pause/resume, dynamic reduced motion and a single shared WebGL context.
 
 Browser coverage also includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, revising a room after the companion reveal, browser history/focus, mobile rules/focus return, interrupted spins, rapid keyboard input, unfinished-match replacement, room recovery, unscored discovery, interactive collection badges, and scene motion controls.
 
@@ -111,10 +118,10 @@ Use an existing Chromium installation if desired:
 PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
 ```
 
-`npm run format` formats the source. GitHub Actions is configured to run tests and the production build when the repository is eventually pushed; GitHub publication remains deferred.
+`npm run format` formats the source. GitHub Actions runs the tests and production build on pushes and pull requests.
 
 ## Credits
 
-Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). DM Sans is bundled under the SIL Open Font License in `public/fonts/`.
+Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, Three.js (MIT), and Lucide icons (ISC). DM Sans is bundled under the SIL Open Font License in `public/fonts/`.
 
 [Mobile preview](docs/kinesa-mobile.png) · [3D companions](docs/kinesa-companions.png) · [Discover](docs/kinesa-discover.png) · [Collection](docs/kinesa-collection.png) · [Results](docs/kinesa-results.png) · [Companion details](docs/kinesa-companion.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)

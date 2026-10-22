@@ -1,17 +1,16 @@
-# Kinesa companion rig artwork
+# Kinesa 3D companions
 
-The four original Gospel companions are assembled from transparent, self-hosted painted parts:
+The cast follows a soft baby/chibi direction: oversized heads, compact bodies, rounded cheeks, broad wings, friendly smiles and warm curved eyes. The animated cast consists of original procedural 3D meshes in `src/three/`. No external model service, paid generation job, third-party character, image plane or pose atlas is used at runtime.
 
-- `kinesa-companion-rig.webp` (1536 × 1024): six parts per character—body reference, head, left/right wings, left/right limbs. Rows are Leo, Lou, Juno and Mattie.
-- `kinesa-companion-torsos.webp` (1983 × 793): underpainted lion and ox bodies behind moving forelimbs.
-- `kinesa-companion-eyelids.webp` (2172 × 724): matching closed-eye facial textures, registered locally over each eye rather than swapping full heads.
+- Leo / Mark: sculpted mane, projecting cream muzzle, articulated paws, feather wings and curved tufted tail.
+- Lou / Luke: curved ivory horns, forehead blaze, broad muzzle, cloven hooves, wings, ears and tail.
+- Juno / John: white head and neck ruff, hooked gold beak, layered brown shoulder/elbow wings, white tail and talons.
+- Mattie / Matthew: continuous swept curls, lavender tunic and sash, hands with wrists/elbows, sandals, wings and a gold halo.
 
-All artwork was generated originally for Kinesa. Lossless WebP encoding preserves every visible RGBA channel value from the PNG originals and reduces the three textures by 41%. There are no external runtime requests or third-party mascot assets. The former full-body action atlas is retained in Git history.
+`lion-3d.png`, `ox-3d.png`, `eagle-3d.png` and `human-3d.png` are transparent 512px renders of these exact models. The app shows them while its lazy-loaded 3D renderer starts, or if WebGL is unavailable. They are never swapped as animation frames.
 
-`src/components/companion-rig.js` defines source windows, destination camera boxes, shoulder/head pivots, and eye registration. These are explicit because generated atlas gutters are irregular. Head clip shapes exclude neighboring pieces at narrow gutters; the ox chest has a feathered underpaint layer to conceal shoulder roots. Parts overlap under heads, manes and collars. Keep feet grounded when adjusting the camera.
+`model-kit.js` supplies meshes, materials, articulated groups, physical eyes and eyelids. `motion.js` produces native rotation/translation/scale deltas in model space; springs retain position and velocity when attention or greetings change. `studio.js` preserves each joint’s rest orientation and supplies one WebGL studio. `worker.js` runs sculpting, simulation and rendering off the page thread, writing directly to transferred avatar canvases; `renderer.js` supplies lightweight DOM input and visibility updates. The main-thread compatibility path shares the same studio. Offscreen/hidden characters suspend, pause preserves the exact pose and reduced motion uses a static semantic pose.
 
-`Mascot.jsx` renders one accessible SVG with scoped clip/mask identifiers. `useCompanionMotion.js` updates persistent joint transforms directly, using one shared animation frame scheduler. `companion-physics.js` supplies damped springs, asynchronous continuous idle movement, pointer attention, blinking and interruptible greetings. No React renders occur per animation frame or pointer movement.
+To revise a model, keep its feet at Y=0, face toward +Z, and use +Y as up. The returned head center frames portraits. Register moving groups with the kit’s joint helper so motion blends over the rest orientation. Review front/profile turns, blinks, repeated greetings, portrait cropping and real phone performance after changes.
 
-Pause preserves phase, position and velocity. Offscreen and hidden-tab rigs suspend without catch-up. Reduced motion uses one static articulated pose. `companion-motion.css` supplies framing and overrides obsolete sprite animations; it does not restart joint motion on hover or click.
-
-To replace the artwork, keep generous hidden neck/shoulder overlap, consistent baked lighting, original Gospel identities, and complete transparent silhouettes. Update windows, pivots and local eyelid registration together. Review idle, interrupted greetings, blinks and icon framing; regenerate the app screenshots and motion recording with `node scripts/capture-preview.mjs`.
+Regenerate posters and the cast gallery with `node scripts/capture-preview.mjs --companions-only`, or all app previews and the motion recording with `node scripts/capture-preview.mjs`, against the running Vite server.
