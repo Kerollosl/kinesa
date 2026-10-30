@@ -271,7 +271,7 @@ test("small-phone hero text and interactive character bounds fit without clippin
   expect(animation).toBe("none");
 });
 
-test("mobile mode actions are visible immediately and the game dock cannot cover answers", async ({
+test("mobile mode actions and navigation stay clear of game content", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
@@ -283,8 +283,9 @@ test("mobile mode actions are visible immediately and the game dock cannot cover
   const dock = await page
     .getByRole("navigation", { name: "Main navigation" })
     .boundingBox();
-  expect(dock.y).toBeGreaterThan(700);
-  expect(dock.y + dock.height).toBeLessThanOrEqual(844);
+  const header = await page.locator(".app-header").boundingBox();
+  expect(dock.y).toBeLessThan(120);
+  expect(dock.y + dock.height).toBeLessThanOrEqual(header.y + header.height);
   await friendsLobby(page, 4);
   await expect(
     page.getByRole("navigation", { name: "Main navigation" }),
