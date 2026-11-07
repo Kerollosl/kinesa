@@ -241,7 +241,7 @@ test("blocked storage still supports friend matches and correct answers", async 
   const q = questions.find((q) => q.text === text);
   await page.locator(".answer-option").nth(q.correct).click();
   await expect(
-    page.getByRole("heading", { name: "Look at you go! +100" }),
+    page.getByRole("heading", { name: "Correct · +100" }),
   ).toBeVisible();
 });
 
@@ -314,12 +314,12 @@ test("matches survive refresh without reshuffling companions or scoring an answe
   const q = questions.find((q) => q.text === text);
   await page.keyboard.press(String(q.correct + 1));
   await expect(
-    page.getByRole("heading", { name: "Look at you go! +100" }),
+    page.getByRole("heading", { name: "Correct · +100" }),
   ).toBeVisible();
   await page.reload();
   await page.getByRole("button", { name: /Resume your game/ }).click();
   await expect(
-    page.getByRole("heading", { name: "Look at you go! +100" }),
+    page.getByRole("heading", { name: "Correct · +100" }),
   ).toBeVisible();
   await expect(page.locator(".answer-option").first()).toBeDisabled();
   const restored = await page.evaluate(() =>
