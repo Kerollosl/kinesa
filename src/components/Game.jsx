@@ -12,6 +12,8 @@ import {
   HelpCircle,
   Sparkles,
   Target,
+  CircleCheck,
+  CloudOff,
 } from "lucide-react";
 import Mascot, { MASCOTS } from "./Mascot.jsx";
 import "./match-experience.css";
@@ -35,7 +37,6 @@ export default function Game({
 }) {
   const active = game.turn % game.players.length;
   const player = game.players[active];
-  const companion = MASCOTS.find((m) => m.kind === player.kind);
   const q = game.question;
   const cat = q ? categories.find((c) => c.id === q.category) : null;
   const finished = game.phase === "finished";
@@ -106,28 +107,36 @@ export default function Game({
   return (
     <div className="game-page" data-phase={game.phase}>
       <div className="game-top">
-        <button className="text-button" onClick={onExit}>
-          <ArrowLeft size={17} /> Back to play
+        <button
+          className="text-button game-exit"
+          onClick={onExit}
+          aria-label="Back to play"
+          title="Back to play"
+        >
+          <ArrowLeft size={20} />
         </button>
         <span className="round-tag">
           {finished
             ? "ALL ROUNDS COMPLETE"
-            : `ROUND ${Math.floor(game.turn / game.players.length) + 1} OF ${ROUNDS}`}
+            : `Round ${Math.floor(game.turn / game.players.length) + 1} / ${ROUNDS}`}
         </span>
         <div className="game-top-tools">
-          <span className="sample-tag">
-            {finished
-              ? "Match complete"
-              : savedLocally
-                ? "Saved on this device"
-                : "This session only"}
+          <span
+            className="match-save-status"
+            role="img"
+            aria-label={
+              savedLocally ? "Saved on this device" : "This session only"
+            }
+            title={savedLocally ? "Saved on this device" : "This session only"}
+          >
+            {savedLocally ? <CircleCheck size={18} /> : <CloudOff size={18} />}
           </span>
           <button
             className="game-help text-button"
             onClick={onHelp}
             aria-label="Game rules"
           >
-            <HelpCircle size={16} /> Rules
+            <HelpCircle size={20} />
           </button>
         </div>
       </div>
@@ -151,10 +160,7 @@ export default function Game({
           ))}
         </div>
         <span>
-          {finished
-            ? "Match complete"
-            : `Turn ${active + 1} of ${game.players.length}`}{" "}
-          <b>·</b> {answered} / {game.players.length * ROUNDS} answered
+          {answered} / {game.players.length * ROUNDS}
         </span>
       </div>
       <div
@@ -178,8 +184,7 @@ export default function Game({
                 {p.isBot && <small className="bot-tag">BOT</small>}
               </strong>
               <span>
-                {p.score} points{" "}
-                {active === i && !finished && <b>• {playerStatus}</b>}
+                {p.score} <span className="score-unit">pts</span>
               </span>
             </div>
             <div className="mini-badges">
@@ -203,11 +208,7 @@ export default function Game({
           <h1 ref={phaseHeading} tabIndex={-1}>
             Pass to {player.name}.
           </h1>
-          <p>
-            {companion.name} is ready for round{" "}
-            {Math.floor(game.turn / game.players.length) + 1}. Take the device
-            when it’s your turn.
-          </p>
+
           <div className="handoff-avatar">
             <span className="handoff-orbit" />
             <Mascot kind={player.kind} />
@@ -224,30 +225,25 @@ export default function Game({
       )}
       {game.phase === "spin" && (
         <section className="spin-stage">
-          <div className="eyebrow">
-            {Math.floor(game.turn / game.players.length) === ROUNDS - 1
-              ? "FINAL ROUND · MAKE IT COUNT"
-              : "A NEW TURN. A NEW CHANCE."}
+          <div className="turn-heading">
+            <div className="turn-companion" aria-hidden="true">
+              <Mascot kind={player.kind} />
+            </div>
+            <h1 ref={phaseHeading} tabIndex={-1}>
+              {player.isBot
+                ? `${player.name} is up!`
+                : `${player.name}, you’re up!`}
+            </h1>
           </div>
-          <h1 ref={phaseHeading} tabIndex={-1}>
-            {player.isBot
-              ? `${player.name} is up!`
-              : `${player.name}, you’re up!`}
-          </h1>
           <p role="status">
             {spinning
               ? "Choosing your next category…"
               : player.isBot
-                ? "Your practice opponent will spin and answer automatically."
-                : "Spin for a category, then choose one of four answers."}
+                ? "Practice bot’s turn"
+                : "Spin for a category"}
           </p>
           <div className="game-wheel-scene">
-            <div className="game-companion">
-              <Mascot kind={player.kind} />
-              <span>You’ve got this!</span>
-            </div>
             <Wheel rotation={rotation} spinning={spinning} />
-            <span className="spin-spark">✧</span>
           </div>
           <button
             className="primary-button spin-button"
@@ -257,19 +253,22 @@ export default function Game({
             <RotateCcw size={20} />
             {spinning ? "Choosing a category…" : "Spin the wheel"}
           </button>
-          <div className="wheel-legend">
-            {categories.map((c) => (
-              <span key={c.id}>
-                <span
-                  className="legend-category-icon"
-                  style={{ "--legend-color": c.color }}
-                >
-                  <CategoryIcon category={c} size={14} />
+          <details className="wheel-category-key">
+            <summary>Categories</summary>
+            <div className="wheel-legend">
+              {categories.map((c) => (
+                <span key={c.id}>
+                  <span
+                    className="legend-category-icon"
+                    style={{ "--legend-color": c.color }}
+                  >
+                    <CategoryIcon category={c} size={14} />
+                  </span>
+                  {c.name}
                 </span>
-                {c.name}
-              </span>
-            ))}
-          </div>
+              ))}
+            </div>
+          </details>
         </section>
       )}
       {(game.phase === "question" || game.phase === "reveal") && (
@@ -280,10 +279,6 @@ export default function Game({
           <div className="question-category">
             <CategoryIcon category={cat} size={20} />
             {cat.name}
-          </div>
-          <div className="question-header">
-            <span>{player.name}’s question</span>
-            <span>100 POINTS</span>
           </div>
           <h1 ref={phaseHeading} tabIndex={-1}>
             {q.text}
@@ -313,7 +308,7 @@ export default function Game({
             })}
           </div>
           {game.phase === "question" ? (
-            <div className="question-hints">
+            <div className="question-hints sr-only">
               <p className="take-time">
                 <Heart size={15} />{" "}
                 {player.isBot ? (
@@ -342,34 +337,27 @@ export default function Game({
               ref={feedbackRef}
               tabIndex={-1}
             >
-              <div className="reveal-mascot">
-                <Mascot
-                  kind={player.kind}
-                  mood={game.selected === q.correct ? "celebrate" : "happy"}
-                />
-              </div>
-              <div>
+              <div className="feedback-heading">
+                <div className="reveal-mascot" aria-hidden="true">
+                  <Mascot
+                    kind={player.kind}
+                    mood={game.selected === q.correct ? "celebrate" : "happy"}
+                  />
+                </div>
                 <h2>
                   {game.selected === q.correct
-                    ? player.isBot
-                      ? `${player.name} got it! +100`
-                      : "Look at you go! +100"
-                    : "Not quite. Here’s the answer."}
+                    ? "Correct · +100"
+                    : "Not this time"}
                 </h2>
-                {game.selected !== q.correct && (
-                  <p className="correct-answer-label">
-                    Correct answer: <strong>{q.answers[q.correct]}</strong>
-                  </p>
-                )}
-                <p>{q.explanation}</p>
-                <span className="source">Source · {q.source}</span>
-                {game.selected === q.correct && (
-                  <span className="answer-earned-category">
-                    <CategoryIcon category={cat} size={13} /> {cat.name} · 100
-                    points earned
-                  </span>
-                )}
               </div>
+              {game.selected !== q.correct && (
+                <p className="correct-answer-label">{q.answers[q.correct]}</p>
+              )}
+              <details className="answer-detail">
+                <summary>Why this answer?</summary>
+                <p>{q.explanation}</p>
+                <span className="source">{q.source}</span>
+              </details>
               <button className="primary-button" onClick={advance}>
                 {game.turn + 1 >= game.players.length * ROUNDS
                   ? "See the results"
@@ -397,18 +385,13 @@ export default function Game({
               />
             ))}
           </div>
-          <div className="eyebrow">THREE ROUNDS. ONE GREAT GAME.</div>
           <Trophy className="winner-trophy" size={38} />
           <h1 ref={phaseHeading} tabIndex={-1}>
             {winners.length > 1
               ? "A shared celebration!"
               : `${winners[0].name} takes the crown!`}
           </h1>
-          <p>
-            {winners.length > 1
-              ? "Great minds, equal points. There’s room for everyone on this podium."
-              : "A lovely little victory. An even better time together."}
-          </p>
+
           <div className="winner-mascots">
             {winners.map((p) => (
               <div key={p.kind}>
@@ -448,7 +431,6 @@ export default function Game({
           </div>
           <div className="results-leaderboard-heading">
             <h2>The final standings</h2>
-            <span>Tap a player to meet their companion</span>
           </div>
           <ol className="final-scores">
             {[...game.players]

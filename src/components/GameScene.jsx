@@ -413,13 +413,13 @@ export default function GameScene({
                 disabled={paused}
                 aria-pressed={action.id === "dance" ? dancing : undefined}
                 aria-label={`${action.label} with the crew`}
+                title={action.label}
               >
                 <Icon size={15} aria-hidden="true" />
-                <span>{action.label}</span>
               </button>
             ))}
           </div>
-          <p className="crew-play-hint" role="status">
+          <p className="crew-play-hint sr-only" role="status">
             {crewMessage ||
               (paused
                 ? "Taking a little breather."

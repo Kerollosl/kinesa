@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {
   ArrowRight,
-  ChevronRight,
   Globe2,
   Users,
   Play,
@@ -27,9 +26,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
     <div className="home-experience">
       <div className="play-heading">
         <div className="mobile-home-title">
-          <span className="play-kicker">Your next game night starts here.</span>
           <h1>Let’s play.</h1>
-          <p>Bible stories. Coptic roots. Good company.</p>
         </div>
         <button
           className="play-help"
@@ -72,17 +69,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
           aria-labelledby="feature-heading"
         >
           <div className="feature-copy">
-            <span className="feature-label">
-              <span /> BIBLE & COPTIC TRIVIA
-            </span>
-            <h2 id="feature-heading">
-              Faith meets
-              <br />
-              friendly competition.
-            </h2>
-            <p>
-              One wheel. Six topics. A different Gospel companion for everyone.
-            </p>
+            <h2 id="feature-heading">Meet the companions</h2>
           </div>
           <div className="feature-art">
             <GameScene paused={motionPaused} onPreview={setPreviewCategory} />
@@ -103,7 +90,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
               ) : (
                 <>
                   <RotateCcw size={16} />
-                  <span>Try a spin. Give the crew a high-five.</span>
+                  <span>Try the wheel</span>
                 </>
               )}
             </div>
@@ -121,9 +108,6 @@ export default function Home({ game, navigate, openLobby, setModal }) {
             </button>
           </div>
           <div className="feature-bottom">
-            <span>
-              <Users size={14} /> 2–4 players <i /> 3 rounds
-            </span>
             <button onClick={() => setModal({ type: "squad" })}>
               Meet the four <ArrowUpRight size={16} />
             </button>
@@ -149,12 +133,8 @@ export default function Home({ game, navigate, openLobby, setModal }) {
               </div>
               <div className="mode-copy">
                 <h3>Random game</h3>
-                <p>A quick match with three practice opponents.</p>
+                <p>3 practice bots</p>
               </div>
-              <span className="mode-meta">
-                <span className="mode-status" /> Play a practice match{" "}
-                <ArrowRight size={14} />
-              </span>
             </button>
             <button
               data-glass
@@ -169,24 +149,18 @@ export default function Home({ game, navigate, openLobby, setModal }) {
               </div>
               <div className="mode-copy">
                 <h3>Play with friends</h3>
-                <p>Gather 2–4 friends and pass this device around.</p>
+                <p>2–4 players · one device</p>
               </div>
-              <span className="mode-meta">
-                Set up your game <ChevronRight size={14} />
-              </span>
             </button>
           </div>
-          <p className="mode-preview-note">
-            Sample questions. No account needed. Online play is coming later.
-          </p>
+          <p className="mode-preview-note">Local preview · sample questions</p>
         </section>
       </div>
 
       <section className="topics-section" aria-labelledby="topics-heading">
         <div className="topics-heading">
           <div>
-            <h2 id="topics-heading">Every spin, a new story.</h2>
-            <p>Take a look at what’s on the wheel.</p>
+            <h2 id="topics-heading">On the wheel</h2>
           </div>
           <button
             className="text-button"
@@ -212,9 +186,6 @@ export default function Home({ game, navigate, openLobby, setModal }) {
                 {c.short}
                 <ArrowUpRight size={14} />
               </span>
-              <span className="topic-number" aria-hidden="true">
-                0{i + 1}
-              </span>
             </button>
           ))}
         </div>
@@ -232,10 +203,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
           ))}
         </span>
         <span className="companions-copy">
-          <strong>Four companions. One is yours.</strong>
-          <span>
-            A Gospel symbol, randomly assigned to every player. Always unique.
-          </span>
+          <strong>Meet the Gospel crew</strong>
         </span>
         <span className="companions-link">
           Meet your companions <ArrowRight size={18} />

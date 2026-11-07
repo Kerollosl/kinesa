@@ -30,3 +30,12 @@ The frontend flow review includes 320px and 390px phone layouts, blocked local s
 The app remains a local frontend preview. Matchmaking uses practice bots, friends use one device, and the question deck contains 12 samples. No production question database or remote multiplayer service was added. The publication target is the private `Kerollosl/kinesa` repository.
 
 See the [companion performance close-up](kinesa-companions-motion.webm). It records the actual homepage components at a larger camera scale; regenerate it with `node scripts/capture-companion-performance.mjs`. Regenerate the app preview set with `node scripts/capture-preview.mjs` while Vite is running, or use `--companions-only` for the original illustrated cast gallery.
+
+## Focused play and companion placement — November 2026
+
+- Home uses short mode descriptions and an optional icon toolbar for companion actions. The illustration has its own full-width row, without negative margins under the heading.
+- Setup now centers the form and roster. Repeated promotional panels, helper paragraphs, and deal confirmations have been removed; local-play and practice-bot distinctions remain explicit.
+- The active companion occupies a clipped slot beside the turn heading. The wheel and spin button have no character overlays. Feedback uses a separate small companion slot above the next-turn action.
+- Correctness, score and the next action appear immediately. Explanations and source notes remain available in “Why this answer?”; the category key is also optional.
+- Discover keeps its topic picker and sample question, with less repeated description. Collection uses lock/check symbols for badge state and retains its local-progress explanation.
+- Browser regression coverage checks wheel/answer hit targets, companion separation and optional explanations at 360, 390, 768 and 1440 pixels. Managed browser inspection is unavailable in this executor; GitHub CI runs these checks alongside the existing end-to-end suite.

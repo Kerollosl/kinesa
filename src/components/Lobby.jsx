@@ -4,16 +4,13 @@ import {
   ArrowRight,
   Check,
   Copy,
-  Dices,
   Clock3,
   CircleCheck,
-  Trophy,
   ChevronRight,
   Globe2,
   LockKeyhole,
   Plus,
   Shuffle,
-  Sparkles,
   Users,
   X,
 } from "lucide-react";
@@ -226,7 +223,6 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
         <button className="text-button" onClick={cancel}>
           <ArrowLeft size={18} /> Back to play
         </button>
-        <span className="preview-pill">FRONTEND PREVIEW</span>
       </div>
       <nav className="setup-progress" aria-label="Game setup progress">
         <ol>
@@ -251,81 +247,9 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
           ))}
         </ol>
       </nav>
-      <div
-        className={`lobby-workspace ${stage === "entry" || stage === "room" ? "with-context" : ""}`}
-      >
-        {(stage === "entry" || stage === "room") && (
-          <aside data-glass className="lobby-context">
-            <span className="lobby-context-label">
-              {mode === "friends"
-                ? "A GAME FOR YOUR PEOPLE"
-                : "A LITTLE PRACTICE. A LOT TO DISCOVER."}
-            </span>
-            <h2>
-              {mode === "friends" ? (
-                <>
-                  Good friends.
-                  <br />
-                  Great game night.
-                </>
-              ) : (
-                <>
-                  A fresh spin.
-                  <br />A new challenge.
-                </>
-              )}
-            </h2>
-            <p>
-              {mode === "friends"
-                ? "Gather around one device. We’ll take care of the friendly competition."
-                : "Get to know the wheel with three practice opponents, each playing their own turns."}
-            </p>
-            <div className="lobby-crew-art" aria-hidden="true">
-              {MASCOTS.map((m, i) => (
-                <span
-                  key={m.kind}
-                  style={{ "--crew-bg": m.bg, "--crew-delay": `${i * -0.8}s` }}
-                >
-                  <Mascot kind={m.kind} />
-                </span>
-              ))}
-            </div>
-            <div className="lobby-rules">
-              <span>
-                <Users size={16} />
-                <strong>
-                  {mode === "friends" ? "2–4 players" : "You + 3 bots"}
-                </strong>
-                <small>
-                  {mode === "friends"
-                    ? "One device, everyone included"
-                    : "A quick practice match"}
-                </small>
-              </span>
-              <span>
-                <Clock3 size={16} />
-                <strong>3 rounds each</strong>
-                <small>A turn for every player</small>
-              </span>
-              <span>
-                <Trophy size={16} />
-                <strong>100 points per correct answer</strong>
-                <small>The highest score wins</small>
-              </span>
-            </div>
-            <div className="lobby-context-footnote">
-              <Shuffle size={15} /> Companions are dealt randomly. Each player
-              gets a different one.
-            </div>
-          </aside>
-        )}
+      <div className="lobby-workspace">
         <div className="lobby-main">
           <div className="lobby-heading">
-            <span className="eyebrow">
-              {mode === "random"
-                ? "NEW FACES. SAME GAME."
-                : "YOUR PEOPLE. YOUR GAME."}
-            </span>
             <h1 ref={titleRef} tabIndex={-1}>
               {stage === "matching"
                 ? "Getting the gang together…"
@@ -339,16 +263,16 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
             </h1>
             <p>
               {stage === "reveal"
-                ? "One companion each. Randomly dealt. Ready to make some history?"
+                ? "Randomly dealt. One per player."
                 : stage === "matching"
-                  ? "Filling your preview match with three practice opponents."
+                  ? "Finding your practice bots…"
                   : stage === "room"
-                    ? "Fill the seats. We’ll deal the companions when everyone’s ready."
+                    ? "Add your players, then deal."
                     : mode === "random"
-                      ? "Try a quick match with practice opponents. Real online matchmaking comes next."
-                      : "Try the friends lobby on one device. Online invitations come next."}
+                      ? "Practice with three bots."
+                      : "Play together on this device."}
             </p>
-            {(stage === "entry" || stage === "room") && (
+            {stage === "entry" && (
               <div className="lobby-format-summary">
                 <span>
                   <Users size={13} />
@@ -386,11 +310,8 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="nickname"
-                  aria-describedby="nickname-hint"
                 />
-                <p className="lobby-input-hint" id="nickname-hint">
-                  Your name for this game. No account needed.
-                </p>
+
                 {mode === "friends" && (
                   <>
                     <div
@@ -500,13 +421,6 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   <ArrowRight size={18} />
                 </button>
               )}
-              <div className="assignment-note">
-                <Shuffle size={20} />
-                <p>
-                  Your companion is part of the surprise.
-                  <strong>One unique Gospel figure for every player.</strong>
-                </p>
-              </div>
             </section>
           )}
           {stage === "matching" && (
@@ -577,7 +491,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
             <section className="room-panel">
               <div className="room-code-strip">
                 <div>
-                  <span>YOUR PREVIEW ROOM</span>
+                  <span>ROOM CODE</span>
                   <strong>{roomCode}</strong>
                 </div>
                 <button className="secondary-button" onClick={copy}>
@@ -586,8 +500,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                 </button>
               </div>
               <p className="room-preview-note">
-                Room codes work in this browser preview. This match uses
-                pass-and-play.
+                Codes work in this browser only.
               </p>
               <div className="room-players-heading">
                 <h2>Your players</h2>
@@ -603,9 +516,7 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   {names.length} of 4 seats
                 </span>
               </div>
-              <p className="room-edit-hint">
-                Tap a name to edit. Everyone plays on this device.
-              </p>
+
               <div className="friend-seats">
                 {names.map((n, i) => (
                   <div
@@ -654,18 +565,8 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                 {names.length < 4 && (
                   <button className="add-friend" onClick={addFriend}>
                     <Plus size={22} /> Add a friend{" "}
-                    <span>{4 - names.length} seats open</span>
                   </button>
                 )}
-              </div>
-              <div className="assignment-note">
-                <Dices size={24} />
-                <p>
-                  Your companion is a surprise.
-                  <strong>
-                    We’ll deal a different Gospel figure to each player next.
-                  </strong>
-                </p>
               </div>
               {error && (
                 <p className="form-error" role="alert">
@@ -714,24 +615,16 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                             {p.isBot && <small>BOT</small>}
                           </span>
                           <Mascot kind={p.kind} mood="celebrate" />
-                          <span className="gospel-label">
-                            GOSPEL OF {m.gospel.toUpperCase()}
-                          </span>
+                          <span className="gospel-label">{m.gospel}</span>
                           <h2>{m.name}</h2>
-                          <p>The {p.kind}</p>
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <p className="assignment-confirmation">
-                <Check size={18} /> Everyone’s different. Everyone’s in.
-              </p>
               <p className="assignment-ready-message" role="status">
-                {dealDone
-                  ? "Companions dealt. Your game is ready."
-                  : "Dealing your companions…"}
+                {dealDone ? "Ready to play" : "Dealing your companions…"}
               </p>
               <div className="assignment-actions">
                 <button className="secondary-button" onClick={editSetup}>
@@ -745,10 +638,6 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                   Game on <ArrowRight size={22} />
                 </button>
               </div>
-              <span className="rules-mini">
-                3 rounds <i /> 100 points per correct answer <i /> Highest score
-                wins
-              </span>
             </section>
           )}
         </div>

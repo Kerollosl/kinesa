@@ -38,16 +38,8 @@ export default function Collection({ stats, setModal, openLobby }) {
     <div className="le-page le-collection">
       <header className="le-intro">
         <div>
-          <span className="le-kicker">YOUR COLLECTION</span>
           <h1>The trophy shelf.</h1>
-          <p>
-            Little discoveries, well earned. This is your progress on this
-            device.
-          </p>
         </div>
-        <span className="le-intro-tag">
-          <Medal size={15} /> {badges.length} of 6 badges earned
-        </span>
       </header>
 
       <section
@@ -55,18 +47,17 @@ export default function Collection({ stats, setModal, openLobby }) {
         aria-labelledby="collection-progress-heading"
       >
         <div className="le-collection-copy">
-          <span className="le-kicker">THE SIX-CATEGORY COLLECTION</span>
           <h2 id="collection-progress-heading">
             {completed
               ? "You’ve explored every side."
               : badges.length
                 ? `${remaining} more ${remaining === 1 ? "discovery" : "discoveries"} to go.`
-                : "Your first badge starts with a little curiosity."}
+                : "Start your collection."}
           </h2>
           <p>
             {completed
               ? "All six categories, all yours. There’s always another question to get right."
-              : "Answer a question correctly in a game to earn its category badge. Every new category adds to your shelf."}
+              : "Correct answers unlock category badges."}
           </p>
           <button
             className="le-solid-action"
@@ -126,9 +117,7 @@ export default function Collection({ stats, setModal, openLobby }) {
         <div className="le-section-heading">
           <div>
             <h2 id="badge-shelf-heading">Your category badges</h2>
-            <p>Tap a badge to take a closer look.</p>
           </div>
-          <span>{badges.length} EARNED</span>
         </div>
         <div className="le-badge-grid">
           {categories.map((c) => {
@@ -149,7 +138,7 @@ export default function Collection({ stats, setModal, openLobby }) {
                   </span>
                 </span>
                 <h3>{c.name}</h3>
-                <span className="le-badge-label">
+                <span className="le-badge-label sr-only">
                   {earned ? "In your collection" : "Ready to discover"}
                 </span>
               </button>
@@ -226,8 +215,7 @@ export default function Collection({ stats, setModal, openLobby }) {
       <div className="le-local-note">
         <BookOpen size={15} />
         <p>
-          Game results are saved in this browser. Discover’s practice questions
-          are unscored and don’t add badges.
+          Progress stays in this browser. Discover samples don’t earn badges.
         </p>
       </div>
     </div>

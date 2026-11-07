@@ -87,7 +87,7 @@ test("a four-player friends match randomly assigns unique companions, scores tie
     ).size,
   ).toBe(4);
   await page.getByRole("button", { name: "Game on", exact: true }).click();
-  await expect(page.locator(".score-player").first()).toContainText("0 points");
+  await expect(page.locator(".score-player").first()).toContainText("0 pts");
   expect(errors).toEqual([]);
 });
 
@@ -96,9 +96,7 @@ test("random match preview fills with labeled bots and bots play their own turns
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /Random game/ }).click();
-  await expect(
-    page.getByText(/Real online matchmaking comes next/),
-  ).toBeVisible();
+  await expect(page.getByText(/Practice with three bots/)).toBeVisible();
   await page.getByLabel("What should we call you?").fill("Kerollos");
   await page.getByRole("button", { name: "Find a game", exact: true }).click();
   await expect(
@@ -405,3 +403,64 @@ test("players can revise the room after a companion reveal and start with the re
     page.getByRole("button", { name: /Resume your game/ }),
   ).toContainText("Mina’s turn");
 });
+
+for (const width of [360, 390, 768, 1440]) {
+  test(`companions leave the wheel and answer controls clear at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: width < 400 ? 844 : 1000 });
+    await friendsLobby(page, 4);
+    const companion = await page.locator(".turn-companion").boundingBox();
+    const wheel = await page.locator(".game-wheel-scene").boundingBox();
+    expect(companion.y + companion.height).toBeLessThanOrEqual(wheel.y);
+    const spin = page.getByRole("button", {
+      name: "Spin the wheel",
+      exact: true,
+    });
+    await spin.scrollIntoViewIfNeeded();
+    expect(
+      await spin.evaluate((button) => {
+        const r = button.getBoundingClientRect();
+        return (
+          document
+            .elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+            ?.closest("button") === button
+        );
+      }),
+    ).toBe(true);
+    await spin.click();
+    await expect(page.locator(".answer-option")).toHaveCount(4);
+    for (const option of await page.locator(".answer-option").all()) {
+      await option.scrollIntoViewIfNeeded();
+      expect(
+        await option.evaluate((button) => {
+          const r = button.getBoundingClientRect();
+          return (
+            document
+              .elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
+              ?.closest("button") === button
+          );
+        }),
+      ).toBe(true);
+    }
+    const text = await page.locator(".question-stage h1").textContent();
+    const question = questions.find((q) => q.text === text);
+    await page.locator(".answer-option").nth(question.correct).click();
+    const resultCompanion = await page.locator(".reveal-mascot").boundingBox();
+    const next = page.locator(".answer-reveal .primary-button");
+    const nextBox = await next.boundingBox();
+    expect(resultCompanion.y + resultCompanion.height).toBeLessThanOrEqual(
+      nextBox.y,
+    );
+    await expect(page.locator(".answer-detail")).toHaveJSProperty(
+      "open",
+      false,
+    );
+    await page.locator(".answer-detail summary").click();
+    await expect(page.locator(".answer-detail p")).toHaveText(
+      question.explanation,
+    );
+    await expect(page.locator(".answer-detail p")).toBeVisible();
+    await expect(next).toBeEnabled();
+  });
+}

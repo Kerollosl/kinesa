@@ -1,16 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  Check,
-  ChevronRight,
-  RotateCcw,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, BookOpen, Check, RotateCcw } from "lucide-react";
 import { categories, questions } from "../data.js";
 import { CategoryIcon } from "./Wheel.jsx";
-import Mascot from "./Mascot.jsx";
 import "./learning-experience.css";
 
 export default function Discover({ setModal, openLobby }) {
@@ -66,13 +57,8 @@ export default function Discover({ setModal, openLobby }) {
     <div className="le-page le-discover">
       <header className="le-intro">
         <div>
-          <span className="le-kicker">DISCOVER</span>
           <h1>A world of stories.</h1>
-          <p>Explore the Bible, Coptic history, and the traditions we share.</p>
         </div>
-        <span className="le-intro-tag">
-          <BookOpen size={15} /> Six categories to explore
-        </span>
       </header>
 
       <section
@@ -82,30 +68,23 @@ export default function Discover({ setModal, openLobby }) {
         style={{ "--le-accent": category.color, "--le-pale": category.pale }}
       >
         <div className="le-studio-context">
-          <span className="le-kicker">
-            <Sparkles size={13} /> A LITTLE DISCOVERY
-          </span>
           <div className="le-context-icon">
             <CategoryIcon category={category} size={33} />
           </div>
           <h2 id="discovery-heading">{category.name}</h2>
-          <p>{category.detail}</p>
           <button
             className="le-text-action"
+            aria-label="About this category"
+            title="About this category"
             onClick={() => setModal({ type: "category", category })}
           >
-            About this category <ArrowUpRight size={16} />
+            <BookOpen size={18} />
           </button>
-          <div className="le-curious-companion" aria-hidden="true">
-            <div className="le-companion-orbit" />
-            <Mascot kind="eagle" />
-            <span>Curiosity looks good on you.</span>
-          </div>
         </div>
 
         <div className="le-sample" key={`${categoryId}-${sampleIndex}`}>
           <div className="le-sample-top">
-            <span>JUST FOR THE FUN OF IT</span>
+            <span>Practice</span>
             <span>
               {sampleIndex + 1} / {deck.length}
             </span>
@@ -168,9 +147,7 @@ export default function Discover({ setModal, openLobby }) {
               </button>
             </div>
           ) : (
-            <p className="le-sample-note">
-              Take a guess. This is an unscored sample.
-            </p>
+            <p className="le-sample-note">Unscored sample</p>
           )}
         </div>
       </section>
@@ -181,13 +158,11 @@ export default function Discover({ setModal, openLobby }) {
       >
         <div className="le-section-heading">
           <div>
-            <h2 id="discover-topics-heading">Follow your curiosity</h2>
-            <p>Choose a category to try its sample questions.</p>
+            <h2 id="discover-topics-heading">Choose a topic</h2>
           </div>
-          <span>06 TOPICS</span>
         </div>
         <div className="le-topic-grid">
-          {categories.map((c, i) => (
+          {categories.map((c) => (
             <button
               className={`explore-card le-topic-card ${c.id === categoryId ? "le-topic-selected" : ""}`}
               data-glass
@@ -200,24 +175,17 @@ export default function Discover({ setModal, openLobby }) {
                 <span className="le-topic-icon">
                   <CategoryIcon category={c} size={28} />
                 </span>
-                <span className="le-topic-index">0{i + 1}</span>
+                {c.id === categoryId && (
+                  <Check size={18} aria-label="Selected" />
+                )}
               </span>
               <h3>{c.name}</h3>
-              <p>{c.description}</p>
-              <span className="le-topic-footer">
-                {c.id === categoryId ? "Exploring now" : "Explore category"}
-                <ChevronRight size={16} />
-              </span>
             </button>
           ))}
         </div>
       </section>
 
       <div className="le-bottom-callout">
-        <div>
-          <strong>Ready to put it to the test?</strong>
-          <p>Take all six categories for a spin in a sample game.</p>
-        </div>
         <button className="le-solid-action" onClick={() => openLobby("random")}>
           Start a game <ArrowRight size={17} />
         </button>
