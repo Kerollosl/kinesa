@@ -1,3 +1,5 @@
+Live UI playground: https://kinesa-playground.kerollos-lowandy.chatgpt.site
+
 # Kinesa ✦
 
 A Coptic and Bible trivia game frontend for up to four players, with animated Gospel companions and a liquid-glass interface.
