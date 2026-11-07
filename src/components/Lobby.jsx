@@ -610,13 +610,24 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
                           className="assignment-front"
                           aria-hidden={!revealed}
                         >
-                          <span className="assigned-player">
-                            {p.name}
+                          <span className="assigned-player" title={p.name}>
+                            <span className="assigned-player-name">
+                              {p.name}
+                            </span>
                             {p.isBot && <small>BOT</small>}
                           </span>
-                          <Mascot kind={p.kind} mood="celebrate" />
-                          <span className="gospel-label">{m.gospel}</span>
-                          <h2>{m.name}</h2>
+                          <div className="assignment-art" aria-hidden="true">
+                            <Mascot
+                              kind={p.kind}
+                              mood="celebrate"
+                              softSurface={false}
+                              aria-hidden="true"
+                            />
+                          </div>
+                          <div className="assignment-identity">
+                            <h2>{m.name}</h2>
+                            <span className="gospel-label">{m.gospel}</span>
+                          </div>
                         </div>
                       </div>
                     </div>

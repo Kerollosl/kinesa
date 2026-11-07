@@ -238,11 +238,11 @@ function makeController(root, initialOptions) {
   }
 
   function refresh() {
-    if (!reduced && !options.portrait && !surface) {
+    if (!reduced && !options.portrait && options.softSurface && !surface) {
       surface = createCompanionSurface(root, options.kind);
       surface?.draw(companionPose(state));
     }
-    surface?.setEnabled(!reduced && !options.portrait);
+    surface?.setEnabled(!reduced && !options.portrait && options.softSurface);
     const active =
       !disposed &&
       visible &&
@@ -310,7 +310,8 @@ function makeController(root, initialOptions) {
     update(nextOptions) {
       if (
         nextOptions.kind !== options.kind ||
-        nextOptions.portrait !== options.portrait
+        nextOptions.portrait !== options.portrait ||
+        nextOptions.softSurface !== options.softSurface
       ) {
         surface?.dispose();
         surface = null;
@@ -346,6 +347,7 @@ export default function useCompanionMotion({
   kind,
   mood = "happy",
   portrait = false,
+  softSurface = true,
   paused = false,
   reaction = 0,
   action = "hello",
@@ -359,6 +361,7 @@ export default function useCompanionMotion({
     kind,
     mood,
     portrait,
+    softSurface,
     paused,
     reaction,
     action,
@@ -378,7 +381,17 @@ export default function useCompanionMotion({
 
   useEffect(() => {
     controllerRef.current?.update(optionsRef.current);
-  }, [kind, mood, portrait, paused, reaction, action, dancing, look]);
+  }, [
+    kind,
+    mood,
+    portrait,
+    softSurface,
+    paused,
+    reaction,
+    action,
+    dancing,
+    look,
+  ]);
 
   return rootRef;
 }

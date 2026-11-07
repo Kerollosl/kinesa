@@ -39,3 +39,9 @@ See the [companion performance close-up](kinesa-companions-motion.webm). It reco
 - Correctness, score and the next action appear immediately. Explanations and source notes remain available in “Why this answer?”; the category key is also optional.
 - Discover keeps its topic picker and sample question, with less repeated description. Collection uses lock/check symbols for badge state and retains its local-progress explanation.
 - Browser regression coverage checks wheel/answer hit targets, companion separation and optional explanations at 360, 390, 768 and 1440 pixels. Managed browser inspection is unavailable in this executor; GitHub CI runs these checks alongside the existing end-to-end suite.
+
+## Assignment-card correction
+
+The iPhone screenshot exposed a separate reveal-card defect: a full-body canvas inside a flipping card could paint over the identity text. Assignment previews now use the continuously animated SVG rig, without a foreignObject canvas or 3D card transform. An explicit grid reserves player, illustration and identity rows, with a clipped illustration viewport. Other app contexts retain soft-surface animation.
+
+Regression coverage runs animated assignment reveals at 360, 390, 430, 768 and 1440 pixels in Chromium and WebKit. It checks independent label/art bounds, heading hit targets and four unique companions, and saves rendered cards for review.

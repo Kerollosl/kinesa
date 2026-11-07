@@ -122,6 +122,7 @@ export default function Mascot({
   className = "",
   mood = "happy",
   portrait = false,
+  softSurface = true,
   paused = false,
   reaction = 0,
   action = "hello",
@@ -137,6 +138,7 @@ export default function Mascot({
     kind: companion.kind,
     mood,
     portrait,
+    softSurface,
     paused,
     reaction,
     action,
@@ -256,7 +258,7 @@ export default function Mascot({
           )}
         </g>
       </g>
-      {!portrait && (
+      {!portrait && softSurface && (
         <foreignObject
           x="-24"
           y="-22"

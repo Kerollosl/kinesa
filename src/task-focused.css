@@ -366,31 +366,118 @@
 .lobby-page .assignment-grid {
   margin-top: 24px;
 }
-.lobby-page .assignment-card {
-  height: 260px;
+/* SVG previews avoid foreignObject canvas compositing in transformed WebKit cards.
+   Each card reserves independent rows for player, art and companion identity. */
+.lobby-page .assignment-slot {
+  perspective: none;
+}
+.lobby-page .assignment-card,
+.lobby-page .assignment-slot.is-revealed .assignment-card {
+  height: 280px;
+  transform: none;
+  transform-style: flat;
+  transition: none;
+}
+.lobby-page .assignment-front,
+.lobby-page .assignment-back {
+  transform: none;
+  backface-visibility: visible;
+  overflow: hidden;
 }
 .lobby-page .assignment-front {
-  overflow: hidden;
-  gap: 5px;
-  padding: 16px 10px;
+  display: grid;
+  grid-template-rows: 36px minmax(0, 1fr) 48px;
+  justify-items: stretch;
+  gap: 8px;
+  padding: 16px 12px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 240ms ease-out;
+  transition-delay: var(--delay, 0ms);
 }
-.lobby-page .assignment-front > .mascot {
-  width: 140px;
-  height: 140px;
-  max-width: 100%;
-  flex: 0 1 140px;
+.lobby-page .assignment-back {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 180ms ease-out;
+  transition-delay: var(--delay, 0ms);
+}
+.lobby-page .is-revealed .assignment-front {
+  opacity: 1;
+  visibility: visible;
+}
+.lobby-page .is-revealed .assignment-back {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.lobby-page .assigned-player {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+  height: 36px;
+  margin: 0;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+.lobby-page .assigned-player-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.lobby-page .assigned-player small {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.lobby-page .assignment-art {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  overflow: hidden;
+  contain: paint;
+  isolation: isolate;
+}
+.lobby-page .assignment-art > .mascot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 160px;
+  max-height: 160px;
+  margin: 0;
   overflow: hidden;
   transform: none;
 }
-.lobby-page .assignment-front h2 {
-  font-size: 22px;
+.lobby-page .assignment-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  gap: 4px;
 }
-.lobby-page .gospel-label {
+.lobby-page .assignment-identity h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.lobby-page .assignment-identity .gospel-label {
+  margin: 0;
   font-size: 12px;
+  line-height: 1.2;
   letter-spacing: 0;
 }
-.lobby-page .assigned-player {
-  font-size: 14px;
+@media (prefers-reduced-motion: reduce) {
+  .lobby-page .assignment-front,
+  .lobby-page .assignment-back {
+    transition: none;
+  }
 }
 .lobby-page .assignment-ready-message {
   margin-top: 16px;
@@ -482,15 +569,14 @@
   .lobby-page .room-panel {
     padding: 20px 16px;
   }
-  .lobby-page .assignment-card {
-    height: 220px;
+  .lobby-page .assignment-card,
+  .lobby-page .assignment-slot.is-revealed .assignment-card {
+    height: 252px;
   }
-  .lobby-page .assignment-front > .mascot {
-    width: 112px;
-    height: 112px;
-    flex-basis: 112px;
+  .lobby-page .assignment-front {
+    padding: 12px 10px;
   }
-  .lobby-page .assignment-front h2 {
+  .lobby-page .assignment-identity h2 {
     font-size: 20px;
   }
 }
