@@ -73,7 +73,14 @@ test("Collection shows actual progress, badge details, and survives a direct ref
     page.getByRole("heading", { name: "The trophy shelf." }),
   ).toBeVisible();
   await expect(page.locator(".le-badge-earned")).toHaveCount(1);
-  await expect(page.locator(".le-stat strong")).toHaveText(["2", "4", "1 / 6"]);
+  // Games, correct answers, badges, level (XP backfilled from v1 stats), day streak.
+  await expect(page.locator(".le-stat strong")).toHaveText([
+    "2",
+    "4",
+    "1 / 6",
+    "1",
+    "0",
+  ]);
 });
 
 test("scene motion can pause while a deliberate practice spin still reveals its category", async ({

@@ -4,6 +4,8 @@ import {
   ArrowUpRight,
   BookOpen,
   Check,
+  Crown,
+  Flame,
   LockKeyhole,
   Medal,
   Sparkles,
@@ -13,6 +15,8 @@ import {
 import { categories } from "../data.js";
 import { CategoryIcon } from "./Wheel.jsx";
 import Mascot from "./Mascot.jsx";
+import { levelInfo, masteryFor, nextMastery } from "../progress.js";
+import { dailyStatus } from "../daily.js";
 import "./learning-experience.css";
 
 export default function Collection({ stats, setModal, openLobby }) {
@@ -33,6 +37,18 @@ export default function Collection({ stats, setModal, openLobby }) {
   const completed = badges.length === categories.length;
   const remaining = categories.length - badges.length;
   const next = categories.find((c) => !stats.badges.includes(c.id));
+  const level = levelInfo(stats.xp);
+  const daily = dailyStatus(stats);
+  const masteryLine = (id) => {
+    const count = stats.categoryCorrect[id] || 0;
+    const tier = masteryFor(count);
+    const upcoming = nextMastery(count);
+    return `${count} correct${tier ? ` · ${tier.label}` : ""}${
+      upcoming
+        ? ` · ${upcoming.min - count} more for ${upcoming.label}`
+        : " · fully mastered"
+    }`;
+  };
 
   return (
     <div className="le-page le-collection">
@@ -99,6 +115,8 @@ export default function Collection({ stats, setModal, openLobby }) {
           [Trophy, stats.games, "Games completed"],
           [Zap, stats.correct, "Correct answers"],
           [Medal, `${badges.length} / 6`, "Category badges"],
+          [Crown, level.level, "Level"],
+          [Flame, daily.streak, "Day streak"],
         ].map(([Icon, value, label]) => (
           <div className="le-stat" key={label}>
             <span className="le-stat-icon">
@@ -108,6 +126,24 @@ export default function Collection({ stats, setModal, openLobby }) {
             <span>{label}</span>
           </div>
         ))}
+      </div>
+
+      <div
+        className="le-level-track"
+        role="progressbar"
+        aria-label={`Level ${level.level} progress`}
+        aria-valuemin={0}
+        aria-valuemax={level.span}
+        aria-valuenow={level.into}
+      >
+        <span>
+          <strong>{stats.xp} XP</strong> · {level.next - stats.xp} to level{" "}
+          {level.level + 1}
+          {daily.best > 0 && ` · best daily streak ${daily.best}`}
+        </span>
+        <span className="le-level-bar" aria-hidden="true">
+          <i style={{ transform: `scaleX(${level.progress})` }} />
+        </span>
       </div>
 
       <section
@@ -122,10 +158,11 @@ export default function Collection({ stats, setModal, openLobby }) {
         <div className="le-badge-grid">
           {categories.map((c) => {
             const earned = stats.badges.includes(c.id);
+            const tier = masteryFor(stats.categoryCorrect[c.id] || 0);
             return (
               <button
                 data-glass
-                className={`le-badge-card ${earned ? "le-badge-earned" : ""} ${selectedId === c.id ? "le-badge-selected" : ""}`}
+                className={`le-badge-card ${earned ? "le-badge-earned" : ""} ${selectedId === c.id ? "le-badge-selected" : ""} ${tier ? `is-${tier.id}` : ""}`}
                 style={{ "--le-accent": c.color, "--le-pale": c.pale }}
                 key={c.id}
                 aria-pressed={selectedId === c.id}
@@ -138,6 +175,7 @@ export default function Collection({ stats, setModal, openLobby }) {
                   </span>
                 </span>
                 <h3>{c.name}</h3>
+                {tier && <span className="le-mastery-tag">{tier.label}</span>}
                 <span className="le-badge-label sr-only">
                   {earned ? "In your collection" : "Ready to discover"}
                 </span>
@@ -172,9 +210,10 @@ export default function Collection({ stats, setModal, openLobby }) {
                     </span>
                   )}
                 </strong>
+                <p className="le-mastery-line">{masteryLine(selected.id)}</p>
                 <p>
                   {stats.badges.includes(selected.id)
-                    ? "A correct answer earned this badge. It stays in your collection as you keep playing."
+                    ? "Keep answering here to climb from Bronze (5) to Silver (15) and Gold (30)."
                     : `Answer a question in ${selected.name} correctly during a game to add this badge to your collection.`}
                 </p>
               </div>

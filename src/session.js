@@ -74,6 +74,11 @@ export function restoreMatch(value) {
   };
   if (settings.category && !validCategory(settings.category))
     settings.category = null;
+  if (
+    settings.plan &&
+    !settings.plan.every((id) => questions.some((q) => q.id === id))
+  )
+    return null;
   const shell = { structure, settings, players: g.players };
   const length = matchLength(shell);
   if (

@@ -41,6 +41,16 @@ export function normalizeSettings(settings = {}) {
       : 10,
     category: typeof settings.category === "string" ? settings.category : null,
     combo: settings.combo !== false,
+    // A fixed question list (the daily challenge) replaces the wheel.
+    plan:
+      Array.isArray(settings.plan) && settings.plan.length
+        ? settings.plan.filter((id) => typeof id === "string").slice(0, 15)
+        : null,
+    daily:
+      typeof settings.daily === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(settings.daily)
+        ? settings.daily
+        : null,
   };
 }
 

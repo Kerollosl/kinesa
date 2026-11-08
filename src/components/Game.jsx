@@ -45,6 +45,7 @@ export default function Game({
   matchMeta,
   onExit,
   onRematch,
+  onPractice,
   onEditPlayers,
   onHome,
   onReady,
@@ -250,24 +251,31 @@ export default function Game({
             </h1>
           </div>
           <p role="status">
-            {game.settings?.category
-              ? `Drawing a ${categories.find((c) => c.id === game.settings.category)?.name} question…`
-              : spinning
-                ? player.isBot
-                  ? `${player.name} is spinning…`
-                  : "Choosing a category…"
-                : simultaneous
-                  ? "Spin for a category. Everyone answers together."
-                  : player.isBot
-                    ? "Practice bot’s turn"
-                    : "Spin for a category"}
+            {game.settings?.plan
+              ? "Drawing today’s next question…"
+              : game.settings?.category
+                ? `Drawing a ${categories.find((c) => c.id === game.settings.category)?.name} question…`
+                : spinning
+                  ? player.isBot
+                    ? `${player.name} is spinning…`
+                    : "Choosing a category…"
+                  : simultaneous
+                    ? "Spin for a category. Everyone answers together."
+                    : player.isBot
+                      ? "Practice bot’s turn"
+                      : "Spin for a category"}
           </p>
           <div className="game-wheel-scene">
             <Wheel rotation={rotation} spinning={spinning} />
           </div>
           <button
             className="primary-button spin-button"
-            disabled={spinning || player.isBot || !!game.settings?.category}
+            disabled={
+              spinning ||
+              player.isBot ||
+              !!game.settings?.category ||
+              !!game.settings?.plan
+            }
             onClick={spin}
           >
             <RotateCcw size={20} />
@@ -382,6 +390,7 @@ export default function Game({
           stats={stats}
           matchMeta={matchMeta}
           onRematch={onRematch}
+          onPractice={onPractice}
           onEditPlayers={onEditPlayers}
           onHome={onHome}
           onInspectPlayer={onInspectPlayer}

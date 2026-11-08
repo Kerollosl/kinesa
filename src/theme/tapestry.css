@@ -1293,3 +1293,117 @@ h3 {
 .game-page .handoff-cover .handoff-footnote {
   color: var(--thread) !important;
 }
+
+/* Daily challenge result. */
+.daily-streak-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0 4px;
+  padding: 16px 18px;
+  border-radius: var(--radius-m);
+  background: var(--dye-weld-100);
+  color: #6b4a06;
+}
+.daily-streak-card > div {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+.daily-streak-card strong {
+  font-size: 20px;
+  color: var(--ink-900);
+}
+.daily-streak-card span {
+  font-size: 14px;
+  color: var(--ink-700);
+}
+.daily-freezes {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 700;
+}
+.results-actions.is-single {
+  grid-template-columns: 1fr;
+}
+
+/* Collection progression. */
+.le-page .le-stats-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+@media (max-width: 760px) {
+  .le-page .le-stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.le-level-track {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+.le-level-track span {
+  font-size: 14px;
+  color: var(--ink-700);
+}
+.le-level-track strong {
+  color: var(--ink-900);
+}
+.le-level-bar {
+  display: block;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--linen-200);
+  overflow: hidden;
+}
+.le-level-bar i {
+  display: block;
+  height: 100%;
+  background: var(--dye-purple-600);
+  transform-origin: left center;
+}
+.le-page .le-mastery-tag {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--linen-200);
+  color: var(--ink-900);
+}
+.le-page .le-badge-card.is-bronze .le-mastery-tag {
+  background: #ecd0b5;
+}
+.le-page .le-badge-card.is-silver .le-mastery-tag {
+  background: #dde1e6;
+}
+.le-page .le-badge-card.is-gold .le-mastery-tag {
+  background: var(--dye-weld-300);
+}
+.le-page .le-mastery-line {
+  font-weight: 700;
+  color: var(--ink-900) !important;
+  margin: 2px 0;
+}
+
+/* Discover and Collection: secondary text in the tapestry inks. */
+.le-page p,
+.le-page .le-stat span,
+.le-page .le-sample-top,
+.le-page .le-ring-count,
+.le-page .le-section-heading p {
+  color: var(--ink-700);
+}
+.le-page .le-sample-top {
+  font-size: 13px !important;
+  font-weight: 700;
+}
+.le-page .le-ring-count {
+  background: var(--linen-50);
+}
+.le-page .le-stat strong,
+.le-page h2,
+.le-page h3 {
+  color: var(--ink-900);
+}

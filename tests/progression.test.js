@@ -263,3 +263,89 @@ test("stats migrate from version 1 and progress through levels and mastery", () 
   assert.equal(first.newBadge, true);
   assert.equal(recordMatch(stats, { won: true }).gained, 50);
 });
+
+test("the daily challenge deals the same five questions for a date and tracks a streak", async () => {
+  const { dailyPlan, recordDaily, dailyStatus, spotlight } =
+    await import("../src/daily.js");
+  const day = new Date(2026, 10, 7);
+  const plan = dailyPlan(day);
+  assert.equal(plan.length, 5);
+  assert.deepEqual(
+    dailyPlan(new Date(2026, 10, 7, 21, 30)),
+    plan,
+    "same plan all day",
+  );
+  assert.notDeepEqual(dailyPlan(new Date(2026, 10, 8)), plan);
+  const cats = plan.map((id) => questions.find((q) => q.id === id).category);
+  assert.equal(new Set(cats).size, 5, "five different categories");
+  assert.ok(spotlight(day).id);
+
+  let stats = migrateStats(null);
+  const play = (date) =>
+    (stats = recordDaily(
+      stats,
+      { correct: 4, total: 5, score: 500 },
+      date,
+    ).stats);
+  play(day);
+  assert.equal(stats.daily.streak, 1);
+  assert.equal(stats.xp, 30);
+  assert.equal(
+    recordDaily(stats, { correct: 5, total: 5, score: 900 }, day).stats,
+    stats,
+    "one attempt a day",
+  );
+  play(new Date(2026, 10, 8));
+  assert.equal(stats.daily.streak, 2);
+  // Missing a day without a freeze resets the streak.
+  play(new Date(2026, 10, 10));
+  assert.equal(stats.daily.streak, 1);
+  // A seven-day run earns a freeze, which covers one missed day.
+  for (let i = 11; i <= 16; i++) play(new Date(2026, 10, i));
+  assert.equal(stats.daily.streak, 7);
+  assert.equal(stats.daily.freezes, 1);
+  const status = dailyStatus(stats, new Date(2026, 10, 18));
+  assert.equal(
+    status.streak,
+    7,
+    "a saved freeze keeps the streak alive through one missed day",
+  );
+  const covered = recordDaily(
+    stats,
+    { correct: 3, total: 5, score: 300 },
+    new Date(2026, 10, 18),
+  );
+  assert.equal(covered.usedFreeze, true);
+  assert.equal(covered.stats.daily.streak, 8);
+  assert.equal(covered.stats.daily.freezes, 0);
+  assert.equal(dailyStatus(covered.stats, new Date(2026, 10, 25)).streak, 0);
+});
+
+test("question plans survive save and restore and must reference real questions", () => {
+  const plan = [
+    questions[0].id,
+    questions[2].id,
+    questions[4].id,
+    questions[6].id,
+    questions[8].id,
+  ];
+  const game = createGame([{ name: "Kero" }], Math.random, {
+    structure: "simultaneous",
+    settings: { questions: 5, plan, daily: "2026-11-07" },
+  });
+  const saved = JSON.parse(
+    JSON.stringify({ version: MATCH_VERSION, mode: "daily", game }),
+  );
+  assert.deepEqual(restoreMatch(saved).game.settings.plan, plan);
+  assert.equal(restoreMatch(saved).game.settings.daily, "2026-11-07");
+  assert.equal(
+    restoreMatch({
+      ...saved,
+      game: {
+        ...saved.game,
+        settings: { ...saved.game.settings, plan: ["nope-1"] },
+      },
+    }),
+    null,
+  );
+});

@@ -1,9 +1,13 @@
 import { useState } from "react";
 import {
   ArrowRight,
+  CalendarDays,
+  CircleCheck,
+  Flame,
   Pause,
   Play,
   RotateCcw,
+  ShieldCheck,
   SlidersHorizontal,
   Users,
 } from "lucide-react";
@@ -19,9 +23,78 @@ import {
   roundCount,
 } from "../engine.js";
 import { describeSettings, loadPrefs } from "../prefs.js";
+import { churchSeason, formatCoptic, nextFeast } from "../calendar.js";
+import { DAILY_LENGTH, dailyStatus, spotlight } from "../daily.js";
 import "./home-tapestry.css";
 
-export default function Home({ game, navigate, openLobby, playNow, setModal }) {
+function TodayCard({ stats, playDaily }) {
+  const today = new Date();
+  const { coptic, feast, season } = churchSeason(today);
+  const coming = !feast && !season ? nextFeast(today) : null;
+  const daily = dailyStatus(stats, today);
+  return (
+    <section className="today-card" aria-labelledby="today-title">
+      <div className="today-calendar">
+        <CalendarDays size={18} aria-hidden="true" />
+        <span>
+          <strong>{formatCoptic(coptic)}</strong>
+          {feast
+            ? ` · ${feast.name}`
+            : season
+              ? ` · ${season.name}`
+              : coming
+                ? ` · ${coming.name} in ${coming.days} days`
+                : ""}
+        </span>
+      </div>
+      <div className="today-body">
+        <div className="today-copy">
+          <h2 id="today-title">Today’s five</h2>
+          <p>
+            {daily.done
+              ? `You got ${daily.result.correct} of ${daily.result.total} today. A new set arrives tomorrow.`
+              : `${DAILY_LENGTH} questions, the same for everyone today. One try, then come back tomorrow.`}
+          </p>
+        </div>
+        <div className="today-streak" aria-label={`${daily.streak}-day streak`}>
+          <Flame size={22} aria-hidden="true" />
+          <strong>{daily.streak}</strong>
+          <span>day streak</span>
+        </div>
+      </div>
+      <div className="today-actions">
+        {daily.done ? (
+          <span className="today-done">
+            <CircleCheck size={18} aria-hidden="true" /> Done for today
+          </span>
+        ) : (
+          <button className="primary-button" onClick={playDaily}>
+            Play today’s five <ArrowRight size={18} />
+          </button>
+        )}
+        {daily.freezes > 0 && (
+          <span
+            className="today-freeze"
+            title="A saved freeze covers one missed day"
+          >
+            <ShieldCheck size={16} aria-hidden="true" /> {daily.freezes} streak{" "}
+            {daily.freezes === 1 ? "freeze" : "freezes"} saved
+          </span>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export default function Home({
+  game,
+  navigate,
+  openLobby,
+  playNow,
+  playDaily,
+  stats,
+  setModal,
+}) {
   const [motionPaused, setMotionPaused] = useState(false);
   const [previewCategory, setPreviewCategory] = useState(null);
   const prefs = loadPrefs();
@@ -30,6 +103,8 @@ export default function Home({ game, navigate, openLobby, playNow, setModal }) {
   const round = ongoing ? currentRound(game) : 1;
   const rounds = ongoing ? roundCount(game) : 3;
   const simultaneous = ongoing && isSimultaneous(game);
+  const solo = ongoing && game.players.length === 1;
+  const featured = spotlight();
   const locked =
     prefs.settings.category &&
     categories.find((c) => c.id === prefs.settings.category);
@@ -48,7 +123,9 @@ export default function Home({ game, navigate, openLobby, playNow, setModal }) {
                 : `Round ${round} of ${rounds}`}{" "}
               ·{" "}
               {simultaneous
-                ? `${activePlayer.name} vs ${game.players.length - 1} practice bots`
+                ? solo
+                  ? "Today’s five"
+                  : `${activePlayer.name} vs ${game.players.length - 1} practice bots`
                 : `${activePlayer.name}’s turn · ${game.players.length} players`}
             </span>
           </span>
@@ -91,6 +168,8 @@ export default function Home({ game, navigate, openLobby, playNow, setModal }) {
         </div>
       </section>
 
+      <TodayCard stats={stats} playDaily={playDaily} />
+
       <button className="friends-card" onClick={() => openLobby("friends")}>
         <span className="friends-card-icon" aria-hidden="true">
           <Users size={24} />
@@ -105,6 +184,9 @@ export default function Home({ game, navigate, openLobby, playNow, setModal }) {
       <section className="topics-section" aria-labelledby="topics-heading">
         <div className="section-heading">
           <h2 id="topics-heading">On the wheel</h2>
+          <span className="spotlight-note">
+            This week: <strong>{featured.short}</strong> earns 1.5× XP
+          </span>
           <button
             className="text-button"
             onClick={() => navigate("categories")}
@@ -116,7 +198,7 @@ export default function Home({ game, navigate, openLobby, playNow, setModal }) {
           {categories.map((c) => (
             <button
               aria-label={`Explore ${c.name}`}
-              className="topic-card"
+              className={`topic-card ${c.id === featured.id ? "is-spotlight" : ""}`}
               key={c.id}
               style={{
                 "--topic-color": c.color,
@@ -129,6 +211,9 @@ export default function Home({ game, navigate, openLobby, playNow, setModal }) {
                 <CategoryIcon category={c} size={26} />
               </span>
               <span className="topic-name">{c.name}</span>
+              {c.id === featured.id && (
+                <span className="topic-spotlight">1.5× XP</span>
+              )}
             </button>
           ))}
         </div>

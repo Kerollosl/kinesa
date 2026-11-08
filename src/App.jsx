@@ -22,7 +22,7 @@ import Game from "./components/Game.jsx";
 import Lobby from "./components/Lobby.jsx";
 import Discover from "./components/Discover.jsx";
 import Collection from "./components/Collection.jsx";
-import { categories } from "./data.js";
+import { categories, questions } from "./data.js";
 import {
   TIMEOUT,
   activeIndex,
@@ -50,6 +50,15 @@ import { createSound } from "./sound.js";
 import { PRACTICE_BOTS, loadPrefs, savePrefs } from "./prefs.js";
 import { CopticCross } from "./components/Ornaments.jsx";
 import PlaySheet from "./components/PlaySheet.jsx";
+import {
+  DAILY_LENGTH,
+  SPOTLIGHT_MULTIPLIER,
+  dailyPlan,
+  dailyStatus,
+  recordDaily,
+  spotlight,
+} from "./daily.js";
+import { dayKey } from "./calendar.js";
 
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -201,6 +210,23 @@ export default function App() {
       "random",
     );
   };
+  // Today's five: solo, timed, the same questions for everyone on this date.
+  const playDaily = () => {
+    if (dailyStatus(statsRef.current).done) return;
+    const prefs = loadPrefs();
+    begin(
+      createGame([{ name: prefs.name || "You" }], Math.random, {
+        structure: "simultaneous",
+        settings: {
+          tier: "medium",
+          questions: DAILY_LENGTH,
+          plan: dailyPlan(),
+          daily: dayKey(),
+        },
+      }),
+      "daily",
+    );
+  };
   const openLobby = (nextMode, players = null) => {
     if (nextMode === "random") {
       playNow();
@@ -250,12 +276,15 @@ export default function App() {
     );
   };
   const drawQuestion = (current, categoryId) => {
-    const q = getQuestion(
-      categoryId,
-      current.used,
-      Math.random,
-      current.settings?.tier,
-    );
+    const planned = current.settings?.plan?.[current.turn];
+    const q = planned
+      ? questions.find((item) => item.id === planned)
+      : getQuestion(
+          categoryId,
+          current.used,
+          Math.random,
+          current.settings?.tier,
+        );
     updateGame({
       ...current,
       phase: "question",
@@ -319,7 +348,12 @@ export default function App() {
     after.players.forEach((p, i) => {
       const entry = after.answers[i];
       if (p.isBot || !entry?.correct) return;
-      const result = recordCorrect(next, after.question.category, entry.streak);
+      const result = recordCorrect(
+        next,
+        after.question.category,
+        entry.streak,
+        after.question.category === spotlight().id ? SPOTLIGHT_MULTIPLIER : 1,
+      );
       next = result.stats;
       if (result.newBadge) meta.newBadges.push(after.question.category);
       if (result.newMastery) meta.newMastery.push(after.question.category);
@@ -432,9 +466,13 @@ export default function App() {
     const timer = setInterval(tick, 150);
     return () => clearInterval(timer);
   }, [clockRunning, questionKey]);
-  // Category-locked matches skip the wheel.
+  // Category-locked and planned (daily) matches skip the wheel.
   useEffect(() => {
-    if (page !== "game" || game?.phase !== "spin" || !game.settings?.category)
+    if (
+      page !== "game" ||
+      game?.phase !== "spin" ||
+      !(game.settings?.category || game.settings?.plan)
+    )
       return;
     const timer = setTimeout(() => {
       const current = gameRef.current;
@@ -451,10 +489,26 @@ export default function App() {
       updateGame(next);
       const human = next.players.find((p) => !p.isBot);
       const won =
-        matchMode !== "friends" &&
+        matchMode === "random" &&
         !!human &&
         getWinners(next.players).includes(human);
-      setStats(recordMatch(statsRef.current, { won }).stats);
+      let nextStats = recordMatch(statsRef.current, { won }).stats;
+      if (matchMode === "daily" && human) {
+        const outcome = recordDaily(nextStats, {
+          correct: human.correct,
+          total: next.settings.questions,
+          score: human.score,
+        });
+        nextStats = outcome.stats;
+        setMatchMeta((meta) => ({
+          ...meta,
+          dailyOutcome: {
+            usedFreeze: outcome.usedFreeze,
+            earnedFreeze: outcome.earnedFreeze,
+          },
+        }));
+      }
+      setStats(nextStats);
       play("finish");
       return;
     }
@@ -578,6 +632,8 @@ export default function App() {
             navigate={navigate}
             openLobby={openLobby}
             playNow={playNow}
+            playDaily={playDaily}
+            stats={stats}
             setModal={setModal}
           />
         )}
@@ -591,7 +647,11 @@ export default function App() {
           />
         )}
         {page === "categories" && (
-          <Discover setModal={setModal} openLobby={openLobby} />
+          <Discover
+            setModal={setModal}
+            openLobby={openLobby}
+            onQuiz={(category) => playNow({ category })}
+          />
         )}
         {page === "collection" && (
           <Collection stats={stats} setModal={setModal} openLobby={openLobby} />
@@ -611,6 +671,7 @@ export default function App() {
             matchMeta={matchMeta}
             onExit={() => navigate("home")}
             onRematch={rematch}
+            onPractice={() => playNow()}
             onEditPlayers={() => openLobby(matchMode, game.players)}
             onHelp={() => setModal({ type: "help" })}
             onInspectPlayer={(player) => setModal({ type: "player", player })}

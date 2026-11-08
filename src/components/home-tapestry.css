@@ -400,3 +400,137 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Today: the Coptic date, the daily five and its streak. */
+.today-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px 20px 20px;
+  border-radius: var(--radius-l);
+  background-color: var(--dye-purple-700);
+  background-image: var(--weave);
+  color: var(--linen-50);
+  box-shadow: var(--edge);
+}
+.today-calendar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(236, 226, 204, 0.35);
+  font-size: 14px;
+  color: var(--thread);
+}
+.today-calendar strong {
+  color: var(--dye-weld-300);
+  font-weight: 700;
+}
+.today-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.today-copy h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+  color: var(--linen-50);
+}
+.today-copy p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--thread);
+  max-width: 52ch;
+}
+.today-streak {
+  display: grid;
+  justify-items: center;
+  flex: 0 0 auto;
+  min-width: 76px;
+  padding: 8px 10px;
+  border-radius: var(--radius-m);
+  background: rgba(20, 8, 26, 0.3);
+  color: var(--dye-weld-300);
+}
+.today-streak strong {
+  font-size: 26px;
+  line-height: 1;
+  color: var(--linen-50);
+}
+.today-streak span {
+  font-size: 12px;
+  color: var(--thread);
+}
+.today-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.today-actions .primary-button {
+  background: var(--dye-weld-300);
+  color: var(--dye-purple-900);
+  padding: 0 22px;
+  gap: 8px;
+}
+.today-actions .primary-button:hover:not(:disabled) {
+  background: #f3d77f;
+}
+.today-card :focus-visible {
+  outline-color: var(--dye-weld-300);
+}
+.today-done,
+.today-freeze {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--thread);
+}
+.today-done {
+  min-height: 52px;
+  color: var(--linen-50);
+}
+
+/* Weekly spotlight. */
+.spotlight-note {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--ink-700);
+}
+.spotlight-note strong {
+  color: var(--dye-purple-700);
+}
+.topic-card {
+  position: relative;
+}
+.topic-spotlight {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: var(--linen-50);
+  color: var(--dye-purple-700);
+  font-size: 12px;
+  font-weight: 700;
+}
+.topic-card.is-spotlight {
+  border-color: var(--topic-color);
+  box-shadow:
+    0 0 0 2px var(--topic-color),
+    var(--edge);
+}
+@media (max-width: 760px) {
+  .spotlight-note {
+    display: none;
+  }
+  .today-card {
+    padding: 16px;
+  }
+  .today-actions .primary-button {
+    flex: 1;
+  }
+}

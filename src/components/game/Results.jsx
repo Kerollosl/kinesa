@@ -1,7 +1,10 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import {
   Award,
+  Flame,
   Home,
+  Play,
+  ShieldCheck,
   RotateCcw,
   Share2,
   Shuffle,
@@ -130,6 +133,7 @@ const Results = forwardRef(function Results(
     stats,
     matchMeta,
     onRematch,
+    onPractice,
     onEditPlayers,
     onHome,
     onInspectPlayer,
@@ -145,41 +149,60 @@ const Results = forwardRef(function Results(
   const myRank = me ? rankOf(game.players, me) : 0;
   const shared =
     me && game.players.filter((p) => p.score === me.score).length > 1;
-  const iWon = simultaneous ? myRank === 1 : true;
+  const daily = mode === "daily";
+  const solo = game.players.length === 1;
+  const iWon = daily
+    ? me.correct >= total - 1
+    : simultaneous
+      ? myRank === 1
+      : true;
   const [picking, setPicking] = useState(false);
   const [sharing, setSharing] = useState(false);
   const shareArt = useRef(null);
   const focusPlayer = simultaneous ? me : winners[0];
-  const headline = simultaneous
-    ? myRank === 1
-      ? shared
-        ? "Tied for first!"
-        : "You win!"
-      : `You placed ${ordinal(myRank)}`
-    : winners.length > 1
-      ? "A shared celebration!"
-      : `${winners[0].name} takes the crown!`;
-  const sub = simultaneous
-    ? `${me.correct} of ${total} correct · best streak ${me.bestStreak}`
-    : `${winners[0].correct} of ${total} correct · ${winners[0].score} points`;
+  const headline = daily
+    ? me.correct === total
+      ? "A perfect five!"
+      : "Today’s five, done."
+    : simultaneous
+      ? myRank === 1
+        ? shared
+          ? "Tied for first!"
+          : "You win!"
+        : `You placed ${ordinal(myRank)}`
+      : winners.length > 1
+        ? "A shared celebration!"
+        : `${winners[0].name} takes the crown!`;
+  const streak = stats.daily?.streak ?? 0;
+  const sub = daily
+    ? `${me.correct} of ${total} correct · ${me.score} points`
+    : simultaneous
+      ? `${me.correct} of ${total} correct · best streak ${me.bestStreak}`
+      : `${winners[0].correct} of ${total} correct · ${winners[0].score} points`;
   const share = async () => {
     setSharing(true);
     try {
       const blob = await renderShareCard({
-        headline: simultaneous
-          ? `I scored ${me.correct}/${total}`
-          : `${winners[0].name} won!`,
-        detail: simultaneous
-          ? `on Kinesa${me.bestStreak >= 3 ? ` · ${me.bestStreak} in a row` : ""}`
-          : `${winners[0].score} points in our Kinesa match`,
+        headline: daily
+          ? `Today: ${me.correct}/${total}`
+          : simultaneous
+            ? `I scored ${me.correct}/${total}`
+            : `${winners[0].name} won!`,
+        detail: daily
+          ? `Kinesa daily · ${streak}-day streak`
+          : simultaneous
+            ? `on Kinesa${me.bestStreak >= 3 ? ` · ${me.bestStreak} in a row` : ""}`
+            : `${winners[0].score} points in our Kinesa match`,
         companionSvg: shareArt.current?.querySelector("svg"),
         companionBg: MASCOTS.find((m) => m.kind === focusPlayer.kind)?.bg,
       });
       const result = await shareResult({
         blob,
-        text: simultaneous
-          ? `I scored ${me.correct}/${total} on Kinesa!`
-          : `${winners[0].name} won our Kinesa match!`,
+        text: daily
+          ? `Kinesa daily: ${me.correct}/${total}, ${streak}-day streak.`
+          : simultaneous
+            ? `I scored ${me.correct}/${total} on Kinesa!`
+            : `${winners[0].name} won our Kinesa match!`,
       });
       if (result === "downloaded") onToast("Result image saved");
     } catch {
@@ -212,49 +235,79 @@ const Results = forwardRef(function Results(
         </h1>
         <p className="results-sub">{sub}</p>
       </div>
-      <ol className="podium" aria-label="Podium">
-        {PODIUM_ORDER.filter((i) => sorted[i]).map((i) => {
-          const p = sorted[i];
-          const rank = rankOf(game.players, p);
-          return (
-            <li
-              key={p.kind}
-              className={`podium-step rank-${Math.min(rank, 3)}`}
-              style={{ "--step": PODIUM_ORDER.indexOf(i) }}
-            >
-              <span className="podium-mascot">
-                <Mascot
-                  kind={p.kind}
-                  mood={rank === 1 ? "celebrate" : "happy"}
-                />
-              </span>
-              <strong className="podium-name">
-                {p.name}
-                {p.isBot && <small className="bot-tag">BOT</small>}
-              </strong>
-              <span className="podium-block">
-                <span className="podium-rank">{ordinal(rank)}</span>
-                <span className="podium-score">{p.score}</span>
-              </span>
-            </li>
-          );
-        })}
-      </ol>
+      {daily && (
+        <div className="daily-streak-card">
+          <Flame size={30} aria-hidden="true" />
+          <div>
+            <strong>{streak}-day streak</strong>
+            <span>
+              {matchMeta?.dailyOutcome?.usedFreeze
+                ? "A saved freeze covered the day you missed."
+                : matchMeta?.dailyOutcome?.earnedFreeze
+                  ? "Seven in a row: you earned a streak freeze."
+                  : "Come back tomorrow for a new five."}
+            </span>
+          </div>
+          {stats.daily?.freezes > 0 && (
+            <span className="daily-freezes" title="Streak freezes saved">
+              <ShieldCheck size={16} aria-hidden="true" /> {stats.daily.freezes}
+            </span>
+          )}
+        </div>
+      )}
+      {!solo && (
+        <ol className="podium" aria-label="Podium">
+          {PODIUM_ORDER.filter((i) => sorted[i]).map((i) => {
+            const p = sorted[i];
+            const rank = rankOf(game.players, p);
+            return (
+              <li
+                key={p.kind}
+                className={`podium-step rank-${Math.min(rank, 3)}`}
+                style={{ "--step": PODIUM_ORDER.indexOf(i) }}
+              >
+                <span className="podium-mascot">
+                  <Mascot
+                    kind={p.kind}
+                    mood={rank === 1 ? "celebrate" : "happy"}
+                  />
+                </span>
+                <strong className="podium-name">
+                  {p.name}
+                  {p.isBot && <small className="bot-tag">BOT</small>}
+                </strong>
+                <span className="podium-block">
+                  <span className="podium-rank">{ordinal(rank)}</span>
+                  <span className="podium-score">{p.score}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+      )}
       {matchMeta && <ProgressCard stats={stats} meta={matchMeta} />}
-      <div className="results-actions">
-        <button className="primary-button" onClick={() => onRematch()}>
-          <RotateCcw size={18} /> Rematch
-        </button>
-        <button
-          className="secondary-button"
-          aria-expanded={picking}
-          aria-controls="category-rematch"
-          onClick={() => setPicking((v) => !v)}
-        >
-          <Shuffle size={18} /> Different category
-        </button>
-      </div>
-      {picking && (
+      {daily ? (
+        <div className="results-actions is-single">
+          <button className="primary-button" onClick={onPractice}>
+            <Play size={18} fill="currentColor" /> Play a practice round
+          </button>
+        </div>
+      ) : (
+        <div className="results-actions">
+          <button className="primary-button" onClick={() => onRematch()}>
+            <RotateCcw size={18} /> Rematch
+          </button>
+          <button
+            className="secondary-button"
+            aria-expanded={picking}
+            aria-controls="category-rematch"
+            onClick={() => setPicking((v) => !v)}
+          >
+            <Shuffle size={18} /> Different category
+          </button>
+        </div>
+      )}
+      {picking && !daily && (
         <div
           className="category-rematch"
           id="category-rematch"
@@ -291,40 +344,42 @@ const Results = forwardRef(function Results(
           <Home size={17} /> Back to play
         </button>
       </div>
-      <h2 className="results-standings-title">Final standings</h2>
-      <ol className="final-scores">
-        {sorted.map((p) => (
-          <li key={p.kind}>
-            <button
-              className={`final-score-row ${winners.includes(p) ? "is-winner" : ""}`}
-              onClick={() => onInspectPlayer(p)}
-            >
-              <span className="result-rank">{rankOf(game.players, p)}</span>
-              <span className="result-avatar">
-                <Mascot kind={p.kind} portrait />
-              </span>
-              <span className="result-player">
-                <strong>
-                  {p.name}
-                  {p.isBot && <small className="bot-tag">BOT</small>}
-                </strong>
-                <span>
-                  {p.correct} of {total} correct
-                  {p.correct === total
-                    ? " · Perfect game!"
-                    : p.bestStreak >= 3
-                      ? ` · best streak ${p.bestStreak}`
-                      : ""}
+      {!solo && <h2 className="results-standings-title">Final standings</h2>}
+      {!solo && (
+        <ol className="final-scores">
+          {sorted.map((p) => (
+            <li key={p.kind}>
+              <button
+                className={`final-score-row ${winners.includes(p) ? "is-winner" : ""}`}
+                onClick={() => onInspectPlayer(p)}
+              >
+                <span className="result-rank">{rankOf(game.players, p)}</span>
+                <span className="result-avatar">
+                  <Mascot kind={p.kind} portrait />
                 </span>
-              </span>
-              <span className="result-points">
-                <strong>{p.score}</strong>
-                <small>points</small>
-              </span>
-            </button>
-          </li>
-        ))}
-      </ol>
+                <span className="result-player">
+                  <strong>
+                    {p.name}
+                    {p.isBot && <small className="bot-tag">BOT</small>}
+                  </strong>
+                  <span>
+                    {p.correct} of {total} correct
+                    {p.correct === total
+                      ? " · Perfect game!"
+                      : p.bestStreak >= 3
+                        ? ` · best streak ${p.bestStreak}`
+                        : ""}
+                  </span>
+                </span>
+                <span className="result-points">
+                  <strong>{p.score}</strong>
+                  <small>points</small>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
       <div className="share-art" ref={shareArt} aria-hidden="true">
         <Mascot kind={focusPlayer.kind} portrait softSurface={false} paused />
       </div>

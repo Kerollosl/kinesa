@@ -235,6 +235,12 @@ for (const [device, options] of Object.entries(VIEWPORTS)) {
     await startFriends(page, shot);
     await playMatch(page, shot, { friends: true });
   });
+  await session(`${device}-daily`, options, async (page, shot) => {
+    await button(page, /^Play today/i).click();
+    await playMatch(page, shot, { friends: false });
+    await page.goto(base, { waitUntil: "networkidle" });
+    await shot("home-after");
+  });
   await session(`${device}-pages`, options, async (page, shot) => {
     for (const hash of ["#categories", "#collection"]) {
       await page.goto(base + hash, { waitUntil: "networkidle" });
