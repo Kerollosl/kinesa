@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
@@ -24,32 +24,36 @@ import Discover from "./components/Discover.jsx";
 import Collection from "./components/Collection.jsx";
 import { categories } from "./data.js";
 import {
+  TIMEOUT,
+  activeIndex,
   answerQuestion,
+  createGame,
+  currentRound,
   getQuestion,
+  getWinners,
+  isSimultaneous,
   nextTurn,
+  planBotAnswer,
   readSaved,
+  recordAnswer,
+  revealAnswers,
+  roundCount,
   saveLocal,
 } from "./engine.js";
+import {
+  loadStats,
+  recordCorrect,
+  recordMatch,
+  saveStats,
+} from "./progress.js";
+import { createSound } from "./sound.js";
 
-const blankStats = { games: 0, correct: 0, badges: [] };
-function loadStats() {
-  const s = readSaved("kinesa-stats", blankStats);
-  return s &&
-    Number.isInteger(s.games) &&
-    s.games >= 0 &&
-    Number.isInteger(s.correct) &&
-    s.correct >= 0 &&
-    Array.isArray(s.badges)
-    ? {
-        ...s,
-        badges: [
-          ...new Set(
-            s.badges.filter((id) => categories.some((c) => c.id === id)),
-          ),
-        ],
-      }
-    : blankStats;
-}
+const reducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const SPIN_MS = 2200;
+// A short beat after everyone locks in, so the reveal lands as one moment.
+const LOCK_BEAT_MS = 650;
+
 function CrossMark() {
   return (
     <svg viewBox="0 0 32 32" aria-hidden="true">
@@ -58,6 +62,11 @@ function CrossMark() {
     </svg>
   );
 }
+const matchBaseline = (stats) => ({
+  xpStart: stats.xp,
+  badgesStart: [...stats.badges],
+  categoryStart: { ...stats.categoryCorrect },
+});
 export default function App() {
   useGlassLight();
   const [savedMatch] = useState(loadMatch);
@@ -82,7 +91,16 @@ export default function App() {
   const [sound, setSound] = useState(
     () => readSaved("kinesa-sound", false) === true,
   );
-  const [stats, setStats] = useState(loadStats);
+  const [stats, setStatsState] = useState(loadStats);
+  const statsRef = useRef(stats);
+  const setStats = (next) => {
+    statsRef.current = next;
+    saveStats(next);
+    setStatsState(next);
+  };
+  const [matchMeta, setMatchMeta] = useState(() =>
+    savedMatch ? readSaved("kinesa-match-meta", null) : null,
+  );
   const [canSave, setCanSave] = useState(true);
   const [tabActive, setTabActive] = useState(() => !document.hidden);
   const gameRef = useRef(game);
@@ -91,41 +109,28 @@ export default function App() {
   const mainRef = useRef(null);
   const [toast, setToast] = useState("");
   const spinTimer = useRef(null);
-  const audio = useRef(null);
-  useEffect(() => () => clearTimeout(spinTimer.current), []);
+  const revealTimer = useRef(null);
+  const soundRef = useRef(sound);
+  soundRef.current = sound;
+  const sfx = useRef(null);
+  sfx.current ||= createSound(() => soundRef.current);
+  const play = (cue) => sfx.current.play(cue);
+  useEffect(
+    () => () => {
+      clearTimeout(spinTimer.current);
+      clearTimeout(revealTimer.current);
+    },
+    [],
+  );
   useEffect(() => {
     saveLocal("kinesa-sound", sound);
   }, [sound]);
   useEffect(() => {
     setCanSave(persistMatch(game, matchMode));
   }, [game, matchMode]);
-  const beep = (success = true) => {
-    if (!sound) return;
-    try {
-      audio.current ||= new (
-        window.AudioContext || window.webkitAudioContext
-      )();
-      const ctx = audio.current;
-      ctx.resume().catch(() => {});
-      [0, 0.11, 0.23].forEach((delay, i) => {
-        const o = ctx.createOscillator(),
-          g = ctx.createGain();
-        o.type = "sine";
-        o.frequency.value = (success ? [523, 659, 784] : [330, 294, 262])[i];
-        g.gain.setValueAtTime(0.07, ctx.currentTime + delay);
-        g.gain.exponentialRampToValueAtTime(
-          0.001,
-          ctx.currentTime + delay + 0.16,
-        );
-        o.connect(g);
-        g.connect(ctx.destination);
-        o.start(ctx.currentTime + delay);
-        o.stop(ctx.currentTime + delay + 0.18);
-      });
-    } catch {
-      /* Sound is optional. */
-    }
-  };
+  useEffect(() => {
+    saveLocal("kinesa-match-meta", matchMeta);
+  }, [matchMeta]);
   const cancelSpin = () => {
     clearTimeout(spinTimer.current);
     spinningRef.current = false;
@@ -192,12 +197,14 @@ export default function App() {
   };
   const startPrepared = (prepared, nextMode) => {
     cancelSpin();
+    clearTimeout(revealTimer.current);
     setModal(null);
     setRotation(0);
     updateGame(prepared);
+    setMatchMeta(matchBaseline(statsRef.current));
     setMode(nextMode);
     setMatchMode(nextMode);
-    beep();
+    play("start");
     navigate("game");
   };
   const begin = (prepared, nextMode) => {
@@ -208,6 +215,37 @@ export default function App() {
     }
     startPrepared(prepared, nextMode);
   };
+  // One-tap rematch: same players and settings, a fresh companion deal.
+  const rematch = (category) => {
+    const current = gameRef.current;
+    if (!current) return;
+    const settings =
+      category === undefined
+        ? current.settings
+        : { ...current.settings, category };
+    startPrepared(
+      createGame(current.players, Math.random, {
+        structure: current.structure,
+        settings,
+      }),
+      matchMode,
+    );
+  };
+  const drawQuestion = (current, categoryId) => {
+    const q = getQuestion(
+      categoryId,
+      current.used,
+      Math.random,
+      current.settings?.tier,
+    );
+    updateGame({
+      ...current,
+      phase: "question",
+      question: q,
+      used: [...current.used, q.id],
+      answers: {},
+    });
+  };
   const spin = () => {
     if (spinningRef.current || gameRef.current?.phase !== "spin") return;
     spinningRef.current = true;
@@ -215,89 +253,223 @@ export default function App() {
     const target = (360 - (index * 60 + 30)) % 360;
     setRotation((r) => r + (360 - (r % 360)) + 1080 + target);
     setSpinning(true);
-    beep();
+    play("spin");
     spinTimer.current = setTimeout(
       () => {
         const current = gameRef.current;
-        if (current?.phase === "spin") {
-          const q = getQuestion(categories[index].id, current.used);
-          updateGame({
-            ...current,
-            phase: "question",
-            question: q,
-            used: [...current.used, q.id],
-          });
-        }
+        if (current?.phase === "spin")
+          drawQuestion(current, categories[index].id);
         spinningRef.current = false;
         setSpinning(false);
       },
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? 150
-        : 2750,
+      reducedMotion() ? 150 : SPIN_MS,
     );
+  };
+
+  // Question clock: elapsed time pauses with dialogs, hidden tabs and navigation.
+  const questionKey =
+    game?.phase === "question" && game.question
+      ? `${game.turn}:${game.question.id}`
+      : null;
+  const clockRunning = !!questionKey && page === "game" && tabActive && !modal;
+  const clock = useRef({ key: null, elapsed: 0, since: null });
+  const syncClock = () => {
+    const c = clock.current;
+    if (questionKey !== c.key)
+      Object.assign(c, { key: questionKey, elapsed: 0, since: null });
+    if (clockRunning && c.since === null) c.since = performance.now();
+    if (!clockRunning && c.since !== null) {
+      c.elapsed += performance.now() - c.since;
+      c.since = null;
+    }
+  };
+  syncClock();
+  const elapsed = useCallback(() => {
+    const c = clock.current;
+    return c.elapsed + (c.since === null ? 0 : performance.now() - c.since);
+  }, []);
+  const msLeft = useCallback(() => {
+    const s = gameRef.current?.settings;
+    return s?.timed ? Math.max(0, s.seconds * 1000 - elapsed()) : 0;
+  }, [elapsed]);
+  const botPlans = useRef({ key: null, plans: {} });
+
+  // Awards progress for every human answer once the round is revealed.
+  const settle = (before, after) => {
+    let next = statsRef.current;
+    const meta = { newBadges: [], newMastery: [] };
+    after.players.forEach((p, i) => {
+      const entry = after.answers[i];
+      if (p.isBot || !entry?.correct) return;
+      const result = recordCorrect(next, after.question.category, entry.streak);
+      next = result.stats;
+      if (result.newBadge) meta.newBadges.push(after.question.category);
+      if (result.newMastery) meta.newMastery.push(after.question.category);
+    });
+    if (next !== statsRef.current) setStats(next);
+    const focus = after.answers[activeIndex(after)];
+    if (focus) {
+      play(
+        focus.correct ? (focus.streak >= 3 ? "streak" : "correct") : "wrong",
+      );
+      navigator.vibrate?.(
+        soundRef.current ? (focus.correct ? 18 : [12, 60, 12]) : 0,
+      );
+    }
+    if (meta.newBadges.length || meta.newMastery.length) play("unlock");
+    return before;
+  };
+  const reveal = () => {
+    clearTimeout(revealTimer.current);
+    const current = gameRef.current;
+    if (current?.phase !== "question") return;
+    let next = current;
+    // Practice bots who are still thinking lock in their planned pick.
+    if (isSimultaneous(current)) {
+      const { plans } = botPlans.current;
+      current.players.forEach((p, i) => {
+        if (p.isBot && !next.answers[i] && plans[i])
+          next = recordAnswer(
+            next,
+            i,
+            plans[i].choice,
+            Math.max(0, msLeftAt(plans[i].delay)),
+          );
+      });
+    }
+    const revealed = revealAnswers(next);
+    updateGame(revealed);
+    settle(current, revealed);
+  };
+  const msLeftAt = (ms) => {
+    const s = gameRef.current?.settings;
+    return s?.timed ? s.seconds * 1000 - ms : 0;
   };
   const answer = (i) => {
     const current = gameRef.current;
     if (current?.phase !== "question" || !Number.isInteger(i) || i < 0 || i > 3)
       return;
-    const correct = i === current.question.correct;
-    updateGame(answerQuestion(current, i));
-    beep(correct);
-    if (
-      correct &&
-      !current.players[current.turn % current.players.length].isBot
-    )
-      setStats((s) => {
-        const next = {
-          ...s,
-          correct: s.correct + 1,
-          badges: [...new Set([...s.badges, current.question.category])],
-        };
-        saveLocal("kinesa-stats", next);
-        return next;
-      });
+    const me = activeIndex(current);
+    if (current.answers?.[me]) return;
+    if (!isSimultaneous(current)) {
+      const revealed = answerQuestion(current, i, msLeft());
+      updateGame(revealed);
+      settle(current, revealed);
+      return;
+    }
+    updateGame(recordAnswer(current, me, i, msLeft()));
+    play("lock");
+    revealTimer.current = setTimeout(
+      reveal,
+      reducedMotion() ? 120 : LOCK_BEAT_MS,
+    );
   };
+  // A single light tick drives bot thinking time and the countdown.
+  useEffect(() => {
+    if (!clockRunning) return;
+    const current = gameRef.current;
+    if (botPlans.current.key !== questionKey) {
+      const plans = {};
+      if (isSimultaneous(current))
+        current.players.forEach((p, i) => {
+          if (p.isBot)
+            plans[i] = planBotAnswer(current.question, current.settings);
+        });
+      botPlans.current = { key: questionKey, plans };
+    }
+    let warned = 0;
+    const tick = () => {
+      const g = gameRef.current;
+      if (g?.phase !== "question") return;
+      const t = elapsed();
+      if (isSimultaneous(g)) {
+        let next = g;
+        for (const [i, plan] of Object.entries(botPlans.current.plans))
+          if (!next.answers[i] && t >= plan.delay)
+            next = recordAnswer(
+              next,
+              Number(i),
+              plan.choice,
+              msLeftAt(plan.delay),
+            );
+        if (next !== g) updateGame(next);
+      }
+      if (g.settings?.timed) {
+        const left = g.settings.seconds * 1000 - t;
+        const second = Math.ceil(left / 1000);
+        if (second <= 3 && second >= 1 && second !== warned) {
+          warned = second;
+          play("tick");
+        }
+        if (left <= 0) {
+          if (isSimultaneous(g)) reveal();
+          else {
+            const revealed = answerQuestion(g, TIMEOUT, 0);
+            updateGame(revealed);
+            settle(g, revealed);
+          }
+        }
+      }
+    };
+    const timer = setInterval(tick, 150);
+    return () => clearInterval(timer);
+  }, [clockRunning, questionKey]);
+  // Category-locked matches skip the wheel.
+  useEffect(() => {
+    if (page !== "game" || game?.phase !== "spin" || !game.settings?.category)
+      return;
+    const timer = setTimeout(() => {
+      const current = gameRef.current;
+      if (current?.phase === "spin")
+        drawQuestion(current, current.settings.category);
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [game?.phase, game?.turn, page]);
   const advance = () => {
     const current = gameRef.current;
     if (current?.phase !== "reveal") return;
     const next = nextTurn(current);
-    updateGame(
-      next.phase === "spin" && matchMode === "friends"
-        ? { ...next, phase: "handoff" }
-        : next,
-    );
     if (next.phase === "finished") {
-      beep();
-      setStats((s) => {
-        const n = { ...s, games: s.games + 1 };
-        saveLocal("kinesa-stats", n);
-        return n;
-      });
+      updateGame(next);
+      const human = next.players.find((p) => !p.isBot);
+      const won =
+        matchMode !== "friends" &&
+        !!human &&
+        getWinners(next.players).includes(human);
+      setStats(recordMatch(statsRef.current, { won }).stats);
+      play("finish");
+      return;
     }
+    if (matchMode === "friends" && next.phase === "spin") {
+      const rotationDone = next.turn % next.players.length === 0;
+      updateGame({ ...next, phase: rotationDone ? "standings" : "handoff" });
+      return;
+    }
+    updateGame(next);
   };
-  // Preview opponents are explicitly marked as bots. Timers stop when leaving the match.
+  // Legacy turn-based practice matches (restored from older saves) still play bot turns.
   useEffect(() => {
     if (
       page !== "game" ||
       !tabActive ||
       modal ||
       !game ||
-      !game.players[game.turn % game.players.length]?.isBot ||
+      isSimultaneous(game) ||
+      !game.players[activeIndex(game)]?.isBot ||
       game.phase === "finished"
     )
       return;
     let timer;
     if (game.phase === "spin" && !spinning) timer = setTimeout(spin, 850);
     if (game.phase === "question")
-      timer = setTimeout(
-        () =>
-          answer(
-            Math.random() < 0.65
-              ? game.question.correct
-              : (game.question.correct + 1 + Math.floor(Math.random() * 3)) % 4,
-          ),
-        1300,
-      );
+      timer = setTimeout(() => {
+        const plan = planBotAnswer(game.question, game.settings);
+        const current = gameRef.current;
+        if (current?.phase !== "question") return;
+        const revealed = answerQuestion(current, plan.choice, 0);
+        updateGame(revealed);
+        settle(current, revealed);
+      }, 1300);
     return () => clearTimeout(timer);
   }, [game?.phase, game?.turn, page, spinning, modal, tabActive]);
   return (
@@ -408,14 +580,19 @@ export default function App() {
         {page === "game" && game && (
           <Game
             game={game}
+            mode={matchMode}
             savedLocally={canSave}
             rotation={rotation}
             spinning={spinning}
             spin={spin}
             answer={answer}
             advance={advance}
+            clock={{ running: clockRunning, key: questionKey, msLeft, elapsed }}
+            stats={stats}
+            matchMeta={matchMeta}
             onExit={() => navigate("home")}
-            onRematch={() => openLobby(matchMode, game.players)}
+            onRematch={rematch}
+            onEditPlayers={() => openLobby(matchMode, game.players)}
             onHelp={() => setModal({ type: "help" })}
             onInspectPlayer={(player) => setModal({ type: "player", player })}
             onReady={() => {
@@ -423,7 +600,13 @@ export default function App() {
               if (current?.phase === "handoff")
                 updateGame({ ...current, phase: "spin" });
             }}
+            onContinue={() => {
+              const current = gameRef.current;
+              if (current?.phase === "standings")
+                updateGame({ ...current, phase: "handoff" });
+            }}
             onHome={() => navigate("home")}
+            onToast={setToast}
           />
         )}
       </main>
@@ -467,7 +650,7 @@ export default function App() {
                   ],
                   [
                     "Spin. Answer. Celebrate.",
-                    "The wheel picks the category. Correct answers earn 100 points. Play three rounds; the highest score wins.",
+                    "The wheel picks the category, then a 20-second clock starts. Correct answers earn 100 points, streaks of three or more multiply them, and fast answers add a bonus. Easy and relaxed play have no clock.",
                   ],
                 ].map(([title, copy], i) => (
                   <div key={title}>
@@ -569,8 +752,9 @@ export default function App() {
                 <span>
                   {game.players.map((p) => p.name).join(", ")}
                   <small>
-                    Round {Math.floor(game.turn / game.players.length) + 1} of 3
-                    · {game.players.length} players
+                    {isSimultaneous(game) ? "Question" : "Round"}{" "}
+                    {currentRound(game)} of {roundCount(game)} ·{" "}
+                    {game.players.length} players
                   </small>
                 </span>
               </div>

@@ -101,7 +101,11 @@ export default function Lobby({ mode, onBack, onBegin, initialPlayers }) {
     };
   }, [stage]);
   const prepare = (players) => {
-    setPrepared(createGame(players));
+    setPrepared(
+      createGame(players, Math.random, {
+        structure: mode === "random" ? "simultaneous" : "turns",
+      }),
+    );
     setRevealed(false);
     setDealDone(false);
     setStage("reveal");

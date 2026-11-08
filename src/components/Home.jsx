@@ -12,16 +12,22 @@ import GameScene from "./GameScene.jsx";
 import Mascot from "./Mascot.jsx";
 import { CategoryIcon } from "./Wheel.jsx";
 import { categories } from "../data.js";
+import {
+  activeIndex,
+  currentRound,
+  isSimultaneous,
+  roundCount,
+} from "../engine.js";
 import "./home-experience.css";
 
 export default function Home({ game, navigate, openLobby, setModal }) {
   const [motionPaused, setMotionPaused] = useState(false);
   const [previewCategory, setPreviewCategory] = useState(null);
   const ongoing = game && game.phase !== "finished";
-  const activePlayer = ongoing
-    ? game.players[game.turn % game.players.length]
-    : null;
-  const round = ongoing ? Math.floor(game.turn / game.players.length) + 1 : 1;
+  const activePlayer = ongoing ? game.players[activeIndex(game)] : null;
+  const round = ongoing ? currentRound(game) : 1;
+  const rounds = ongoing ? roundCount(game) : 3;
+  const simultaneous = ongoing && isSimultaneous(game);
   return (
     <div className="home-experience">
       <div className="play-heading">
@@ -43,16 +49,26 @@ export default function Home({ game, navigate, openLobby, setModal }) {
           </span>
           <span className="resume-copy">
             <span className="resume-eyebrow">
-              GAME IN PROGRESS · ROUND {round} OF 3
+              GAME IN PROGRESS · {simultaneous ? "QUESTION" : "ROUND"} {round}{" "}
+              OF {rounds}
             </span>
             <strong>Resume your game</strong>
             <span>
-              {activePlayer.name}’s turn · {game.players.length} players
+              {simultaneous
+                ? `${activePlayer.name} vs ${game.players.length - 1} practice bots`
+                : `${activePlayer.name}’s turn · ${game.players.length} players`}
             </span>
           </span>
           <span className="resume-rounds" aria-hidden="true">
-            {[1, 2, 3].map((r) => (
-              <i key={r} className={r <= round ? "reached" : ""} />
+            {Array.from({ length: Math.min(rounds, 5) }, (_, i) => (
+              <i
+                key={i}
+                className={
+                  (i + 1) / Math.min(rounds, 5) <= round / rounds
+                    ? "reached"
+                    : ""
+                }
+              />
             ))}
           </span>
           <span className="resume-action">

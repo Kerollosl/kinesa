@@ -43,7 +43,9 @@ const browser = await chromium.launch({
 const problems = [];
 const summary = [];
 
+const only = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
 async function session(name, options, run) {
+  if (only && !only.test(name)) return;
   const context = await browser.newContext({
     ...options,
     reducedMotion: "no-preference",
@@ -69,7 +71,12 @@ async function session(name, options, run) {
     await page.goto(base, { waitUntil: "networkidle" });
     await run(page, shot);
   } catch (error) {
-    problems.push(`${name}: ${String(error).split("\n")[0]}`);
+    problems.push(
+      `${name}: ${String(error)
+        .split("\n")
+        .slice(0, process.env.ONLY ? 14 : 1)
+        .join("\n    ")}`,
+    );
     await page
       .screenshot({
         path: `${outDir}/${name}-FAILED.jpg`,
