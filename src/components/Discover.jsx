@@ -84,7 +84,6 @@ export default function Discover({ setModal, openLobby, onQuiz }) {
 
         <div className="le-sample" key={`${categoryId}-${sampleIndex}`}>
           <div className="le-sample-top">
-            <span>Practice</span>
             <span>
               {sampleIndex + 1} / {deck.length}
             </span>

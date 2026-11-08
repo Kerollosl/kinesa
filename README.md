@@ -4,7 +4,7 @@ Live UI playground: https://kinesa-playground.kerollos-lowandy.chatgpt.site
 
 A Coptic and Bible trivia game for teens and adults: solo against practice bots, a daily challenge, or up to four players on one phone. Its look is woven from Coptic tapestry.
 
-![Kinesa game lobby](docs/kinesa-desktop.png)
+![Kinesa home: the tapestry roundel wheel and Play now](docs/redesign/after/desktop-random-home.jpg)
 
 [Watch the companion performance close-up](docs/kinesa-companions-motion.webm) · [See the character detail](docs/kinesa-performance.png)
 
@@ -69,6 +69,6 @@ npm run build
 
 Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). Alexandria and DM Sans are bundled under the SIL Open Font License in `public/fonts/`.
 
-[Mobile preview](docs/kinesa-mobile.png) · [Illustrated companions](docs/kinesa-companions.png) · [Discover](docs/kinesa-discover.png) · [Collection](docs/kinesa-collection.png) · [Results](docs/kinesa-results.png) · [Companion details](docs/kinesa-companion.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)
+Screens: [Phone home](docs/redesign/after/phone-random-home.jpg) · [Question](docs/redesign/after/phone-random-question.jpg) · [Feedback](docs/redesign/after/phone-random-feedback-a.jpg) · [Results](docs/redesign/after/phone-random-results-full.jpg) · [Pass the phone](docs/redesign/after/phone-friends-handoff.jpg) · [Today’s five](docs/redesign/after/phone-daily-results-full.jpg) · [Collection](docs/redesign/after/desktop-pages-collection.jpg) · [Before the redesign](docs/redesign/before/)
 
 [Companion performance close-up](docs/kinesa-companions-motion.webm). Regenerate it with `node scripts/capture-companion-performance.mjs` while Vite is running; it enlarges the actual homepage components for a clearer camera view.

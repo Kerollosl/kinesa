@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   BookOpen,
   Check,
-  Crown,
   Flame,
   LockKeyhole,
   Medal,
@@ -115,7 +114,6 @@ export default function Collection({ stats, setModal, openLobby }) {
           [Trophy, stats.games, "Games completed"],
           [Zap, stats.correct, "Correct answers"],
           [Medal, `${badges.length} / 6`, "Category badges"],
-          [Crown, level.level, "Level"],
           [Flame, daily.streak, "Day streak"],
         ].map(([Icon, value, label]) => (
           <div className="le-stat" key={label}>
@@ -137,6 +135,7 @@ export default function Collection({ stats, setModal, openLobby }) {
         aria-valuenow={level.into}
       >
         <span>
+          <strong className="le-level-name">Level {level.level}</strong>{" "}
           <strong>{stats.xp} XP</strong> · {level.next - stats.xp} to level{" "}
           {level.level + 1}
           {daily.best > 0 && ` · best daily streak ${daily.best}`}

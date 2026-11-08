@@ -162,6 +162,16 @@ export default function Home({
             {locked ? `${locked.short} only · ` : ""}
             {describeSettings(prefs.settings)} · vs 3 practice bots
           </p>
+          <button className="friends-card" onClick={() => openLobby("friends")}>
+            <span className="friends-card-icon" aria-hidden="true">
+              <Users size={24} />
+            </span>
+            <span className="friends-card-copy">
+              <strong>Play with friends</strong>
+              <span>2–4 players take turns on one phone</span>
+            </span>
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
         </div>
         <div className="play-hero-roundel" aria-hidden="true">
           <Wheel decorative rotation={0} />
@@ -169,17 +179,6 @@ export default function Home({
       </section>
 
       <TodayCard stats={stats} playDaily={playDaily} />
-
-      <button className="friends-card" onClick={() => openLobby("friends")}>
-        <span className="friends-card-icon" aria-hidden="true">
-          <Users size={24} />
-        </span>
-        <span className="friends-card-copy">
-          <strong>Play with friends</strong>
-          <span>2–4 players take turns on one phone</span>
-        </span>
-        <ArrowRight size={20} aria-hidden="true" />
-      </button>
 
       <section className="topics-section" aria-labelledby="topics-heading">
         <div className="section-heading">

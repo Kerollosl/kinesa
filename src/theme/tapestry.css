@@ -27,10 +27,9 @@
   --dye-weld-100: #f8ecc9;
   --dye-green-600: #2c6a4d;
   --dye-green-100: #dcebe2;
-  --dye-ochre-600: #b85c25;
   --linen-50: #fbf9f4;
-  --linen-100: #f1ece2;
-  --linen-200: #e4dccc;
+  --linen-100: #e4ddcf;
+  --linen-200: #d3c8b4;
   --linen-300: #cdbfa6;
   --thread: #ece2cc;
   --ink-900: #22162a;
@@ -40,9 +39,18 @@
   --radius-s: 8px;
   --radius-m: 12px;
   --radius-l: 18px;
+  --radius-xs: 6px;
+  --radius-pill: 999px;
+  --dye-ochre-600: #b85c25;
+  /* Companion tints for pickers and portraits. */
+  --companion-lion: #ffe1a3;
+  --companion-ox: #f3cdb8;
+  --companion-eagle: #e9d8c2;
+  --companion-human: #ddd1f2;
   --edge:
     0 1px 0 rgba(34, 22, 42, 0.05), 0 10px 24px -14px rgba(34, 22, 42, 0.35);
-  --tab-edge: inset 0 -3px 0 rgba(20, 8, 16, 0.22);
+  --tab-edge:
+    0 1px 0 rgba(34, 22, 42, 0.06), 0 8px 18px -12px rgba(34, 22, 42, 0.45);
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   /* Weft ribs and warp threads, as in tapestry-woven wool. */
   --weave:
@@ -70,6 +78,7 @@
   /* A clavus band: linen lozenges on purple. */
   --clavus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='10' viewBox='0 0 18 10'%3E%3Cpath d='M9 1L13 5L9 9L5 5Z' fill='%23ece2cc'/%3E%3Cpath d='M0 5H3M15 5H18' stroke='%23ece2cc' stroke-width='1'/%3E%3C/svg%3E");
 
+  --interlace-band: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='14' viewBox='0 0 24 14'%3E%3Cg fill='none' stroke='%23ece2cc' stroke-width='1.6'%3E%3Cpath d='M0 7C6 1 6 1 12 7S18 13 24 7'/%3E%3Cpath d='M0 7C6 13 6 13 12 7S18 1 24 7'/%3E%3C/g%3E%3C/svg%3E");
   /* Earlier layers read these names. */
   --ink: var(--ink-900);
   --muted: var(--ink-700);
@@ -81,6 +90,7 @@
   accent-color: var(--dye-purple-600);
 }
 
+:root,
 html,
 body {
   background: var(--linen-100);
@@ -213,7 +223,7 @@ h3 {
 .app-header .main-nav button {
   color: var(--thread);
   background: transparent;
-  border-radius: 9px;
+  border-radius: 8px;
   font-weight: 600;
   min-height: 44px;
   box-shadow: none;
@@ -268,7 +278,7 @@ h3 {
     padding-bottom: calc(84px + env(safe-area-inset-bottom));
   }
   .app-header .brand-word {
-    font-size: 23px;
+    font-size: 22px;
   }
   .app-header .guest-pill strong {
     display: none;
@@ -339,7 +349,6 @@ h3 {
 .le-sample,
 .le-collection-overview,
 .le-badge-detail,
-.le-stat,
 .le-topic-card,
 .le-badge-card {
   background: var(--linen-50) !important;
@@ -528,7 +537,7 @@ h3 {
   flex: 0 0 auto;
   width: 46px;
   height: 28px;
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--linen-300);
   position: relative;
   cursor: pointer;
@@ -654,13 +663,13 @@ h3 {
 }
 .game-page .match-progress .round-segments > span {
   height: 8px;
-  border-radius: 2px;
+  border-radius: 3px;
   background: rgba(236, 226, 204, 0.22);
   overflow: hidden;
 }
 .game-page .match-progress .round-segments i {
   background: var(--dye-weld-300);
-  border-radius: 2px;
+  border-radius: 3px;
 }
 .game-page .match-progress > span {
   color: var(--ink-700);
@@ -949,19 +958,19 @@ h3 {
 .podium-block {
   background: var(--linen-100);
   box-shadow: var(--tab-edge);
-  border-radius: var(--radius-m) var(--radius-m) 4px 4px;
+  border-radius: var(--radius-m) var(--radius-m) 6px 6px;
 }
 .rank-1 .podium-block {
   background: var(--dye-weld-300);
 }
 .rank-3 .podium-block {
-  background: #ecd6c4;
+  background: #ecd0b5;
 }
 .podium-rank {
   color: var(--ink-700);
 }
 .rank-1 .podium-rank {
-  color: #4a3405;
+  color: #6b4a06;
 }
 .results-progress {
   background: var(--linen-100);
@@ -1201,7 +1210,7 @@ h3 {
   display: inline-block;
   padding: 2px 5px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--linen-200);
   color: var(--ink-700);
   font-size: 12px !important;
@@ -1245,7 +1254,7 @@ h3 {
   margin-left: 6px;
   padding: 2px 5px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--linen-200);
   color: var(--ink-700);
   font-size: 12px !important;
@@ -1311,7 +1320,7 @@ h3 {
   flex: 1;
 }
 .daily-streak-card strong {
-  font-size: 20px;
+  font-size: 22px;
   color: var(--ink-900);
 }
 .daily-streak-card span {
@@ -1406,4 +1415,265 @@ h3 {
 .le-page h2,
 .le-page h3 {
   color: var(--ink-900);
+}
+
+/* ---------- Finish review fixes ---------- */
+/* Flying thread: interlace frames and bands on the purple fields. */
+.interlace-ring .interlace-thread {
+  stroke: var(--thread);
+  stroke-width: 2.4;
+}
+.interlace-ring .interlace-edge {
+  stroke: var(--thread);
+  stroke-width: 1.4;
+  opacity: 0.55;
+}
+.results-hero {
+  position: relative;
+  padding-bottom: 34px;
+}
+.results-hero::after,
+.game-page .handoff-cover::before,
+.game-page .handoff-cover::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 14px;
+  background: var(--interlace-band) repeat-x center / 24px 14px;
+  opacity: 0.8;
+  pointer-events: none;
+}
+.results-hero::after {
+  bottom: 10px;
+}
+.game-page .handoff-cover::before {
+  top: max(22px, env(safe-area-inset-top));
+}
+.game-page .handoff-cover::after {
+  bottom: max(22px, env(safe-area-inset-bottom));
+}
+.results-emblem {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+}
+.results-emblem svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.results-emblem::before {
+  content: "";
+  position: absolute;
+  inset: 20px;
+  border-radius: 50%;
+  background: var(--dye-purple-800);
+}
+.results-hero .results-emblem .winner-trophy {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  background: none !important;
+  box-shadow: none !important;
+  color: var(--dye-weld-300);
+}
+.game-page .handoff-cover .handoff-avatar {
+  position: relative;
+  overflow: visible;
+  contain: none;
+  box-shadow: none;
+}
+.handoff-ring {
+  position: absolute;
+  inset: -18px;
+  width: calc(100% + 36px);
+  height: calc(100% + 36px);
+}
+
+/* Bots think on the chip's corner, not over the companion's face. */
+.game-page .score-chips .chip-thinking,
+.game-page .score-chips .chip-locked {
+  position: absolute;
+  top: -8px;
+  right: -6px;
+  bottom: auto;
+  left: auto;
+  z-index: 2;
+  height: 22px;
+  min-width: 22px;
+  padding: 0 5px;
+  border-radius: 12px;
+}
+.game-page .score-chips .chip-thinking {
+  gap: 3px;
+  background: var(--linen-50);
+  box-shadow: 0 0 0 1.5px var(--linen-300);
+}
+.game-page .score-chips .chip-thinking i {
+  width: 5px;
+  height: 5px;
+  background: var(--ink-700);
+}
+.game-page .score-chips .score-player.is-you .chip-thinking {
+  box-shadow: 0 0 0 1.5px var(--dye-purple-700);
+}
+
+/* Discover: the sample pane takes its category band and letter tabs. */
+.le-page .le-sample {
+  position: relative;
+  overflow: hidden;
+}
+.le-page .le-sample::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 10px;
+  background: var(--le-accent) var(--clavus) repeat-x center / 18px 10px;
+}
+.le-page .le-answer-letter {
+  background: var(--le-pale) !important;
+  color: var(--ink-900) !important;
+  border-radius: var(--radius-s) !important;
+  box-shadow: none !important;
+}
+.le-page .le-answer-correct .le-answer-letter {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
+}
+
+/* Collection: the figures read as one ledger, not five tiles. */
+.le-page .le-stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 6px 4px;
+  border-radius: var(--radius-l);
+  background: var(--linen-50);
+  border: 1px solid var(--linen-200);
+  box-shadow: var(--edge);
+}
+.le-page .le-stat {
+  flex: 1 1 0;
+  min-width: 104px;
+  display: grid;
+  gap: 2px;
+  padding: 10px 16px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-align: left;
+}
+.le-page .le-stat + .le-stat {
+  border-left: 1px solid var(--linen-200);
+}
+.le-page .le-stat-icon {
+  display: none;
+}
+.le-page .le-stat strong {
+  font-size: 26px;
+  line-height: 1.1;
+}
+.le-level-track {
+  margin: 16px 0 10px;
+}
+.le-level-name {
+  margin-right: 6px;
+  color: var(--dye-purple-700) !important;
+}
+
+/* Friends sit in the hero, under the two play actions. */
+.play-hero .friends-card {
+  margin-top: 2px;
+  min-height: 62px;
+  background: var(--linen-100);
+  box-shadow: none;
+}
+@media (max-width: 760px) {
+  .play-hero-roundel {
+    width: min(48vw, 184px);
+  }
+  .le-page .le-stat {
+    min-width: 33%;
+    flex-basis: 33%;
+  }
+  .le-page .le-stat:nth-child(4) {
+    border-left: 0;
+  }
+}
+.game-page .score-chips .score-player .chip-thinking {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.game-page .score-chips .score-player .chip-locked {
+  display: inline-grid;
+  place-items: center;
+}
+.game-page .score-chips .chip-thinking i {
+  display: block;
+  border-radius: 50%;
+}
+.le-page .le-stats-grid .le-stat {
+  grid-template-columns: 1fr;
+  grid-template-areas: none;
+  align-content: center;
+}
+.le-page .le-stats-grid .le-stat > * {
+  grid-column: 1;
+  grid-row: auto;
+}
+.le-page .le-stats-grid .le-stat strong {
+  white-space: nowrap;
+}
+.le-page .le-stats-grid .le-stat {
+  border-radius: 0;
+}
+.le-page .le-stats-grid .le-stat span:not(.le-stat-icon) {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.le-page .le-sample-answer {
+  color: var(--ink-900) !important;
+}
+
+/* Ledger: figures read inline with their labels; four cells, aligned on phones. */
+.le-page .le-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.le-page .le-stats-grid .le-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: none;
+}
+.le-page .le-stats-grid .le-stat strong {
+  font-size: 22px;
+}
+@media (max-width: 760px) {
+  .le-page .le-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .le-page .le-stats-grid .le-stat {
+    min-width: 0;
+    flex-basis: auto;
+  }
+  .le-page .le-stats-grid .le-stat:nth-child(odd) {
+    border-left: 0;
+  }
+  .le-page .le-stats-grid .le-stat:nth-child(n + 3) {
+    border-top: 1px solid var(--linen-200);
+  }
+}
+.le-page .le-stats-grid .le-stat {
+  flex-direction: row;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 0;
 }

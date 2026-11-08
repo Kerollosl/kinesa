@@ -47,7 +47,7 @@
   align-items: center;
   gap: 2px;
   font-size: 12px;
-  color: #c4511f;
+  color: var(--dye-ochre-600);
 }
 .chip-thinking,
 .chip-locked {
@@ -59,9 +59,9 @@
   min-width: 18px;
   height: 18px;
   padding: 0 3px;
-  border-radius: 9px;
+  border-radius: 8px;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(36, 38, 49, 0.18);
+  box-shadow: 0 1px 4px rgba(34, 22, 42, 0.18);
 }
 .chip-thinking {
   display: flex;
@@ -85,14 +85,14 @@
   background: var(--cobalt);
 }
 .score-player.is-you {
-  box-shadow: inset 0 0 0 2px rgba(105, 85, 217, 0.45);
+  box-shadow: inset 0 0 0 2px rgba(100, 56, 120, 0.45);
 }
 .chip-bubble {
   position: absolute;
   top: -10px;
   right: 6px;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 800;
   color: #fff;
@@ -103,7 +103,7 @@
   background: var(--pf-good);
 }
 .chip-bubble.is-groan {
-  background: #7a6f86;
+  background: var(--ink-600);
 }
 .score-player.state-cheer .score-avatar {
   animation: pf-hop 520ms var(--ease-out-strong);
@@ -142,7 +142,7 @@
 }
 .timer-track {
   fill: #fff;
-  stroke: rgba(36, 38, 49, 0.1);
+  stroke: rgba(34, 22, 42, 0.1);
   stroke-width: 5;
 }
 .timer-fill {
@@ -156,7 +156,7 @@
 }
 .timer-number {
   position: relative;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
@@ -178,7 +178,7 @@
   display: inline-flex;
   gap: 6px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.75);
   font-size: 13px;
   font-weight: 600;
@@ -209,8 +209,8 @@
 }
 .game-page .answer-option.is-picked {
   border-color: var(--cobalt);
-  background: #efeafe;
-  box-shadow: 0 0 0 3px rgba(105, 85, 217, 0.18);
+  background: var(--dye-purple-200);
+  box-shadow: 0 0 0 3px rgba(100, 56, 120, 0.18);
 }
 .game-page .answer-option.is-dimmed {
   opacity: 0.55;
@@ -233,21 +233,21 @@
   margin-left: -5px;
   border-radius: 50%;
   border: 2px solid #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
-  color: #3b2f22;
+  color: var(--ink-900);
 }
 .picker-lion {
-  background: #ffe1a3;
+  background: var(--companion-lion);
 }
 .picker-ox {
-  background: #f3cdb8;
+  background: var(--companion-ox);
 }
 .picker-eagle {
-  background: #e9d8c2;
+  background: var(--companion-eagle);
 }
 .picker-human {
-  background: #ddd1f2;
+  background: var(--companion-human);
 }
 .question-hint {
   margin: 14px 0 0;
@@ -285,7 +285,7 @@
   align-items: center;
   gap: 4px;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 13px;
   font-weight: 700;
 }
@@ -296,15 +296,15 @@
 }
 .feedback-chip {
   color: var(--pf-ink-soft);
-  background: rgba(36, 38, 49, 0.07);
+  background: rgba(34, 22, 42, 0.07);
 }
 .feedback-chip.is-combo {
-  color: #5b3fd0;
-  background: #efeafe;
+  color: var(--dye-purple-600);
+  background: var(--dye-purple-200);
 }
 .feedback-chip.is-streak {
-  color: #b2481b;
-  background: #ffeadf;
+  color: var(--dye-ochre-600);
+  background: var(--dye-weld-100);
 }
 .feedback-rivals {
   margin: 0;
@@ -315,9 +315,9 @@
   display: grid;
   gap: 8px;
   padding: 16px 18px;
-  border-radius: 16px;
-  background: var(--question-pale, #f3f0ff);
-  box-shadow: 0 6px 18px rgba(36, 38, 49, 0.06);
+  border-radius: 18px;
+  background: var(--question-pale, var(--linen-100));
+  box-shadow: 0 6px 18px rgba(34, 22, 42, 0.06);
   animation: pf-rise 420ms 120ms var(--ease-out-strong) backwards;
 }
 .did-you-know h3 {
@@ -338,7 +338,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.8);
   font-size: 13px;
   font-weight: 600;
@@ -355,7 +355,7 @@
   position: absolute;
   width: 8px;
   height: 12px;
-  border-radius: 2px;
+  border-radius: 3px;
   will-change: transform, opacity;
 }
 
@@ -384,7 +384,7 @@
 }
 .game-page .handoff-cover h1 {
   margin: 0;
-  font-size: clamp(34px, 9vw, 56px);
+  font-size: clamp(36px, 5vw, 56px);
   letter-spacing: -0.03em;
 }
 .handoff-note {
@@ -410,7 +410,7 @@
 }
 .standings-stage h1 {
   margin: 0;
-  font-size: clamp(28px, 6vw, 40px);
+  font-size: clamp(24px, 3vw, 32px);
 }
 .standings-lead {
   margin: 0;
@@ -430,7 +430,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
-  border-radius: 14px;
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.85);
   animation: pf-rise 300ms calc(var(--n, 0) * 60ms) var(--ease-out-strong)
     backwards;
@@ -451,7 +451,7 @@
   color: var(--pf-ink-soft);
 }
 .standings-score {
-  font-size: 20px;
+  font-size: 22px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -500,14 +500,14 @@
   display: grid;
   place-items: center;
   width: 100%;
-  border-radius: 14px 14px 6px 6px;
+  border-radius: 12px 12px 6px 6px;
   background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 6px 16px rgba(36, 38, 49, 0.08);
+  box-shadow: 0 6px 16px rgba(34, 22, 42, 0.08);
   padding: 8px 0;
 }
 .rank-1 .podium-block {
   min-height: 92px;
-  background: linear-gradient(180deg, #fff3c9, #ffe08a);
+  background: linear-gradient(180deg, var(--dye-weld-100), var(--dye-weld-300));
 }
 .rank-2 .podium-block {
   min-height: 70px;
@@ -521,7 +521,7 @@
   color: var(--pf-ink-soft);
 }
 .podium-score {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -530,9 +530,9 @@
   gap: 10px;
   margin: 12px 0;
   padding: 18px;
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 6px 18px rgba(36, 38, 49, 0.06);
+  box-shadow: 0 6px 18px rgba(34, 22, 42, 0.06);
 }
 .results-level {
   display: flex;
@@ -551,7 +551,11 @@
   border-radius: 50%;
   color: #fff;
   font-weight: 800;
-  background: linear-gradient(135deg, #5b8cff, #6955d9);
+  background: linear-gradient(
+    135deg,
+    var(--dye-purple-500),
+    var(--dye-purple-700)
+  );
 }
 .xp-gained {
   font-size: 14px;
@@ -560,15 +564,19 @@
 }
 .xp-track {
   height: 10px;
-  border-radius: 999px;
-  background: rgba(36, 38, 49, 0.08);
+  border-radius: var(--radius-pill);
+  background: rgba(34, 22, 42, 0.08);
   overflow: hidden;
 }
 .xp-track i {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, #5b8cff, #6955d9);
+  background: linear-gradient(
+    90deg,
+    var(--dye-purple-500),
+    var(--dye-purple-700)
+  );
   transform-origin: left center;
 }
 .xp-caption {
@@ -619,7 +627,7 @@
   min-height: 44px;
   padding: 0 14px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font: inherit;
   font-size: 14px;
   font-weight: 700;

@@ -24,6 +24,7 @@ import {
 } from "../../engine.js";
 import { levelInfo, masteryFor } from "../../progress.js";
 import { renderShareCard, shareResult } from "./share-card.js";
+import { InterlaceRing } from "../Ornaments.jsx";
 
 const ordinal = (n) =>
   `${n}${["th", "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 : n % 10] || "th"}`;
@@ -229,7 +230,12 @@ const Results = forwardRef(function Results(
         </div>
       )}
       <div className="results-hero">
-        <Trophy className="winner-trophy" size={34} aria-hidden="true" />
+        <span className="results-emblem" aria-hidden="true">
+          <svg viewBox="0 0 320 320">
+            <InterlaceRing radius={136} width={18} crossings={18} />
+          </svg>
+          <Trophy className="winner-trophy" size={34} />
+        </span>
         <h1 ref={headingRef} tabIndex={-1}>
           {headline}
         </h1>

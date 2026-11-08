@@ -10,6 +10,9 @@ export const ICONS = {
   leaf: Leaf,
 };
 export function CategoryIcon({ category, size = 24, ...props }) {
+  // Church Traditions uses the Coptic cross, never a generic plus.
+  if (category.icon === "cross")
+    return <CopticCross size={size} eye={false} {...props} />;
   const Icon = ICONS[category.icon];
   return <Icon size={size} strokeWidth={1.8} {...props} />;
 }

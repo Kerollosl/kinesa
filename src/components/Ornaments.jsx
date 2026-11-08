@@ -5,7 +5,13 @@
 const ARM =
   "M21 21V12.5H16.5L15 5.5L19.5 8.5L24 1L28.5 8.5L33 5.5L31.5 12.5H27V21Z";
 
-export function CopticCross({ size = 24, className = "", title, ...props }) {
+export function CopticCross({
+  size = 24,
+  className = "",
+  title,
+  eye = true,
+  ...props
+}) {
   return (
     <svg
       viewBox="0 0 48 48"
@@ -26,13 +32,15 @@ export function CopticCross({ size = 24, className = "", title, ...props }) {
         />
       ))}
       <rect x="20.5" y="20.5" width="7" height="7" fill="currentColor" />
-      <rect
-        x="22.5"
-        y="22.5"
-        width="3"
-        height="3"
-        className="coptic-cross-eye"
-      />
+      {eye && (
+        <rect
+          x="22.5"
+          y="22.5"
+          width="3"
+          height="3"
+          className="coptic-cross-eye"
+        />
+      )}
     </svg>
   );
 }

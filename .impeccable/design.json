@@ -1,0 +1,261 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-08T14:44:45.736Z",
+  "title": "Design System: Kinesa",
+  "extensions": {
+    "colorMeta": {
+      "dye-purple-700": {
+        "role": "primary",
+        "displayName": "Tyrian Purple Weave",
+        "tonalRamp": [
+          "#24132c",
+          "#2f1939",
+          "#3d1f4a",
+          "#4f2a60",
+          "#643878",
+          "#8a6a99",
+          "#ddd0e3",
+          "#f1eaf4"
+        ]
+      },
+      "dye-madder-600": {
+        "role": "secondary",
+        "displayName": "Madder Red",
+        "tonalRamp": [
+          "#4a120f",
+          "#86231f",
+          "#a3302b",
+          "#bf4a3f",
+          "#d77a6c",
+          "#e9aaa0",
+          "#f2d6d0",
+          "#faeeeb"
+        ]
+      },
+      "dye-weld-300": {
+        "role": "secondary",
+        "displayName": "Weld Yellow",
+        "tonalRamp": [
+          "#5a420a",
+          "#8f6912",
+          "#d9a21f",
+          "#e4b745",
+          "#ecc965",
+          "#f3dc9a",
+          "#f8ecc9",
+          "#fcf6e6"
+        ]
+      },
+      "dye-green-600": {
+        "role": "tertiary",
+        "displayName": "Dye Green",
+        "tonalRamp": [
+          "#123124",
+          "#1f4d38",
+          "#2c6a4d",
+          "#3f8565",
+          "#6aa486",
+          "#9fc5b0",
+          "#dcebe2",
+          "#f0f7f3"
+        ]
+      },
+      "linen-100": {
+        "role": "neutral",
+        "displayName": "Undyed Flax",
+        "tonalRamp": [
+          "#4f4636",
+          "#7d7058",
+          "#b9ab90",
+          "#d3c8b4",
+          "#e4ddcf",
+          "#ede8de",
+          "#fbf9f4",
+          "#fffdf9"
+        ]
+      },
+      "ink-900": {
+        "role": "neutral",
+        "displayName": "Purple-Black Ink",
+        "tonalRamp": [
+          "#140c19",
+          "#22162a",
+          "#4b3e52",
+          "#5f5266",
+          "#82768a",
+          "#a89eae",
+          "#d2ccd5",
+          "#efebf1"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Home hero and full-screen moments."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Question text, always the largest on the question screen."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Section, feedback and card headings."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Explanations, leads and Did you know? notes."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Chips, tabs, meta lines; never under 12px."
+      }
+    },
+    "shadows": [
+      {
+        "name": "edge",
+        "value": "0 1px 0 rgba(34,22,42,.05), 0 10px 24px -14px rgba(34,22,42,.35)",
+        "purpose": "Lifts linen panes, chips and tiles off the flax ground."
+      },
+      {
+        "name": "tab-edge",
+        "value": "0 1px 0 rgba(34,22,42,.06), 0 8px 18px -12px rgba(34,22,42,.45)",
+        "purpose": "A slightly deeper soft edge for primary buttons and podium blocks; no inset lip."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-strong",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Presses, reveals, sheet entrance, XP bar."
+      },
+      {
+        "name": "press",
+        "value": "transform: scale(0.97) over 140ms",
+        "purpose": "Feedback on every tappable element; hover never moves a hit area."
+      },
+      {
+        "name": "roundel-turn",
+        "value": "90s linear rotation",
+        "purpose": "The Home roundel; disabled under reduced motion."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "760px"
+      },
+      {
+        "name": "narrow",
+        "value": "620px"
+      },
+      {
+        "name": "small-phone",
+        "value": "380px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one madder action per view.",
+      "html": "<button class=\"ds-btn-primary\">Play now</button>",
+      "css": ".ds-btn-primary{background:#a3302b;color:#fbf9f4;border:0;border-radius:12px;min-height:52px;padding:0 22px;font:700 17px Alexandria,system-ui,sans-serif;box-shadow:0 1px 0 rgba(34,22,42,.06),0 8px 18px -12px rgba(34,22,42,.45);transition:transform 140ms cubic-bezier(.23,1,.32,1),background-color 180ms ease;cursor:pointer}.ds-btn-primary:hover{background:#86231f}.ds-btn-primary:active{transform:scale(.97)}.ds-btn-primary:focus-visible{outline:3px solid #643878;outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Linen tab with a linen stroke.",
+      "html": "<button class=\"ds-btn-secondary\">Customize</button>",
+      "css": ".ds-btn-secondary{background:#fbf9f4;color:#3d1f4a;border:1.5px solid #cdbfa6;border-radius:12px;min-height:52px;padding:0 20px;font:700 16px Alexandria,system-ui,sans-serif;cursor:pointer;transition:border-color 180ms ease,transform 140ms cubic-bezier(.23,1,.32,1)}.ds-btn-secondary:hover{border-color:#643878}.ds-btn-secondary:active{transform:scale(.97)}.ds-btn-secondary:focus-visible{outline:3px solid #643878;outline-offset:2px}"
+    },
+    {
+      "name": "Answer Option",
+      "kind": "custom",
+      "refersTo": "answer-option",
+      "description": "White answer tab that takes the dye on reveal.",
+      "html": "<button class=\"ds-answer\"><span class=\"ds-letter\">B</span>Bethlehem</button><button class=\"ds-answer ds-correct\"><span class=\"ds-letter\">C</span>Correct</button>",
+      "css": ".ds-answer{display:flex;align-items:center;gap:14px;width:100%;min-height:60px;margin:0 0 10px;padding:0 14px;background:#fff;color:#22162a;border:1.5px solid #cdbfa6;border-radius:12px;font:600 16px Alexandria,system-ui,sans-serif;cursor:pointer;transition:transform 140ms cubic-bezier(.23,1,.32,1),border-color 160ms ease}.ds-answer:hover{border-color:#643878}.ds-answer:active{transform:scale(.97)}.ds-letter{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:#e2e8f3;font-weight:700}.ds-correct{background:#2c6a4d;border-color:#2c6a4d;color:#fff}.ds-correct .ds-letter{background:rgba(255,255,255,.2)}"
+    },
+    {
+      "name": "Woven Field",
+      "kind": "card",
+      "refersTo": "woven-field",
+      "description": "Purple field with weave texture and a clavus edge.",
+      "html": "<div class=\"ds-field\"><strong>Today’s five</strong><p>Five questions, the same for everyone today.</p></div>",
+      "css": ".ds-field{padding:18px 20px;border-radius:18px;background-color:#3d1f4a;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(0,0,0,.06) 0 1px,transparent 1px 5px);color:#fbf9f4;font:400 15px Alexandria,system-ui,sans-serif}.ds-field strong{display:block;font-size:22px;margin-bottom:4px}.ds-field p{margin:0;color:#ece2cc}"
+    },
+    {
+      "name": "Score Chip",
+      "kind": "chip",
+      "refersTo": "chip-score",
+      "description": "Linen tab; the active player becomes a woven field.",
+      "html": "<span class=\"ds-chip ds-you\">You <b>450</b></span><span class=\"ds-chip\">Mina <b>380</b></span>",
+      "css": ".ds-chip{display:inline-flex;gap:8px;align-items:center;margin-right:8px;padding:10px 14px;border-radius:12px;background:#fbf9f4;border:1px solid #e4dccc;color:#22162a;font:600 14px Alexandria,system-ui,sans-serif}.ds-you{background:#3d1f4a;border-color:#3d1f4a;color:#fbf9f4}"
+    },
+    {
+      "name": "Bottom Navigation",
+      "kind": "nav",
+      "refersTo": "woven-field",
+      "description": "Phone tab bar in the woven band.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-active\">Play</a><a>Discover</a><a>Collection</a></nav>",
+      "css": ".ds-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:6px 8px 8px;background:#3d1f4a}.ds-nav a{display:grid;place-items:center;min-height:54px;border-radius:9px;color:#ece2cc;font:600 12px Alexandria,system-ui,sans-serif}.ds-nav a.ds-active{background:#fbf9f4;color:#3d1f4a}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Woven Tunic",
+    "overview": "Kinesa is dressed like a Coptic tunic from Akhmim. Purple-dyed wool carries the structure of every screen: the header band, the progress clavus, the handoff cover, the results hero and the daily card. Fine linen \"flying thread\" runs across that purple as interlace, lozenges and seams: an interlace ring frames the results emblem and the companion on the pass-the-phone cover, and interlace bands cross the results hero and that cover. Where people read, the cloth turns to undyed linen. The six categories are six dyes, so a question's category sets the color of its band, its letter tabs, its \"Did you know?\" pane and its timer ring.\n\nThe world is warm and energetic without being churchy. Daylight linen grounds keep it from going somber, and saturated dyes (madder red, woad blue, weld yellow, green, ochre, purple) keep the game loud enough for teens. Coptic forms are drawn from exact geometry: the twelve-point cross (three points on each arm) and the interlace ring of the roundel wheel. They are never clip-art. The painted Gospel companions stay as avatars and reveal moments, not as the centerpiece.\n\nWhat this system rejects: liquid glass and backdrop blur, gold leaf and ornate frames, cream-parchment \"church app\" styling, and neon quiz-show darkness.",
+    "keyCharacteristics": [
+      "Purple woven fields for structure; linen panes for reading.",
+      "Six dye colors, one per category, used as whole fields rather than thin accents.",
+      "A twelve-point Coptic cross and an interlace roundel as the only ornaments.",
+      "Alexandria throughout, bold and slightly tight.",
+      "Press feedback (scale 0.97) on everything tappable; hover never moves a hit area."
+    ],
+    "rules": [
+      {
+        "name": "The Woven Field Rule",
+        "body": "Purple appears as whole fields carrying weave texture (weft ribs over warp threads), never as a thin border or accent line on linen.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dye Means Category Rule",
+        "body": "A category color always means that category. Don't reuse a dye for decoration or for unrelated states (green, which doubles as \"correct\", is the one shared exception).",
+        "section": "colors"
+      },
+      {
+        "name": "The No Gold Rule",
+        "body": "Weld yellow is a matte dye. Never use metallic gradients, gold foil or glowing edges.",
+        "section": "colors"
+      },
+      {
+        "name": "The Question Leads Rule",
+        "body": "On the question screen, the question outranks every other element in size and weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Twelve Pixel Rule",
+        "body": "No informative or interactive text below 12px, including BOT tags and stat labels.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do put structure on purple woven fields and reading text on linen panes.",
+      "Do color a question's band, letter tabs, \"Did you know?\" pane and timer with its category dye.",
+      "Do draw Coptic forms from exact geometry, and describe Coptic practice as Coptic tradition.",
+      "Do keep one madder primary action per view, with press feedback at scale 0.97.",
+      "Do keep secondary text at ink-700 or darker on linen, and nothing below 12px."
+    ],
+    "donts": [
+      "Don't use glass, backdrop blur, glows or neon.",
+      "Don't use gold leaf, metallic gradients or ornate icon-style frames.",
+      "Don't fall back to cream parchment and serif \"church app\" styling.",
+      "Don't set weld yellow as text on linen, or use a category dye for anything but its category.",
+      "Don't lift or translate a button on hover; it must not move out from under the pointer.",
+      "Don't put the companions at the center of a screen; they are avatars and moments."
+    ]
+  }
+}

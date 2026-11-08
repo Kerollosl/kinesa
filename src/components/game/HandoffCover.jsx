@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { ArrowRight, EyeOff } from "lucide-react";
 import Mascot, { MASCOTS } from "../Mascot.jsx";
+import { InterlaceRing } from "../Ornaments.jsx";
 
 // Full-bleed cover between turns: nothing from the last turn shows through.
 const HandoffCover = forwardRef(function HandoffCover(
@@ -18,6 +19,9 @@ const HandoffCover = forwardRef(function HandoffCover(
       aria-labelledby="handoff-title"
     >
       <div className="handoff-avatar">
+        <svg className="handoff-ring" viewBox="0 0 320 320" aria-hidden="true">
+          <InterlaceRing radius={146} width={14} crossings={24} />
+        </svg>
         <Mascot kind={player.kind} mood="celebrate" />
       </div>
       <h1 id="handoff-title" ref={ref} tabIndex={-1}>

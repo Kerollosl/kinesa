@@ -57,18 +57,6 @@ export default function ScoreChips({
           >
             <span className="score-avatar">
               <Mascot kind={p.kind} portrait />
-              {state === "thinking" && simultaneous && (
-                <span className="chip-thinking" aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                </span>
-              )}
-              {state === "locked" && (
-                <span className="chip-locked" aria-hidden="true">
-                  <Check size={12} strokeWidth={3} />
-                </span>
-              )}
             </span>
             <span className="chip-copy">
               <strong title={p.name}>
@@ -87,6 +75,19 @@ export default function ScoreChips({
                 )}
               </span>
             </span>
+            {/* Live state sits on the chip's corner, never over the companion's face. */}
+            {state === "thinking" && simultaneous && (
+              <span className="chip-thinking" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+              </span>
+            )}
+            {state === "locked" && (
+              <span className="chip-locked" aria-hidden="true">
+                <Check size={12} strokeWidth={3} />
+              </span>
+            )}
             {bubble(state, answer) && (
               <span
                 key={`${game.turn}-${state}`}
