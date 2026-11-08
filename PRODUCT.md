@@ -12,7 +12,7 @@ web
 - **Individual learners.** People who play solo, often daily, to learn Bible stories, Coptic history, saints, feasts, and church traditions in short sessions.
 - **Curious players.** Anyone looking for a fun spiritual learning app, including broadly Christian players outside the Coptic Orthodox Church.
 
-Players range from kids (with the Kids tier) to adults. Phones come first; desktop is secondary.
+Players are mostly teens and adults; an Easy tier (untimed, gentler questions) keeps younger players welcome. Phones come first; desktop is secondary.
 
 ## Product Purpose
 
@@ -42,7 +42,12 @@ Data lives in the browser's localStorage (match, stats, nickname, sound, room pr
 
 ## Brand Commitments
 
-- **Identity to keep:** the name and wordmark "kinesa", the blue-gradient cross mark, a warm and friendly voice, and the four illustrated Gospel companions.
+- **Identity to keep:** the name "kinesa", a warm and friendly voice, and the four illustrated Gospel companions.
+- **Look and feel (November 2026 direction):** less playful and kid-like, more recognizably Coptic, for teens and adults first. The companions stay, but in a smaller supporting role: in-game avatar and reveal moments, not the center of every screen.
+- **Hard limits for the Coptic look:**
+  - not somber or churchy; it should feel like a game teens want to open, with real energy in the timer, streaks and reveals;
+  - no gold-and-ornate kitsch (no heavy gold frames, faux-icon borders or clip-art crosses);
+  - no inaccurate details: cross forms, Coptic letters and motifs must be correct and used with care.
 - **Reverence:** be playful about the *game*, never about God, the saints, scripture, or liturgy. No jokes at any denomination's expense.
 - **Neutral framing:** present Coptic Orthodox positions as Coptic tradition, not as the only Christian view, unless the category is explicitly Coptic. Keep broadly Christian content accessible to everyone.
 - **About the companions:** they are fictional characters inspired by the traditional Gospel symbols, not portraits of the evangelists.
@@ -66,5 +71,5 @@ Data lives in the browser's localStorage (match, stats, nickname, sound, room pr
 
 - WCAG 2.1 AA contrast, touch targets of at least 44px, full keyboard play (A–D / 1–4), and visible focus.
 - Respect `prefers-reduced-motion` and `prefers-reduced-transparency`. Sound is off by default and haptics follow the mute toggle.
-- A relaxed (untimed) mode is always available, and the Kids tier is always untimed.
+- A relaxed (untimed) mode is always available, and the Easy tier is always untimed.
 - Layouts must work at 360px wide with no horizontal scroll.
