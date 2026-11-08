@@ -25,7 +25,7 @@
   align-items: center;
   gap: 7px;
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 750;
   letter-spacing: 1.25px;
   line-height: 1.5;
@@ -51,7 +51,7 @@
   background: #ffffff59;
   border-radius: 30px;
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
   color: #586a85;
   margin-bottom: 4px;
 }
@@ -160,7 +160,7 @@
   align-items: center;
   justify-content: space-between;
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 1px;
   font-weight: 700;
   margin: 3px 0 25px;
@@ -218,7 +218,7 @@
   border-radius: 8px;
   background: #edf0f87a;
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 650;
 }
 .le-page .le-sample-answer:hover:not(:disabled) {
@@ -243,7 +243,7 @@
 }
 .le-page .le-sample-note {
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   margin: 18px 0 0;
 }
@@ -267,7 +267,7 @@
   display: flex;
   align-items: start;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   color: #586a85;
   line-height: 1.6;
 }
@@ -299,7 +299,7 @@
 }
 .le-page .le-section-heading > span {
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.8px;
   white-space: nowrap;
 }
@@ -351,7 +351,7 @@
     0 3px 9px #56749008;
 }
 .le-page .le-topic-index {
-  font-size: 11px;
+  font-size: 12px;
   color: #586a85;
   padding: 3px 0;
 }
@@ -374,7 +374,7 @@
   padding-top: 14px;
   border-top: 1px solid #d6dfea80;
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
 }
 .le-page .le-topic-selected .le-topic-footer {
   color: #5365ad;
@@ -548,7 +548,7 @@
 }
 .le-page .le-stat > span:last-child {
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   margin-top: 5px;
 }
 .le-page .le-badge-grid {
@@ -628,7 +628,7 @@
 }
 .le-page .le-badge-label {
   color: #586a85;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
   margin-top: 5px;
 }
@@ -669,7 +669,7 @@
   font-weight: 650;
 }
 .le-page .le-badge-detail p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
   color: #586a85;
   margin-top: 5px;
@@ -677,7 +677,7 @@
 }
 .le-page .le-badge-detail .le-text-action {
   white-space: nowrap;
-  font-size: 11px;
+  font-size: 12px;
 }
 .le-page .le-earned-label {
   display: inline-flex;
@@ -687,7 +687,7 @@
   background: #dfefe57d;
   padding: 2px 6px;
   border-radius: 10px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 }
 .le-page .le-local-note {
@@ -702,7 +702,7 @@
   margin-top: 1px;
 }
 .le-page .le-local-note p {
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 @keyframes le-reveal-in {
@@ -760,7 +760,7 @@
     font-size: 13px;
   }
   .le-page .le-badge-label {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-badge-detail {
     flex-wrap: wrap;
@@ -785,7 +785,7 @@
     font-size: 12px;
   }
   .le-page .le-kicker {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-studio {
     grid-template-columns: 1fr;
@@ -836,14 +836,14 @@
     top: 22px;
   }
   .le-page .le-studio-context .le-text-action {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-sample {
     padding: 24px;
     border-top: 1px solid #ffffffa8;
   }
   .le-page .le-sample-top {
-    font-size: 11px;
+    font-size: 12px;
     margin-bottom: 19px;
   }
   .le-page .le-question legend {
@@ -860,7 +860,7 @@
     font-size: 21px;
   }
   .le-page .le-section-heading p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-section-heading > span {
     display: none;
@@ -885,19 +885,19 @@
     width: 24px;
   }
   .le-page .le-topic-index {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-topic-card h3 {
     font-size: 15px;
     min-height: 39px;
   }
   .le-page .le-topic-card > p {
-    font-size: 11px;
+    font-size: 12px;
     margin-top: 4px;
     min-height: 54px;
   }
   .le-page .le-topic-footer {
-    font-size: 11px;
+    font-size: 12px;
     padding-top: 12px;
   }
   .le-page .le-topic-footer svg {
@@ -912,7 +912,7 @@
     font-size: 16px;
   }
   .le-page .le-bottom-callout p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-bottom-callout .le-solid-action {
     width: 100%;
@@ -933,7 +933,7 @@
     margin: -4px 0 5px;
   }
   .le-page .le-ring-count {
-    font-size: 11px;
+    font-size: 12px;
     padding: 6px 11px;
   }
   .le-page .le-collection-copy h2 {
@@ -974,7 +974,7 @@
     letter-spacing: -0.5px;
   }
   .le-page .le-stat > span:last-child {
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.6;
     margin-top: 6px;
   }
@@ -1008,17 +1008,17 @@
     line-height: 1.5;
   }
   .le-page .le-badge-detail p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-badge-detail .le-text-action {
     margin-left: 47px;
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-local-note {
     margin-top: 20px;
   }
   .le-page .le-local-note p {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 @media (max-width: 350px) {
@@ -1037,19 +1037,19 @@
     font-size: 14px;
   }
   .le-page .le-topic-card > p {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-topic-footer {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-topic-footer svg {
     width: 11px;
   }
   .le-page .le-sample-answer {
-    font-size: 11px;
+    font-size: 12px;
   }
   .le-page .le-badge-card h3 {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

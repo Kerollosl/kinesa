@@ -52,7 +52,7 @@ export default function ScoreChips({
             key={p.kind}
             onClick={() => onInspectPlayer(p)}
             title={`Meet ${MASCOTS.find((m) => m.kind === p.kind).name}, ${p.name}’s companion`}
-            className={`score-player chip-${state} ${current ? "current" : ""} ${simultaneous && i === focus ? "is-you" : ""}`}
+            className={`score-player state-${state} ${current ? "current" : ""} ${simultaneous && i === focus ? "is-you" : ""}`}
             aria-label={`${p.name}${p.isBot ? " (practice bot)" : ""}: ${p.score} points${label ? `, ${label}` : ""}. View companion`}
           >
             <span className="score-avatar">

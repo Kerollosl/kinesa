@@ -11,6 +11,8 @@ const sceneRigs =
 async function readyScene(page, { surface = true } = {}) {
   await page.goto("/");
   await expect(page.locator(sceneRigs)).toHaveCount(4);
+  // The companions live below Play now; offscreen rigs rest by design.
+  await page.locator(".game-scene").scrollIntoViewIfNeeded();
   await expect(
     page.locator(
       `${sceneRigs} [data-joint='head'] > .companion-painted-part > image`,
@@ -308,7 +310,7 @@ test("the original artwork and high-fives work without graphics workers or WebGL
     .getByRole("button", { name: "High-five Juno", exact: true })
     .click();
   await expect(page.locator(".gs-juno .gs-reaction")).toBeVisible();
-  await expect(page.getByRole("button", { name: /Random game/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /^Play now/ })).toBeEnabled();
 });
 
 test("the crew keeps dancing, blends a greeting into the rhythm, and winds down without replacing artwork", async ({
@@ -577,5 +579,5 @@ test("the illustrated fallback stays interactive when canvas is unavailable", as
   await expect(page.locator(".gs-leo .gs-reaction")).toBeVisible();
   const moving = await sampleRig(page);
   expect(range(moving, "head")).toBeGreaterThan(0);
-  await expect(page.getByRole("button", { name: /Random game/ })).toBeEnabled();
+  await expect(page.getByRole("button", { name: /^Play now/ })).toBeEnabled();
 });

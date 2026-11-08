@@ -47,6 +47,9 @@ import {
   saveStats,
 } from "./progress.js";
 import { createSound } from "./sound.js";
+import { PRACTICE_BOTS, loadPrefs, savePrefs } from "./prefs.js";
+import { CopticCross } from "./components/Ornaments.jsx";
+import PlaySheet from "./components/PlaySheet.jsx";
 
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -54,14 +57,6 @@ const SPIN_MS = 2200;
 // A short beat after everyone locks in, so the reveal lands as one moment.
 const LOCK_BEAT_MS = 650;
 
-function CrossMark() {
-  return (
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M12 3h8v9h9v8h-9v9h-8v-9H3v-8h9z" fill="currentColor" />
-      <circle cx="16" cy="16" r="3" fill="#fff" />
-    </svg>
-  );
-}
 const matchBaseline = (stats) => ({
   xpStart: stats.xp,
   badgesStart: [...stats.badges],
@@ -187,7 +182,30 @@ export default function App() {
     const timer = setTimeout(() => setToast(""), 2400);
     return () => clearTimeout(timer);
   }, [toast]);
+  // Practice play starts in one tap with the saved name and settings.
+  const playNow = (overrides = {}) => {
+    const prefs = loadPrefs();
+    const { name = prefs.name, ...settings } = overrides;
+    begin(
+      createGame(
+        [
+          { name: name || "You" },
+          ...PRACTICE_BOTS.map((bot) => ({ name: bot, isBot: true })),
+        ],
+        Math.random,
+        {
+          structure: "simultaneous",
+          settings: { ...prefs.settings, ...settings },
+        },
+      ),
+      "random",
+    );
+  };
   const openLobby = (nextMode, players = null) => {
+    if (nextMode === "random") {
+      playNow();
+      return;
+    }
     cancelSpin();
     setMode(nextMode);
     setRematchPlayers(players);
@@ -486,9 +504,9 @@ export default function App() {
           aria-label="Kinesa home"
         >
           <span className="brand-emblem">
-            <CrossMark />
+            <CopticCross size={22} />
           </span>
-          <span>kinesa</span>
+          <span className="brand-word">kinesa</span>
         </button>
         <nav className="main-nav" aria-label="Main navigation">
           {[
@@ -559,6 +577,7 @@ export default function App() {
             game={game}
             navigate={navigate}
             openLobby={openLobby}
+            playNow={playNow}
             setModal={setModal}
           />
         )}
@@ -626,7 +645,16 @@ export default function App() {
         <Modal
           onClose={() => setModal(null)}
           returnFocus={modalTrigger.current}
+          variant={modal.type === "play-sheet" ? "sheet" : "dialog"}
         >
+          {modal.type === "play-sheet" && (
+            <PlaySheet
+              onPlay={(choice) => {
+                savePrefs(choice);
+                playNow({ name: choice.name, ...choice.settings });
+              }}
+            />
+          )}
           {modal.type === "help" && (
             <>
               <span className="modal-sticker">
@@ -689,10 +717,7 @@ export default function App() {
                   </div>
                 ))}
               </div>
-              <button
-                className="primary-button full"
-                onClick={() => openLobby("random")}
-              >
+              <button className="primary-button full" onClick={() => playNow()}>
                 Let fate decide <Shuffle size={20} />
               </button>
             </>
@@ -794,9 +819,9 @@ export default function App() {
               </div>
               <button
                 className="primary-button full"
-                onClick={() => openLobby("random")}
+                onClick={() => playNow({ category: modal.category.id })}
               >
-                Put it to the test <ArrowRight size={20} />
+                Play {modal.category.short} questions <ArrowRight size={20} />
               </button>
             </>
           )}
@@ -805,7 +830,7 @@ export default function App() {
     </div>
   );
 }
-function Modal({ children, onClose, returnFocus }) {
+function Modal({ children, onClose, returnFocus, variant = "dialog" }) {
   const ref = useRef(null);
   const callback = useRef(onClose);
   callback.current = onClose;
@@ -845,13 +870,13 @@ function Modal({ children, onClose, returnFocus }) {
   }, []);
   return (
     <div
-      className="modal-backdrop"
+      className={`modal-backdrop is-${variant}`}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <section
-        className="modal"
+        className={`modal is-${variant}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"

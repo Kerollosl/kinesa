@@ -105,10 +105,10 @@
 .chip-bubble.is-groan {
   background: #7a6f86;
 }
-.score-player.chip-cheer .score-avatar {
+.score-player.state-cheer .score-avatar {
   animation: pf-hop 520ms var(--ease-out-strong);
 }
-.score-player.chip-groan .score-avatar {
+.score-player.state-groan .score-avatar {
   animation: pf-droop 600ms var(--ease-out-strong);
 }
 .chip-points {
