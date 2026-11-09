@@ -45,3 +45,7 @@ See the [companion performance close-up](kinesa-companions-motion.webm). It reco
 The iPhone screenshot exposed a separate reveal-card defect: a full-body canvas inside a flipping card could paint over the identity text. Assignment previews now use the continuously animated SVG rig, without a foreignObject canvas or 3D card transform. An explicit grid reserves player, illustration and identity rows, with a clipped illustration viewport. Other app contexts retain soft-surface animation.
 
 Regression coverage runs animated assignment reveals at 360, 390, 430, 768 and 1440 pixels in Chromium and WebKit. It checks independent label/art bounds, heading hit targets and four unique companions, and saves rendered cards for review.
+
+## Tapestry redesign and game feel — November 2026
+
+The playful pastel-glass look was replaced by a Coptic visual world drawn from Akhmim tapestry, and the game was reworked for pace and replay: simultaneous practice play with a countdown, streak combos and speed bonuses, open "Did you know?" notes with sources, a pass-the-phone privacy cover and between-round standings, a results podium with XP, levels and mastery, a daily challenge with streaks, Coptic calendar seasons, and a 125-question validated bank. Before and after screens for every phase are in `docs/redesign/before/` and `docs/redesign/after/`; `npm run play-through` regenerates them.

@@ -1,0 +1,23 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "rgba(0, 0, 0, 0.25)",
+        "createdAt": "2026-11-08T14:24:43.536Z",
+        "reason": "Builder decision: soft drop shadow under the white knob of the Customize clock switch; a shadow tint, not a palette color"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "src/theme/tapestry.css"
+        ],
+        "createdAt": "2026-11-08T14:28:35.518Z",
+        "reason": "Finish reviewer ruling (2026-11-08): the 10px category band on question panes is the tapestry clavus motif (horizontal dyed band with linen lozenges, one per question pane), not a border-left/right accent"
+      }
+    ]
+  }
+}

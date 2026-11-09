@@ -1,0 +1,1452 @@
+[
+  {
+    "id": "bible-1",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "Who built an ark before the great flood?",
+    "options": ["Moses", "Noah", "Abraham", "David"],
+    "answerIndex": 1,
+    "explanation": "Noah built the ark as God instructed, bringing his family and the animals to safety.",
+    "source": "Genesis 6–9"
+  },
+  {
+    "id": "bible-2",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "At which town was Jesus born?",
+    "options": ["Nazareth", "Jericho", "Bethlehem", "Capernaum"],
+    "answerIndex": 2,
+    "explanation": "Jesus was born in Bethlehem of Judea during the reign of King Herod.",
+    "source": "Matthew 2:1"
+  },
+  {
+    "id": "bible-3",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "Which prophet spent three days and nights inside a great fish?",
+    "options": ["Jonah", "Elijah", "Daniel", "Jeremiah"],
+    "answerIndex": 0,
+    "explanation": "Jesus later pointed to Jonah's three days in the fish as a sign of His own three days in the tomb (Matthew 12:40).",
+    "source": "Jonah 1:17; Matthew 12:40"
+  },
+  {
+    "id": "bible-4",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "Which young shepherd defeated the giant Goliath?",
+    "options": ["Saul", "Samson", "Jonathan", "David"],
+    "answerIndex": 3,
+    "explanation": "David picked five smooth stones from a brook but needed only one, telling Goliath that \"the battle is the Lord's\" (1 Samuel 17:40, 47).",
+    "source": "1 Samuel 17"
+  },
+  {
+    "id": "bible-5",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "Where did Jesus turn water into wine?",
+    "options": [
+      "The Last Supper",
+      "A wedding at Cana",
+      "A feast in Bethany",
+      "The Temple in Jerusalem"
+    ],
+    "answerIndex": 1,
+    "explanation": "John calls it the first of Jesus' signs, and it began with His mother telling the servants, \"Whatever He says to you, do it\" (John 2:5, 11).",
+    "source": "John 2:1–11"
+  },
+  {
+    "id": "bible-6",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "How many apostles did Jesus appoint during His ministry?",
+    "options": ["12", "7", "10", "40"],
+    "answerIndex": 0,
+    "explanation": "Their number echoes the twelve tribes of Israel, and Jesus promised they would one day sit on twelve thrones (Matthew 19:28).",
+    "source": "Mark 3:13–19; Matthew 19:28"
+  },
+  {
+    "id": "bible-7",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "Who was thrown into a den of lions for praying to God?",
+    "options": ["Joseph", "Jeremiah", "Elisha", "Daniel"],
+    "answerIndex": 3,
+    "explanation": "Daniel kept praying three times a day by his open window, and God sent His angel to shut the lions' mouths (Daniel 6:10, 22).",
+    "source": "Daniel 6"
+  },
+  {
+    "id": "bible-8",
+    "category": "bible",
+    "difficulty": "easy",
+    "question": "Which disciple denied knowing Jesus three times?",
+    "options": ["Thomas", "Peter", "Judas", "Andrew"],
+    "answerIndex": 1,
+    "explanation": "After the Resurrection, Jesus asked Peter \"Do you love Me?\" three times, lovingly restoring him (John 21:15–17).",
+    "source": "Luke 22:54–62; John 21:15–17"
+  },
+  {
+    "id": "bible-9",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "In the parable of the Prodigal Son, what job did the son take when his money ran out?",
+    "options": ["Herding sheep", "Fishing", "Collecting taxes", "Feeding pigs"],
+    "answerIndex": 3,
+    "explanation": "He was hungry enough to long for the pigs' food, yet when he came home his father ran to embrace him \"when he was still a great way off\" (Luke 15:16, 20).",
+    "source": "Luke 15:11–32"
+  },
+  {
+    "id": "bible-10",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Which tax collector climbed a sycamore tree to see Jesus?",
+    "options": ["Matthew", "Zacchaeus", "Nicodemus", "Bartimaeus"],
+    "answerIndex": 1,
+    "explanation": "He was short, so he ran ahead of the crowd; after Jesus came to his house, he promised to repay anyone he had cheated fourfold (Luke 19:3–8).",
+    "source": "Luke 19:1–10"
+  },
+  {
+    "id": "bible-11",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Who was anointed as the first king of Israel?",
+    "options": ["Saul", "David", "Solomon", "Samuel"],
+    "answerIndex": 0,
+    "explanation": "The prophet Samuel anointed him, and he came from the tribe of Benjamin, the same tribe as the apostle Paul, who was also named Saul (Philippians 3:5; Acts 13:9).",
+    "source": "1 Samuel 9–10"
+  },
+  {
+    "id": "bible-12",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "What did Jesus multiply to feed the five thousand?",
+    "options": [
+      "Seven loaves and a few fish",
+      "Five loaves and two fish",
+      "Two loaves and five fish",
+      "Twelve loaves and a jar of oil"
+    ],
+    "answerIndex": 1,
+    "explanation": "John adds that the barley loaves came from a young boy, and twelve baskets of leftovers were gathered afterward (John 6:9, 13).",
+    "source": "Matthew 14:13–21; John 6:1–13"
+  },
+  {
+    "id": "bible-13",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Which prophet was taken up to heaven in a whirlwind?",
+    "options": ["Elisha", "Enoch", "Elijah", "Isaiah"],
+    "answerIndex": 2,
+    "explanation": "A chariot of fire appeared, and his disciple Elisha, who had asked for a double portion of his spirit, picked up the mantle that fell from him (2 Kings 2:9–13).",
+    "source": "2 Kings 2:1–14"
+  },
+  {
+    "id": "bible-14",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Who prayed for a child at Shiloh and became the mother of the prophet Samuel?",
+    "options": ["Sarah", "Rachel", "Elizabeth", "Hannah"],
+    "answerIndex": 3,
+    "explanation": "Her joyful song of thanksgiving in 1 Samuel 2 has many echoes in Mary's Magnificat (Luke 1:46–55).",
+    "source": "1 Samuel 1:1–2:10"
+  },
+  {
+    "id": "bible-15",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Saul met the risen Jesus on the road to which city?",
+    "options": ["Damascus", "Jericho", "Emmaus", "Antioch"],
+    "answerIndex": 0,
+    "explanation": "Blinded for three days, he was healed and baptized after a disciple named Ananias laid hands on him (Acts 9:9, 17–18).",
+    "source": "Acts 9:1–19"
+  },
+  {
+    "id": "bible-16",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Which river did Joshua lead Israel across into the Promised Land?",
+    "options": ["The Jordan", "The Nile", "The Euphrates", "The Tigris"],
+    "answerIndex": 0,
+    "explanation": "The waters stopped flowing as soon as the priests carrying the Ark stepped in, and twelve stones were set up as a memorial (Joshua 3:15–16; 4:1–9).",
+    "source": "Joshua 3–4"
+  },
+  {
+    "id": "bible-17",
+    "category": "bible",
+    "difficulty": "medium",
+    "question": "Which woman sat at Jesus' feet listening while her sister was busy serving?",
+    "options": ["Martha", "Salome", "Mary", "Joanna"],
+    "answerIndex": 2,
+    "explanation": "When Martha asked for help, Jesus gently told her that Mary had chosen \"that good part\" (Luke 10:42).",
+    "source": "Luke 10:38–42"
+  },
+  {
+    "id": "bible-18",
+    "category": "bible",
+    "difficulty": "hard",
+    "question": "Which Roman centurion's household received the Holy Spirit as Peter preached to them?",
+    "options": ["Longinus", "Julius", "Cornelius", "Claudius Lysias"],
+    "answerIndex": 2,
+    "explanation": "Just before, Peter saw a vision of a sheet full of animals, which taught him that \"God shows no partiality\" (Acts 10:34).",
+    "source": "Acts 10"
+  },
+  {
+    "id": "bible-19",
+    "category": "bible",
+    "difficulty": "hard",
+    "question": "The Ethiopian official baptized by Philip served under which queen?",
+    "options": ["The Queen of Sheba", "Esther", "Candace", "Vashti"],
+    "answerIndex": 2,
+    "explanation": "\"Candace\" (Kandake) was the title of the queens of ancient Kush, and the official was reading Isaiah 53 in his chariot when Philip ran up to him (Acts 8:28–35).",
+    "source": "Acts 8:26–39"
+  },
+  {
+    "id": "bible-20",
+    "category": "bible",
+    "difficulty": "hard",
+    "question": "What was the name of the servant whose ear Peter cut off in Gethsemane?",
+    "options": ["Onesimus", "Rhoda", "Ananias", "Malchus"],
+    "answerIndex": 3,
+    "explanation": "Only John gives his name, while Luke, the physician, records that Jesus touched the ear and healed him (Luke 22:51).",
+    "source": "John 18:10; Luke 22:50–51"
+  },
+  {
+    "id": "bible-21",
+    "category": "bible",
+    "difficulty": "hard",
+    "question": "Which judge of Israel asked God for a sign using a fleece of wool?",
+    "options": ["Samson", "Gideon", "Barak", "Jephthah"],
+    "answerIndex": 1,
+    "explanation": "God later trimmed Gideon's army to just 300 men so Israel would know the victory came from Him (Judges 7:2, 7).",
+    "source": "Judges 6:36–40; 7:2–7"
+  },
+  {
+    "id": "bible-22",
+    "category": "bible",
+    "difficulty": "hard",
+    "question": "Which young man fell from a window during Paul's long sermon and was restored to life?",
+    "options": ["Timothy", "Onesimus", "Eutychus", "Tychicus"],
+    "answerIndex": 2,
+    "explanation": "He dozed off and fell from the third story; fittingly, his Greek name means \"fortunate\" (Acts 20:9–12).",
+    "source": "Acts 20:7–12"
+  },
+  {
+    "id": "history-1",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "Which evangelist is traditionally known as the founder of the Church in Alexandria?",
+    "options": ["Saint Mark", "Saint Luke", "Saint John", "Saint Matthew"],
+    "answerIndex": 0,
+    "explanation": "The Coptic Church traces its apostolic foundation in Alexandria to Saint Mark the Evangelist.",
+    "source": "Coptic Orthodox tradition: Saint Mark, founder of the See of Alexandria"
+  },
+  {
+    "id": "history-2",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "In which country did the Coptic Church first take root?",
+    "options": ["Greece", "Italy", "Armenia", "Egypt"],
+    "answerIndex": 3,
+    "explanation": "The Coptic Church has its roots in Egypt, with Alexandria as its historic apostolic see.",
+    "source": "History of the Coptic Orthodox Church of Alexandria"
+  },
+  {
+    "id": "history-3",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "The Coptic Pope's official title names him Pope of which city?",
+    "options": ["Cairo", "Alexandria", "Antioch", "Jerusalem"],
+    "answerIndex": 1,
+    "explanation": "His full title is Pope of Alexandria and Patriarch of the See of St. Mark, even though the papal residence is now in Cairo.",
+    "source": "Official title of the Coptic Orthodox Pope: Pope of Alexandria and Patriarch of the See of St. Mark"
+  },
+  {
+    "id": "history-4",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "Whose threat led the Holy Family to flee into Egypt?",
+    "options": ["Caesar Augustus", "Pontius Pilate", "King Herod", "Caiaphas"],
+    "answerIndex": 2,
+    "explanation": "Copts treasure this visit: the Feast of the Entry of the Lord into Egypt is kept on 24 Bashans (June 1), and churches stand all along the route tradition says they took.",
+    "source": "Matthew 2:13–15; Coptic feast of the Entry of the Lord into Egypt (24 Bashans)"
+  },
+  {
+    "id": "history-5",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "Which pope led the Coptic Church from 1971 to 2012?",
+    "options": [
+      "Pope Kyrillos VI",
+      "Pope Tawadros II",
+      "Pope Cyril IV",
+      "Pope Shenouda III"
+    ],
+    "answerIndex": 3,
+    "explanation": "Both as Bishop of Christian Education and as pope, he was famous for weekly Wednesday meetings where people of all ages brought him their questions.",
+    "source": "Coptic Orthodox Church: Pope Shenouda III, 117th Pope (enthroned 14 Nov 1971, reposed 17 Mar 2012)"
+  },
+  {
+    "id": "history-6",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "Who became Pope of Alexandria in November 2012?",
+    "options": [
+      "Pope Tawadros II",
+      "Pope Shenouda III",
+      "Pope Kyrillos VI",
+      "Pope Theophilus"
+    ],
+    "answerIndex": 0,
+    "explanation": "He was chosen by altar lot: during the Divine Liturgy, a blindfolded child drew his name from among the three final candidates.",
+    "source": "Coptic Orthodox Church: altar lot of 4 Nov 2012; enthronement of Pope Tawadros II, 18 Nov 2012"
+  },
+  {
+    "id": "history-7",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "Wadi el-Natrun in Egypt's Western Desert is famous for what?",
+    "options": [
+      "Ancient pyramids",
+      "Ancient monasteries",
+      "A Roman lighthouse",
+      "Gold mines"
+    ],
+    "answerIndex": 1,
+    "explanation": "Known to early Christians as Scetis, it still has four active monasteries that have welcomed monks and pilgrims since the 4th century.",
+    "source": "Coptic monastic history: the monasteries of Wadi el-Natrun (Scetis)"
+  },
+  {
+    "id": "history-8",
+    "category": "history",
+    "difficulty": "easy",
+    "question": "What famous statement of faith came from the Council of Nicaea?",
+    "options": [
+      "The Lord's Prayer",
+      "The Beatitudes",
+      "The Nicene Creed",
+      "The Ten Commandments"
+    ],
+    "answerIndex": 2,
+    "explanation": "Copts still pray it in the Agpeya, the Book of Hours, beginning with the words \"We believe in one God.\"",
+    "source": "Council of Nicaea (AD 325); Agpeya (Coptic Book of Hours)"
+  },
+  {
+    "id": "history-9",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "In what year did the Council of Nicaea meet?",
+    "options": ["AD 325", "AD 381", "AD 431", "AD 451"],
+    "answerIndex": 0,
+    "explanation": "It was the first ecumenical council, and Church tradition remembers its bishops as \"the 318 Fathers.\"",
+    "source": "Council of Nicaea (AD 325); tradition of the 318 Fathers of Nicaea"
+  },
+  {
+    "id": "history-10",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "Which young Alexandrian deacon defended Christ's divinity against Arius at Nicaea?",
+    "options": ["St. Cyril", "Origen", "St. Athanasius", "St. Pachomius"],
+    "answerIndex": 2,
+    "explanation": "He went as deacon and secretary to Pope Alexander, and just three years later he became Pope of Alexandria himself.",
+    "source": "Council of Nicaea (AD 325); Socrates Scholasticus, Church History 1.8 and 1.15"
+  },
+  {
+    "id": "history-11",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "Which council, led by St. Cyril in AD 431, affirmed Mary as Theotokos?",
+    "options": ["Nicaea", "Ephesus", "Constantinople", "Chalcedon"],
+    "answerIndex": 1,
+    "explanation": "Theotokos means \"God-bearer\" or Mother of God, a title Copts sing joyfully in the Theotokias of the Midnight Praises.",
+    "source": "Council of Ephesus (AD 431)"
+  },
+  {
+    "id": "history-12",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "The Council of Constantinople (AD 381) expanded the Creed especially about whom?",
+    "options": [
+      "The Holy Spirit",
+      "The Virgin Mary",
+      "The apostles",
+      "The angels"
+    ],
+    "answerIndex": 0,
+    "explanation": "It added the words confessing the Holy Spirit as \"the Lord, the Giver of Life,\" worshipped and glorified with the Father and the Son.",
+    "source": "First Council of Constantinople (AD 381); Niceno-Constantinopolitan Creed"
+  },
+  {
+    "id": "history-13",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "The Coptic Church did not accept which council held in AD 451?",
+    "options": ["Nicaea", "Ephesus", "Constantinople", "Chalcedon"],
+    "answerIndex": 3,
+    "explanation": "The Coptic Church, with the other Oriental Orthodox churches, did not accept Chalcedon; in recent decades these churches have held warm theological dialogues with churches that did.",
+    "source": "Council of Chalcedon (AD 451); Oriental Orthodox churches' position on Chalcedon"
+  },
+  {
+    "id": "history-14",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "Which famous school in Alexandria was led by teachers like Clement and Origen?",
+    "options": [
+      "School of Antioch",
+      "Catechetical School",
+      "Academy of Athens",
+      "School of Edessa"
+    ],
+    "answerIndex": 1,
+    "explanation": "Coptic tradition traces it back to St. Mark; its first known head was Pantaenus, and Origen took charge of teaching there at just 18.",
+    "source": "Eusebius, Church History 5.10 and 6.3; St. Jerome, On Illustrious Men 36"
+  },
+  {
+    "id": "history-15",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "The Coptic alphabet is mainly based on which alphabet?",
+    "options": ["Greek", "Hebrew", "Latin", "Arabic"],
+    "answerIndex": 0,
+    "explanation": "Scribes added a handful of letters from Demotic, the older Egyptian script, for sounds Greek lacked, such as shai for \"sh.\"",
+    "source": "Coptic alphabet: Greek letters plus Demotic-derived letters"
+  },
+  {
+    "id": "history-16",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "The word \"Copt\" comes from a Greek word meaning what?",
+    "options": ["Christian", "Faithful", "Egyptian", "Desert-dweller"],
+    "answerIndex": 2,
+    "explanation": "Greek Aigyptios became qibt in Arabic and \"Copt\" in English, so the Coptic Church is, by name, the Church of the Egyptians.",
+    "source": "Etymology: Greek Aigyptios → Arabic qibt → Copt"
+  },
+  {
+    "id": "history-17",
+    "category": "history",
+    "difficulty": "medium",
+    "question": "The Coptic \"Era of the Martyrs\" counts years from which emperor's reign?",
+    "options": ["Nero", "Decius", "Constantine", "Diocletian"],
+    "answerIndex": 3,
+    "explanation": "Year 1 of the Coptic calendar is AD 284, when Diocletian came to power; his persecution was so fierce that Copts chose to count time by their martyrs.",
+    "source": "Coptic calendar, Anno Martyrum (counted from AD 284)"
+  },
+  {
+    "id": "history-18",
+    "category": "history",
+    "difficulty": "hard",
+    "question": "Pope Tawadros II is which numbered Pope of Alexandria?",
+    "options": ["116th", "117th", "118th", "120th"],
+    "answerIndex": 2,
+    "explanation": "The count runs unbroken from St. Mark, the first, through Pope Kyrillos VI (116th) and Pope Shenouda III (117th).",
+    "source": "Coptic Orthodox Church, list of the Popes of Alexandria"
+  },
+  {
+    "id": "history-19",
+    "category": "history",
+    "difficulty": "hard",
+    "question": "By tradition, which shoemaker was St. Mark's first convert in Alexandria?",
+    "options": ["Anianus", "Pantaenus", "Demetrius", "Origen"],
+    "answerIndex": 0,
+    "explanation": "Tradition says Mark healed Anianus's hand after an awl pierced it; Anianus later became the second Pope of Alexandria.",
+    "source": "Coptic Synaxarium, 20 Hathor (Pope Anianus); Coptic tradition"
+  },
+  {
+    "id": "history-20",
+    "category": "history",
+    "difficulty": "hard",
+    "question": "Which Coptic dialect is mainly used in the Church's liturgy today?",
+    "options": ["Sahidic", "Bohairic", "Fayyumic", "Akhmimic"],
+    "answerIndex": 1,
+    "explanation": "Bohairic comes from the western Nile Delta and has been the Church's main liturgical dialect since about the 11th century, when it replaced Sahidic.",
+    "source": "History of the Coptic language: Bohairic as liturgical dialect"
+  },
+  {
+    "id": "history-21",
+    "category": "history",
+    "difficulty": "hard",
+    "question": "Coptic tradition says the Holy Family's longest stay in Egypt was where?",
+    "options": [
+      "Old Cairo (Abu Serga)",
+      "Mataria",
+      "Wadi el-Natrun",
+      "Al-Muharraq (Mount Qusqam)"
+    ],
+    "answerIndex": 3,
+    "explanation": "Tradition says they lived about six months at the site of today's al-Muharraq Monastery near Assiut, and its ancient church is honored as the house where they stayed.",
+    "source": "Coptic tradition (Vision of Pope Theophilus); Monastery of the Virgin Mary, al-Muharraq"
+  },
+  {
+    "id": "history-22",
+    "category": "history",
+    "difficulty": "hard",
+    "question": "In AD 367, whose Festal Letter listed the 27 New Testament books?",
+    "options": [
+      "St. Cyril",
+      "Pope Theophilus",
+      "Pope Demetrius",
+      "St. Athanasius"
+    ],
+    "answerIndex": 3,
+    "explanation": "His 39th Festal Letter, sent to announce the date of Pascha, is the earliest known list matching exactly today's 27 New Testament books.",
+    "source": "St. Athanasius, 39th Festal Letter (AD 367)"
+  },
+  {
+    "id": "saints-1",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "Which Egyptian saint is often called the father of monasticism?",
+    "options": [
+      "Saint George",
+      "Saint Anthony the Great",
+      "Saint Stephen",
+      "Saint Nicholas"
+    ],
+    "answerIndex": 1,
+    "explanation": "Saint Anthony the Great became a model for Christian monastic life in the Egyptian desert.",
+    "source": "Saint Athanasius, Life of Anthony"
+  },
+  {
+    "id": "saints-2",
+    "category": "saints",
+    "difficulty": "easy",
+    "question": "Who is known as the first Christian martyr?",
+    "options": ["Saint Paul", "Saint Peter", "Saint Stephen", "Saint Thomas"],
+    "answerIndex": 2,
+    "explanation": "The book of Acts describes Stephen’s witness and martyrdom.",
+    "source": "Acts 6–7"
+  },
+  {
+    "id": "saints-3",
+    "category": "saints",
+    "difficulty": "easy",
+    "question": "\"Mar Girgis\" is the Arabic name of which saint?",
+    "options": ["St. George", "St. Mina", "St. Mark", "St. Stephen"],
+    "answerIndex": 0,
+    "explanation": "Copts call him the Prince of Martyrs, and his icons show him on horseback slaying a dragon, a picture of good triumphing over evil.",
+    "source": "Coptic Synaxarium, 23 Baramouda (St. George, Prince of Martyrs)"
+  },
+  {
+    "id": "saints-4",
+    "category": "saints",
+    "difficulty": "easy",
+    "question": "Before his conversion, St. Moses the Black was known as what?",
+    "options": [
+      "A Roman general",
+      "A robber chief",
+      "A temple priest",
+      "A wealthy merchant"
+    ],
+    "answerIndex": 1,
+    "explanation": "Later, asked to judge a brother, he arrived carrying a leaking jug of water and said, \"My sins run out behind me and I do not see them,\" and the brother was forgiven.",
+    "source": "Sayings of the Desert Fathers (Alphabetical Collection), Abba Moses"
+  },
+  {
+    "id": "saints-5",
+    "category": "saints",
+    "difficulty": "easy",
+    "question": "St. Stephen was one of seven men chosen to serve as what?",
+    "options": ["Apostles", "Scribes", "Deacons", "Judges"],
+    "answerIndex": 2,
+    "explanation": "The Coptic Church honors him as St. Stephen the Archdeacon, and Acts says his face shone \"like the face of an angel.\"",
+    "source": "Acts 6:1–6, 15"
+  },
+  {
+    "id": "saints-6",
+    "category": "saints",
+    "difficulty": "easy",
+    "question": "According to St. Jerome, what creature brought St. Paul the Hermit bread?",
+    "options": ["A dove", "An eagle", "A camel", "A raven"],
+    "answerIndex": 3,
+    "explanation": "Jerome writes that the raven brought half a loaf every day for sixty years, and a whole loaf on the day St. Anthony came to visit.",
+    "source": "St. Jerome, Life of Paul the First Hermit 10"
+  },
+  {
+    "id": "saints-7",
+    "category": "saints",
+    "difficulty": "easy",
+    "question": "After hearing a Gospel reading in church, what did young St. Anthony do?",
+    "options": [
+      "Became a soldier",
+      "Gave away his possessions",
+      "Sailed to Rome",
+      "Built a cathedral"
+    ],
+    "answerIndex": 1,
+    "explanation": "He heard Jesus say, \"Go, sell what you have and give to the poor,\" took it to heart, and later withdrew into the desert.",
+    "source": "St. Athanasius, Life of Anthony 2; Matthew 19:21"
+  },
+  {
+    "id": "saints-9",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "St. Pachomius is remembered as the founder of which kind of monastic life?",
+    "options": [
+      "Communal monastic life",
+      "Solitary hermit life",
+      "Wandering preaching",
+      "Pillar-dwelling"
+    ],
+    "answerIndex": 0,
+    "explanation": "A former Roman soldier, he gathered monks at Tabennisi in Upper Egypt to pray and work together under a shared rule, a model later followed far beyond Egypt.",
+    "source": "Bohairic Life of Pachomius; Palladius, Lausiac History 32"
+  },
+  {
+    "id": "saints-10",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "St. Macarius the Great pioneered monastic life in which desert?",
+    "options": [
+      "Sinai",
+      "The Eastern Desert",
+      "Scetis (Wadi el-Natrun)",
+      "The Judean desert"
+    ],
+    "answerIndex": 2,
+    "explanation": "He settled there around AD 330, and the Monastery of St. Macarius still prays in the same valley today.",
+    "source": "Palladius, Lausiac History 17; Coptic monastic tradition"
+  },
+  {
+    "id": "saints-11",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "By Coptic tradition, St. Demiana was martyred together with how many virgins?",
+    "options": ["Seven", "Twelve", "Forty", "One hundred"],
+    "answerIndex": 2,
+    "explanation": "She is honored as a mother of monastic life for Coptic women, and her monastery near Bilqas in the Nile Delta draws many pilgrims.",
+    "source": "Coptic Synaxarium, 13 Toba (St. Demiana and the forty virgins)"
+  },
+  {
+    "id": "saints-12",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "What title does the Coptic Church give St. Athanasius?",
+    "options": [
+      "The Apostolic",
+      "The Great Hermit",
+      "The Golden Mouth",
+      "The Theologian"
+    ],
+    "answerIndex": 0,
+    "explanation": "He stood so firmly for the faith of Nicaea that a famous saying grew up about him: \"Athanasius against the world.\"",
+    "source": "Coptic Orthodox tradition (St. Athanasius the Apostolic, 20th Pope of Alexandria)"
+  },
+  {
+    "id": "saints-13",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "Which Pope of Alexandria is known as the \"Pillar of Faith\"?",
+    "options": [
+      "St. Mark",
+      "St. Cyril",
+      "St. Dioscorus",
+      "St. Peter, Seal of Martyrs"
+    ],
+    "answerIndex": 1,
+    "explanation": "St. Cyril, nephew of Pope Theophilus, championed the title Theotokos, and his writings about Christ are still treasured today.",
+    "source": "Coptic Synaxarium entry for St. Cyril I, 24th Pope of Alexandria (copticchurch.net)"
+  },
+  {
+    "id": "saints-14",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "St. Mary of Egypt turned to God after she could not enter a church in which city?",
+    "options": ["Alexandria", "Rome", "Jerusalem", "Antioch"],
+    "answerIndex": 2,
+    "explanation": "An unseen force kept her at the door on the Feast of the Cross; after praying before an icon of the Virgin she entered, then lived about 47 years in the desert beyond the Jordan.",
+    "source": "St. Sophronius of Jerusalem, Life of St. Mary of Egypt"
+  },
+  {
+    "id": "saints-15",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "Coptic tradition links St. Simon the Tanner to which miracle?",
+    "options": [
+      "Parting the Nile",
+      "Calming a storm at sea",
+      "Ending a great famine",
+      "Moving the Mokattam mountain"
+    ],
+    "answerIndex": 3,
+    "explanation": "Copts still remember it with three extra days added to the Nativity Fast, and a great cave church in the Mokattam hills bears his name.",
+    "source": "History of the Patriarchs (Pope Abraham ibn Zar'a, 10th century); Coptic tradition"
+  },
+  {
+    "id": "saints-16",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "Which 20th-century pope, famed for praying the liturgy daily, is honored as a saint?",
+    "options": [
+      "Pope Kyrillos VI",
+      "Pope Cyril V",
+      "Pope Yusab II",
+      "Pope Macarius III"
+    ],
+    "answerIndex": 0,
+    "explanation": "He loved St. Mina dearly and founded the Monastery of St. Mina at Mariout in 1959; the Holy Synod recognized him as a saint in 2013.",
+    "source": "Coptic Holy Synod decision (20 June 2013); Monastery of St. Mina, Mariout (founded 1959)"
+  },
+  {
+    "id": "saints-17",
+    "category": "saints",
+    "difficulty": "medium",
+    "question": "How many martyrs are honored together as the Martyrs of Libya (2015)?",
+    "options": ["7", "12", "21", "40"],
+    "answerIndex": 2,
+    "explanation": "Pope Tawadros II added them to the Synaxarium within days, and in 2023 Pope Francis added them to the Catholic Roman Martyrology, a rare shared honor.",
+    "source": "Coptic Synaxarium (commemorated 15 February); Roman Martyrology addition announced 11 May 2023"
+  },
+  {
+    "id": "saints-18",
+    "category": "saints",
+    "difficulty": "hard",
+    "question": "St. Athanasius was sent into exile how many times?",
+    "options": ["Twice", "Three times", "Seven times", "Five times"],
+    "answerIndex": 3,
+    "explanation": "Four different emperors banished him, yet he used those years well, at one point hiding among the desert monks he loved.",
+    "source": "Socrates Scholasticus, Church History, Books 1–4; St. Athanasius, Apology for His Flight"
+  },
+  {
+    "id": "saints-19",
+    "category": "saints",
+    "difficulty": "hard",
+    "question": "According to St. Athanasius, about how old was St. Anthony when he died?",
+    "options": ["About 70", "About 85", "About 95", "About 105"],
+    "answerIndex": 3,
+    "explanation": "Athanasius adds that even at that age Anthony's eyes were undimmed and he had not lost a single tooth, though they were worn down.",
+    "source": "St. Athanasius, Life of Anthony 89, 93"
+  },
+  {
+    "id": "saints-20",
+    "category": "saints",
+    "difficulty": "hard",
+    "question": "Which Desert Mother has sayings recorded in the Sayings of the Desert Fathers?",
+    "options": ["Amma Syncletica", "St. Demiana", "St. Marina", "St. Thecla"],
+    "answerIndex": 0,
+    "explanation": "She taught that \"in the beginning there is struggle\" for those who draw near to God, \"but after that, indescribable joy.\"",
+    "source": "Sayings of the Desert Fathers (Alphabetical Collection), Amma Syncletica"
+  },
+  {
+    "id": "saints-21",
+    "category": "saints",
+    "difficulty": "hard",
+    "question": "St. Shenouda the Archimandrite led which great monastery near Sohag?",
+    "options": [
+      "St. Anthony's Monastery",
+      "The Syrian Monastery",
+      "St. Catherine's Monastery",
+      "The White Monastery"
+    ],
+    "answerIndex": 3,
+    "explanation": "His sermons and letters in Sahidic Coptic make him one of the greatest writers in the whole Coptic language.",
+    "source": "Besa, Life of Shenoute"
+  },
+  {
+    "id": "traditions-1",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "What language, alongside Arabic, is traditionally used in Coptic Orthodox worship?",
+    "options": ["Coptic", "Latin", "Spanish", "Aramaic only"],
+    "answerIndex": 0,
+    "explanation": "Coptic, the latest stage of the ancient Egyptian language, remains a liturgical language of the Church.",
+    "source": "Coptic Orthodox liturgical tradition"
+  },
+  {
+    "id": "traditions-2",
+    "category": "traditions",
+    "difficulty": "easy",
+    "question": "What does the word “liturgy” refer to in church life?",
+    "options": [
+      "A type of building",
+      "A musical instrument",
+      "A season of the year",
+      "The public worship of the Church"
+    ],
+    "answerIndex": 3,
+    "explanation": "Liturgy refers to the Church’s communal worship; the Divine Liturgy centers on the Eucharist.",
+    "source": "Christian liturgical terminology"
+  },
+  {
+    "id": "traditions-3",
+    "category": "traditions",
+    "difficulty": "easy",
+    "question": "Which direction do Coptic churches traditionally face for prayer?",
+    "options": ["North", "East", "South", "West"],
+    "answerIndex": 1,
+    "explanation": "Christ is called the \"Sun of Righteousness,\" and He said His coming will be like lightning from the east, so Copts pray toward the sunrise.",
+    "source": "Malachi 4:2; Matthew 24:27; Coptic church architecture"
+  },
+  {
+    "id": "traditions-4",
+    "category": "traditions",
+    "difficulty": "easy",
+    "question": "Most of the Agpeya's prayers come from which book of the Bible?",
+    "options": ["Proverbs", "Isaiah", "Psalms", "Revelation"],
+    "answerIndex": 2,
+    "explanation": "Each hour pairs psalms with a Gospel reading, echoing David's words, \"Seven times a day I praise You.\"",
+    "source": "Agpeya (Coptic Book of Hours); Psalm 119:164"
+  },
+  {
+    "id": "traditions-6",
+    "category": "traditions",
+    "difficulty": "easy",
+    "question": "What is the sanctuary with the altar called in a Coptic church?",
+    "options": ["The Haikal", "The Narthex", "The Nave", "The Baptistery"],
+    "answerIndex": 0,
+    "explanation": "Haikal means \"temple,\" and larger Coptic churches often have three haikals side by side, each with its own altar.",
+    "source": "Coptic church architecture"
+  },
+  {
+    "id": "traditions-7",
+    "category": "traditions",
+    "difficulty": "easy",
+    "question": "How many sacraments (mysteries) does the Coptic Church celebrate?",
+    "options": ["Two", "Three", "Five", "Seven"],
+    "answerIndex": 3,
+    "explanation": "They are Baptism, Chrismation, Eucharist, Confession, Unction of the Sick, Matrimony and Priesthood, called \"mysteries\" because God's grace works in them unseen.",
+    "source": "Coptic Orthodox teaching on the Seven Holy Mysteries"
+  },
+  {
+    "id": "traditions-8",
+    "category": "traditions",
+    "difficulty": "easy",
+    "question": "What does \"Kyrie eleison\" mean?",
+    "options": [
+      "Lord, have mercy",
+      "Glory to God",
+      "Christ is risen",
+      "Peace be with you"
+    ],
+    "answerIndex": 0,
+    "explanation": "Each Agpeya hour prays it 41 times, a number Coptic tradition links to Christ's 39 lashes, the crown of thorns and the spear.",
+    "source": "Agpeya (Coptic Book of Hours)"
+  },
+  {
+    "id": "traditions-10",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "What is the Tasbeha?",
+    "options": [
+      "The Midnight Praises",
+      "The wedding rite",
+      "A Lenten fast",
+      "The burial service"
+    ],
+    "answerIndex": 0,
+    "explanation": "Tasbeha is Arabic for \"praise\"; it weaves biblical canticles with hymns to St. Mary called Theotokias, and many churches pray it on Saturday nights before the Sunday Liturgy.",
+    "source": "The Holy Psalmody (Coptic Tasbeha book)"
+  },
+  {
+    "id": "traditions-11",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "Which liturgy is prayed most often in the Coptic Church?",
+    "options": ["St. Gregory", "St. Cyril", "St. Basil", "St. James"],
+    "answerIndex": 2,
+    "explanation": "The Church has three liturgies: St. Basil for most days, St. Gregory especially on major feasts, and the ancient Alexandrian Liturgy of St. Cyril, prayed more rarely.",
+    "source": "Coptic Euchologion (Kholagi)"
+  },
+  {
+    "id": "traditions-12",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "What is the Eucharistic bread called in the Coptic Church?",
+    "options": ["Eulogia", "Qorban", "Matzah", "Agape"],
+    "answerIndex": 1,
+    "explanation": "Its stamp shows a large central cross, the Isbodikon, circled by twelve small crosses for the apostles, and the priest chooses the finest loaf as \"the Lamb.\"",
+    "source": "Coptic Euchologion: Offertory and Selection of the Lamb"
+  },
+  {
+    "id": "traditions-13",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "Which Coptic deacon rank's name means \"chanter\" or \"hymn singer\"?",
+    "options": ["Epsaltos", "Anagnostis", "Epidiakon", "Archdeacon"],
+    "answerIndex": 0,
+    "explanation": "It is the first rank, often given to children, followed by Anagnostis (reader), subdeacon, deacon and archdeacon.",
+    "source": "Coptic Orthodox ranks of the deaconate"
+  },
+  {
+    "id": "traditions-14",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "\"Metanoia,\" the word Copts use for a prostration, means what?",
+    "options": ["Blessing", "Glory", "Repentance", "Thanksgiving"],
+    "answerIndex": 2,
+    "explanation": "Prostrations are not made on Sundays or during the joyful Fifty Days after the Resurrection, a custom already noted at the Council of Nicaea.",
+    "source": "Greek metanoia; Council of Nicaea (AD 325), Canon 20"
+  },
+  {
+    "id": "traditions-15",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "Which mystery does a Coptic child receive right after Baptism?",
+    "options": [
+      "Confession",
+      "Chrismation (Holy Myron)",
+      "Matrimony",
+      "Unction of the Sick"
+    ],
+    "answerIndex": 1,
+    "explanation": "The priest anoints the newly baptized with the holy Myron oil, sealing them with the gift of the Holy Spirit, and they then receive Holy Communion.",
+    "source": "Coptic rite of Baptism and Chrismation (Holy Myron)"
+  },
+  {
+    "id": "traditions-16",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "During most Coptic fasts, believers abstain from what?",
+    "options": ["Bread and grains", "Fruit", "Water", "Animal products"],
+    "answerIndex": 3,
+    "explanation": "Fish is allowed in some fasts, like the Nativity and Apostles' Fasts, but not in Great Lent, and fasting also means going without food until a set hour.",
+    "source": "Coptic Orthodox fasting practice"
+  },
+  {
+    "id": "traditions-17",
+    "category": "traditions",
+    "difficulty": "medium",
+    "question": "Which two instruments traditionally accompany Coptic hymns?",
+    "options": [
+      "Cymbals and triangle",
+      "Organ and piano",
+      "Harp and flute",
+      "Drum and trumpet"
+    ],
+    "answerIndex": 0,
+    "explanation": "Deacons keep the rhythm with them, and many Coptic hymns have been handed down by ear for centuries.",
+    "source": "Coptic hymnody tradition"
+  },
+  {
+    "id": "traditions-18",
+    "category": "traditions",
+    "difficulty": "hard",
+    "question": "The name \"Agpeya\" comes from a Coptic word meaning what?",
+    "options": ["Prayer", "Hour", "Psalm", "Morning"],
+    "answerIndex": 1,
+    "explanation": "The Agpeya gathers prayers for the hours of the day, from the First Hour at sunrise all the way to the Midnight prayer.",
+    "source": "Agpeya (Coptic Book of Hours); Coptic agp, \"hour\""
+  },
+  {
+    "id": "traditions-19",
+    "category": "traditions",
+    "difficulty": "hard",
+    "question": "Which Agpeya hour especially remembers the Holy Spirit's descent at Pentecost?",
+    "options": ["First Hour", "Third Hour", "Sixth Hour", "Ninth Hour"],
+    "answerIndex": 1,
+    "explanation": "Acts says the Spirit came at \"the third hour of the day,\" about 9 a.m.; the Sixth Hour remembers the Crucifixion and the Ninth, Christ's death on the Cross.",
+    "source": "Agpeya, Third Hour (Terce); Acts 2:15"
+  },
+  {
+    "id": "traditions-20",
+    "category": "traditions",
+    "difficulty": "hard",
+    "question": "How many Hoses (biblical canticles) are in the Midnight Praises?",
+    "options": ["Two", "Three", "Four", "Seven"],
+    "answerIndex": 2,
+    "explanation": "They are the Song of Moses at the Red Sea, Psalm 136, the Song of the Three Young Men, and Psalms 148–150.",
+    "source": "The Holy Psalmody (Tasbeha); Exodus 15; Psalm 136; Daniel 3; Psalms 148–150"
+  },
+  {
+    "id": "traditions-21",
+    "category": "traditions",
+    "difficulty": "hard",
+    "question": "In the Coptic Liturgy, the reading from the Book of Acts is called what?",
+    "options": ["Pauline", "Catholicon", "Praxis", "Synaxarium"],
+    "answerIndex": 2,
+    "explanation": "Praxis is Greek for \"acts\"; it follows the readings from St. Paul's letters (the Pauline) and the general epistles (the Catholicon).",
+    "source": "Coptic Katameros (lectionary): Liturgy of the Word"
+  },
+  {
+    "id": "traditions-22",
+    "category": "traditions",
+    "difficulty": "hard",
+    "question": "Which hymn is chanted twelve times in each hour of Holy Week (Pascha)?",
+    "options": ["Golgotha", "Ten Thino", "Omonogenis", "Thok te ti gom"],
+    "answerIndex": 3,
+    "explanation": "Its words, \"Thine is the power and the glory and the blessing and the majesty forever, Amen,\" echo the praise of heaven in Revelation.",
+    "source": "Coptic Holy Week (Pascha) rite; Revelation 5:12–13"
+  },
+  {
+    "id": "feasts-1",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "What does the Feast of the Resurrection celebrate?",
+    "options": [
+      "The birth of Jesus",
+      "Jesus rising from the dead",
+      "The baptism of Jesus",
+      "The calling of the apostles"
+    ],
+    "answerIndex": 1,
+    "explanation": "The Feast of the Resurrection celebrates Jesus Christ’s victory over death.",
+    "source": "Matthew 28:1–10"
+  },
+  {
+    "id": "feasts-2",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "The Feast of Theophany commemorates which event?",
+    "options": [
+      "The Transfiguration",
+      "The Ascension",
+      "The baptism of Christ",
+      "The feeding of the five thousand"
+    ],
+    "answerIndex": 2,
+    "explanation": "Theophany celebrates Christ’s baptism in the Jordan and the revelation of the Holy Trinity.",
+    "source": "Matthew 3:13–17; Coptic Orthodox feast calendar"
+  },
+  {
+    "id": "feasts-3",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "On Palm Sunday, Jesus rode into Jerusalem on which animal?",
+    "options": ["A horse", "A camel", "A mule", "A donkey"],
+    "answerIndex": 3,
+    "explanation": "This fulfilled Zechariah 9:9, and only John's Gospel specifies that the branches the crowd waved were palms (John 12:13).",
+    "source": "Matthew 21:1–11; John 12:12–15; Zechariah 9:9"
+  },
+  {
+    "id": "feasts-4",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "What does the Feast of Pentecost celebrate?",
+    "options": [
+      "The Holy Spirit descending",
+      "Jesus rising from the dead",
+      "Jesus ascending to heaven",
+      "The birth of John the Baptist"
+    ],
+    "answerIndex": 0,
+    "explanation": "Pentecost means \"fiftieth\" in Greek: it falls on the fiftieth day counting from the Resurrection, when the Spirit came as tongues of fire (Acts 2:1–4).",
+    "source": "Acts 2:1–41"
+  },
+  {
+    "id": "feasts-5",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "How many days after the Resurrection did Jesus ascend into heaven?",
+    "options": ["3", "40", "12", "50"],
+    "answerIndex": 1,
+    "explanation": "Counting Resurrection Sunday as the first day, the Feast of the Ascension always lands on a Thursday.",
+    "source": "Acts 1:3, 9–11"
+  },
+  {
+    "id": "feasts-6",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "Great Lent's forty days recall Jesus fasting where?",
+    "options": [
+      "On Mount Tabor",
+      "In Gethsemane",
+      "In the wilderness",
+      "By the Sea of Galilee"
+    ],
+    "answerIndex": 2,
+    "explanation": "In the Coptic Church, Great Lent stretches to 55 days: a preparation week, the Holy Forty, and Holy Week.",
+    "source": "Matthew 4:1–2; Coptic Orthodox fasting tradition (Great Lent, 55 days)"
+  },
+  {
+    "id": "feasts-7",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "What does the Feast of the Annunciation celebrate?",
+    "options": [
+      "Mary's visit to Elizabeth",
+      "Jesus presented in the Temple",
+      "The birth of John the Baptist",
+      "Gabriel's message to Mary"
+    ],
+    "answerIndex": 3,
+    "explanation": "Gabriel came \"in the sixth month\" of Elizabeth's pregnancy, and the Copts keep the feast on 29 Baramhat, about nine months before the Nativity on 29 Kiahk.",
+    "source": "Luke 1:26–38; Coptic Orthodox calendar: Annunciation on 29 Baramhat (7 April)"
+  },
+  {
+    "id": "feasts-8",
+    "category": "feasts",
+    "difficulty": "easy",
+    "question": "In the Coptic Orthodox Church, the Nativity is celebrated on which Gregorian date?",
+    "options": ["7 January", "25 December", "6 January", "19 January"],
+    "answerIndex": 0,
+    "explanation": "The Copts keep it on 29 Kiahk, which matches 25 December on the older Julian calendar: the same feast, counted on a different calendar.",
+    "source": "Coptic Orthodox calendar: Nativity on 29 Kiahk (7 January)"
+  },
+  {
+    "id": "feasts-9",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "What is Nayrouz in the Coptic Church?",
+    "options": [
+      "The Feast of the Cross",
+      "The Coptic New Year",
+      "The end of the Apostles' Fast",
+      "The start of the month of Kiahk"
+    ],
+    "answerIndex": 1,
+    "explanation": "It falls on 1 Thout, usually 11 September, and opens a year numbered A.M., Anno Martyrum, the \"Year of the Martyrs.\"",
+    "source": "Coptic Orthodox calendar: Nayrouz on 1 Thout (11 September; 12 September in the year before a leap year)"
+  },
+  {
+    "id": "feasts-10",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "How many days does the Coptic Fast of Nineveh last?",
+    "options": ["7", "15", "40", "3"],
+    "answerIndex": 3,
+    "explanation": "It recalls Nineveh repenting at Jonah's preaching, and it ends with the feast of \"Jonah's Passover\" on the Thursday.",
+    "source": "Jonah 3:4–10; Coptic Orthodox calendar: Fast of Nineveh (Monday–Wednesday, two weeks before Great Lent)"
+  },
+  {
+    "id": "feasts-11",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "The Apostles' Fast ends on the feast of which two apostles?",
+    "options": [
+      "Peter and Paul",
+      "James and John",
+      "Andrew and Philip",
+      "Thomas and Bartholomew"
+    ],
+    "answerIndex": 0,
+    "explanation": "It starts the day after Pentecost and ends on 5 Epep (12 July), so its length shifts each year with the date of the Resurrection.",
+    "source": "Coptic Orthodox calendar: Feast of the Apostles Peter and Paul, 5 Epep (12 July)"
+  },
+  {
+    "id": "feasts-12",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "The Feast of the Cross recalls the finding of the True Cross by which empress?",
+    "options": ["Theodora", "Helena", "Pulcheria", "Eudoxia"],
+    "answerIndex": 1,
+    "explanation": "Helena was the mother of Emperor Constantine, and the Coptic Church keeps this feast on 17 Thout, usually 27 September.",
+    "source": "Coptic Synaxarium, 17 Thout; Coptic Orthodox calendar: Feast of the Cross (27 September)"
+  },
+  {
+    "id": "feasts-13",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "In the Coptic Church, how many days does the Nativity Fast usually last in all?",
+    "options": ["15", "50", "43", "55"],
+    "answerIndex": 2,
+    "explanation": "Coptic tradition links the three days added to the original forty in the 10th century to the fast before the moving of the Mokattam mountain.",
+    "source": "Coptic Orthodox calendar: Nativity Fast from 16 Hathor (25 November) to the eve of the Nativity (6 January)"
+  },
+  {
+    "id": "feasts-14",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "The Coptic Kiahk praises prepare the faithful for which feast?",
+    "options": ["The Resurrection", "Theophany", "The Nativity", "Pentecost"],
+    "answerIndex": 2,
+    "explanation": "Kiahk is known as the Marian month, and its \"Seven and Four\" praises (seven Theotokias and four canticles) fill long, joyful vigils honoring the Virgin Mary.",
+    "source": "Coptic Orthodox Psalmody (Tasbeha) for the month of Kiahk"
+  },
+  {
+    "id": "feasts-15",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "On which mountain is the Transfiguration traditionally believed to have happened?",
+    "options": [
+      "Mount Sinai",
+      "Mount Tabor",
+      "Mount Carmel",
+      "Mount of Olives"
+    ],
+    "answerIndex": 1,
+    "explanation": "The Gospels say only \"a high mountain,\" where Moses and Elijah appeared with Jesus; the Copts celebrate the feast on 13 Mesra (19 August).",
+    "source": "Matthew 17:1–9; Coptic Orthodox calendar: Transfiguration on 13 Mesra (19 August)"
+  },
+  {
+    "id": "feasts-16",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "The Saturday before Palm Sunday is named after which man Jesus raised from the dead?",
+    "options": ["Lazarus", "Jairus", "Bartimaeus", "Eutychus"],
+    "answerIndex": 0,
+    "explanation": "Lazarus had been in the tomb four days, and news of this sign drew the crowds who welcomed Jesus into Jerusalem on Palm Sunday (John 11:17; 12:17–18).",
+    "source": "John 11:1–44; 12:17–18; Coptic and Eastern Orthodox calendars (Lazarus Saturday)"
+  },
+  {
+    "id": "feasts-17",
+    "category": "feasts",
+    "difficulty": "medium",
+    "question": "On which day of Holy Week do Copts pray the Lakan, recalling Jesus washing feet?",
+    "options": [
+      "Palm Sunday",
+      "Good Friday",
+      "Covenant Thursday",
+      "Bright Saturday"
+    ],
+    "answerIndex": 2,
+    "explanation": "The Lakan (basin) service blesses water and is prayed only three times a year: at Theophany, on Covenant Thursday and on the Feast of the Apostles.",
+    "source": "John 13:1–17; Coptic Orthodox Holy Week (Pascha) rite: Lakan of Covenant Thursday"
+  },
+  {
+    "id": "feasts-18",
+    "category": "feasts",
+    "difficulty": "hard",
+    "question": "During the Coptic vigil called \"Apocalypse Night,\" which book is read in full?",
+    "options": ["Psalms", "Isaiah", "The Gospel of John", "Revelation"],
+    "answerIndex": 3,
+    "explanation": "Through the night between Good Friday and the dawn of Bright Saturday, the whole book is read in a single service, a rare tradition in Christian worship.",
+    "source": "Coptic Orthodox Holy Week (Pascha) rite: Bright Saturday (Apocalypse Night)"
+  },
+  {
+    "id": "feasts-19",
+    "category": "feasts",
+    "difficulty": "hard",
+    "question": "Which feast does the Coptic Church keep on 24 Bashans (1 June)?",
+    "options": [
+      "Entry of the Lord into Egypt",
+      "Martyrdom of St. Mark",
+      "Feast of the Apostles",
+      "Feast of the Cross"
+    ],
+    "answerIndex": 0,
+    "explanation": "Copts treasure Isaiah 19:1, \"the Lord... will come into Egypt,\" and many churches and monasteries mark the Holy Family's traditional route.",
+    "source": "Matthew 2:13–15; Isaiah 19:1; Coptic Orthodox calendar: Entry of the Lord into Egypt, 24 Bashans (1 June)"
+  },
+  {
+    "id": "feasts-20",
+    "category": "feasts",
+    "difficulty": "hard",
+    "question": "How many Major Feasts of the Lord does the Coptic Church celebrate?",
+    "options": ["5", "9", "12", "7"],
+    "answerIndex": 3,
+    "explanation": "They are the Annunciation, Nativity, Theophany, Palm Sunday, Resurrection, Ascension and Pentecost, with seven Minor Feasts of the Lord alongside them.",
+    "source": "Coptic Orthodox calendar: seven Major and seven Minor Feasts of the Lord (copticchurch.net feast calendar)"
+  },
+  {
+    "id": "feasts-22",
+    "category": "feasts",
+    "difficulty": "hard",
+    "question": "What is the strict fast day just before the Nativity or Theophany called in Coptic tradition?",
+    "options": ["The Tasbeha", "The Lakan", "The Paramoun", "The Agpeya"],
+    "answerIndex": 2,
+    "explanation": "Depending on which weekday the feast falls, the Paramoun can stretch over more than one day of strict fasting.",
+    "source": "Coptic Orthodox fasting tradition: Paramoun before the Nativity and Theophany"
+  },
+  {
+    "id": "symbols-1",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "Which Gospel writer is traditionally represented by a lion?",
+    "options": ["Saint Mark", "Saint Luke", "Saint John", "Saint Matthew"],
+    "answerIndex": 0,
+    "explanation": "The four Gospel symbols are the human for Matthew, lion for Mark, ox for Luke, and eagle for John.",
+    "source": "Traditional Christian iconography of the four evangelists"
+  },
+  {
+    "id": "symbols-2",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "In the account of Jesus’ baptism, the Holy Spirit descends like which bird?",
+    "options": ["An eagle", "A sparrow", "A raven", "A dove"],
+    "answerIndex": 3,
+    "explanation": "The Gospel describes the Spirit of God descending like a dove and coming upon Jesus.",
+    "source": "Matthew 3:16"
+  },
+  {
+    "id": "symbols-3",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "The early Christian fish symbol is known by which Greek word?",
+    "options": ["Agape", "Kyrie", "Ichthys", "Logos"],
+    "answerIndex": 2,
+    "explanation": "Its letters spell out \"Jesus Christ, Son of God, Savior\" in Greek: Iēsous Christos Theou Yios Sōtēr.",
+    "source": "Early Christian acrostic ΙΧΘΥΣ; Augustine, City of God 18.23"
+  },
+  {
+    "id": "symbols-4",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "John the Baptist called Jesus \"the ___ of God.\" Which animal completes his words?",
+    "options": ["Lamb", "Lion", "Dove", "Eagle"],
+    "answerIndex": 0,
+    "explanation": "The image recalls the Passover lamb, and in the Coptic liturgy the bread chosen for the offering is itself called the \"Lamb.\"",
+    "source": "John 1:29; Coptic Liturgy of St. Basil (the choosing of the Lamb)"
+  },
+  {
+    "id": "symbols-5",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "In icons, what does the golden halo around a saint's head show?",
+    "options": [
+      "Holiness and God's light",
+      "Royal birth",
+      "Old age and wisdom",
+      "A martyr's death"
+    ],
+    "answerIndex": 0,
+    "explanation": "In many Orthodox icons, Christ's own halo also holds a cross and the Greek letters Ο Ω Ν, \"He who is\" (Exodus 3:14).",
+    "source": "Orthodox iconographic convention; Exodus 3:14 (Septuagint: ὁ ὤν)"
+  },
+  {
+    "id": "symbols-6",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "Christ is called \"the Alpha and the Omega.\" What does that title mean?",
+    "options": [
+      "Light and life",
+      "The beginning and the end",
+      "Holy and mighty",
+      "King and priest"
+    ],
+    "answerIndex": 1,
+    "explanation": "Alpha and Omega are the first and last letters of the Greek alphabet, so the title proclaims that Christ is before all things and completes all things.",
+    "source": "Revelation 22:13; Revelation 1:8"
+  },
+  {
+    "id": "symbols-7",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "What is the vessel on chains, swung to offer incense in church, called?",
+    "options": ["A chalice", "A paten", "A censer", "A lampada"],
+    "answerIndex": 2,
+    "explanation": "The rising smoke pictures prayer rising to God: \"Let my prayer be set before You as incense\" (Psalm 141:2).",
+    "source": "Psalm 141:2; Revelation 8:3–4"
+  },
+  {
+    "id": "symbols-8",
+    "category": "symbols",
+    "difficulty": "easy",
+    "question": "In icons and church art, an apostle holding keys is usually which saint?",
+    "options": ["St. Paul", "St. John", "St. Peter", "St. Andrew"],
+    "answerIndex": 2,
+    "explanation": "The keys recall Jesus' words to Peter: \"I will give you the keys of the kingdom of heaven\" (Matthew 16:19).",
+    "source": "Matthew 16:19; traditional Christian iconography"
+  },
+  {
+    "id": "symbols-9",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "The Chi-Rho symbol is made from what?",
+    "options": [
+      "Latin initials of \"Jesus Savior\"",
+      "First two Greek letters of \"Christ\"",
+      "Hebrew letters of \"Messiah\"",
+      "Greek letters for \"Holy Cross\""
+    ],
+    "answerIndex": 1,
+    "explanation": "Chi (X) and Rho (P) begin the Greek word Christos, and Emperor Constantine famously placed the sign on his soldiers' shields and standard.",
+    "source": "Lactantius, On the Deaths of the Persecutors 44; Eusebius, Life of Constantine 1.31"
+  },
+  {
+    "id": "symbols-10",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "In the Roman catacombs, the anchor was a Christian symbol of what?",
+    "options": ["Baptism", "Martyrdom", "The fishermen apostles", "Hope"],
+    "answerIndex": 3,
+    "explanation": "Hebrews calls hope \"an anchor of the soul, both sure and steadfast,\" and the anchor's crossbar also made it a quiet, hidden cross.",
+    "source": "Hebrews 6:19; early Christian catacomb art"
+  },
+  {
+    "id": "symbols-11",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "In Christian art, a saint holding a palm branch is usually being honored as what?",
+    "options": ["A prophet", "A bishop", "An evangelist", "A martyr"],
+    "answerIndex": 3,
+    "explanation": "Palms signal victory: Revelation describes a great multitude in white robes holding palm branches before God's throne (Revelation 7:9, 14).",
+    "source": "Revelation 7:9–14; traditional Christian iconography"
+  },
+  {
+    "id": "symbols-13",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "On icons of Christ, what do the letters IC XC stand for?",
+    "options": ["King of Kings", "Holy, Holy", "Son of God", "Jesus Christ"],
+    "answerIndex": 3,
+    "explanation": "They abbreviate the Greek ΙΗΣΟΥΣ ΧΡΙΣΤΟΣ using the first and last letter of each name, with the Greek sigma written in its old \"C\" shape.",
+    "source": "Byzantine and Orthodox icon inscription convention"
+  },
+  {
+    "id": "symbols-14",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "Icons of Christ \"Pantocrator\" present Him as what?",
+    "options": [
+      "The Good Shepherd",
+      "The suffering servant",
+      "Ruler of all",
+      "The child in the manger"
+    ],
+    "answerIndex": 2,
+    "explanation": "One of the oldest surviving Pantocrator icons, painted in the 6th century, is kept at St. Catherine's Monastery in Sinai, Egypt.",
+    "source": "Greek Pantokratōr, \"Almighty\" (Revelation 1:8); Sinai Pantocrator icon, St. Catherine's Monastery"
+  },
+  {
+    "id": "symbols-15",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "Which bird, said in legend to feed its young with its own blood, became a symbol of Christ?",
+    "options": ["The pelican", "The peacock", "The phoenix", "The eagle"],
+    "answerIndex": 0,
+    "explanation": "The Eucharistic hymn \"Adoro te devote,\" traditionally credited to St. Thomas Aquinas, even addresses Christ as \"loving Pelican.\"",
+    "source": "Physiologus; hymn \"Adoro te devote\" (\"Pie pellicane, Iesu Domine\")"
+  },
+  {
+    "id": "symbols-16",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "On many Orthodox icons of the Virgin Mary, the letters ΜΡ ΘΥ mean what?",
+    "options": [
+      "Mary the Virgin",
+      "Mother of God",
+      "Queen of Heaven",
+      "Holy Mother"
+    ],
+    "answerIndex": 1,
+    "explanation": "The title Theotokos was championed by St. Cyril of Alexandria and affirmed at the Council of Ephesus in 431.",
+    "source": "Greek Μήτηρ Θεοῦ; Council of Ephesus (431)"
+  },
+  {
+    "id": "symbols-17",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "What is the icon-covered screen in front of the altar area called?",
+    "options": ["The narthex", "The ambo", "The baldachin", "The iconostasis"],
+    "answerIndex": 3,
+    "explanation": "In Coptic churches the holy sanctuary behind it is called the haikal, and the screen often displays icons of Christ, the Virgin Mary and the apostles.",
+    "source": "Orthodox church architecture; Coptic term haikal (sanctuary)"
+  },
+  {
+    "id": "symbols-18",
+    "category": "symbols",
+    "difficulty": "hard",
+    "question": "The evangelists' four creature symbols come from visions in Ezekiel and which other book?",
+    "options": ["Daniel", "Revelation", "Isaiah", "Zechariah"],
+    "answerIndex": 1,
+    "explanation": "St. Jerome's pairing (man, lion, ox, eagle for Matthew, Mark, Luke, John) became the usual one, though St. Irenaeus had earlier matched them differently.",
+    "source": "Ezekiel 1:10; Revelation 4:6–8; Jerome, Commentary on Matthew (preface); Irenaeus, Against Heresies 3.11.8"
+  },
+  {
+    "id": "symbols-19",
+    "category": "symbols",
+    "difficulty": "hard",
+    "question": "Which pair of animals traditionally flanks St. Mina (Menas) in Coptic icons?",
+    "options": ["Two lions", "Two deer", "Two camels", "Two oxen"],
+    "answerIndex": 2,
+    "explanation": "Tradition says the camels carrying his body stopped and would not move near Lake Mariout, marking his burial place, where the great pilgrimage site of Abu Mena later grew.",
+    "source": "Coptic tradition of St. Mina (Menas); Abu Mena pilgrimage site near Alexandria"
+  },
+  {
+    "id": "symbols-20",
+    "category": "symbols",
+    "difficulty": "hard",
+    "question": "Which martyr is called \"Abu Sefein\" and shown in icons holding two swords?",
+    "options": ["St. Mercurius", "St. George", "St. Theodore", "St. Menas"],
+    "answerIndex": 0,
+    "explanation": "Coptic tradition says an angel gave him a second, shining sword before battle: one his soldier's sword, the other a sword of divine power.",
+    "source": "Coptic Synaxarium, 25 Hathor (St. Mercurius, Abu Sefein)"
+  },
+  {
+    "id": "symbols-21",
+    "category": "symbols",
+    "difficulty": "hard",
+    "question": "Early Egyptian Christians adapted which ancient symbol into a looped cross?",
+    "options": ["The Eye of Horus", "The scarab", "The lotus", "The ankh"],
+    "answerIndex": 3,
+    "explanation": "The ankh had long meant \"life,\" and as the crux ansata it became a cross pointing to new life in Christ, especially common in Coptic textiles.",
+    "source": "Coptic Christian art (crux ansata); Socrates Scholasticus, Church History 5.17"
+  }
+]

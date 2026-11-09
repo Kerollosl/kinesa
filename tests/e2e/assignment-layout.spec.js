@@ -10,10 +10,9 @@ for (const width of [360, 390, 430, 768, 1440]) {
     await page.goto("/");
     await page.evaluate(() => document.fonts.ready);
     await page.getByRole("button", { name: /Play with friends/ }).click();
-    await page.getByLabel("What should we call you?").fill("Kerollos Lowandy");
     await page
-      .getByRole("button", { name: "Create room", exact: true })
-      .click();
+      .getByRole("textbox", { name: "Player 1 name" })
+      .fill("Kerollos Lowandy");
     await page.getByRole("button", { name: /Add a friend/ }).click();
     await page.getByRole("button", { name: /Add a friend/ }).click();
     for (const [index, name] of [

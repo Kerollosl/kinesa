@@ -544,7 +544,7 @@
   margin: 10px 0 0;
   color: #81768e;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.4;
   text-wrap: balance;
 }
@@ -559,12 +559,12 @@
   .crew-play-actions button {
     padding: 10px 9px;
     gap: 5px;
-    font-size: 11px;
+    font-size: 12px;
     min-height: 44px;
     border-radius: 14px;
   }
   .crew-play-hint {
-    font-size: 10px;
+    font-size: 12px;
     margin-top: 8px;
   }
 }

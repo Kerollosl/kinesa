@@ -4,7 +4,7 @@ import { categories, questions } from "../data.js";
 import { CategoryIcon } from "./Wheel.jsx";
 import "./learning-experience.css";
 
-export default function Discover({ setModal, openLobby }) {
+export default function Discover({ setModal, openLobby, onQuiz }) {
   const [categoryId, setCategoryId] = useState("symbols");
   const [sampleIndex, setSampleIndex] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -84,7 +84,6 @@ export default function Discover({ setModal, openLobby }) {
 
         <div className="le-sample" key={`${categoryId}-${sampleIndex}`}>
           <div className="le-sample-top">
-            <span>Practice</span>
             <span>
               {sampleIndex + 1} / {deck.length}
             </span>
@@ -186,8 +185,11 @@ export default function Discover({ setModal, openLobby }) {
       </section>
 
       <div className="le-bottom-callout">
-        <button className="le-solid-action" onClick={() => openLobby("random")}>
-          Start a game <ArrowRight size={17} />
+        <button className="le-solid-action" onClick={() => onQuiz(categoryId)}>
+          Quiz me on {category.name} <ArrowRight size={17} />
+        </button>
+        <button className="le-text-action" onClick={() => openLobby("random")}>
+          Or play a mixed round
         </button>
       </div>
     </div>

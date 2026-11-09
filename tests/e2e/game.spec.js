@@ -4,8 +4,7 @@ import { questions } from "../../src/data.js";
 async function friendsLobby(page, count = 4) {
   await page.goto("/");
   await page.getByRole("button", { name: /Play with friends/ }).click();
-  await page.getByLabel("What should we call you?").fill("Mina");
-  await page.getByRole("button", { name: "Create room", exact: true }).click();
+  await page.getByRole("textbox", { name: "Player 1 name" }).fill("Mina");
   for (let i = 2; i < count; i++)
     await page.getByRole("button", { name: /Add a friend/ }).click();
   for (let i = 0; i < count; i++)
@@ -56,6 +55,12 @@ test("a four-player friends match randomly assigns unique companions, scores tie
       })
       .click();
     if (i < 11) {
+      if ((i + 1) % 4 === 0) {
+        await expect(
+          page.getByRole("heading", { name: `Round ${(i + 1) / 4} done.` }),
+        ).toBeVisible();
+        await page.getByRole("button", { name: /^Next round/ }).click();
+      }
       await expect(
         page.getByRole("heading", {
           name: `Pass to ${["Mina", "Mary", "John", "Mariam"][(i + 1) % 4]}.`,
@@ -64,93 +69,104 @@ test("a four-player friends match randomly assigns unique companions, scores tie
       await page.getByRole("button", { name: /^I’m .* — let’s play$/ }).click();
     }
   }
+  // Mina and Mary answered every question correctly; speed bonuses decide any tie.
   await expect(
-    page.getByRole("heading", { name: "A shared celebration!" }),
+    page.getByRole("heading", {
+      name: /takes the crown!|A shared celebration!/,
+    }),
   ).toBeVisible();
-  await expect(page.locator(".winner-mascots strong")).toHaveText([
-    "Mina",
-    "Mary",
-  ]);
+  const leaders = await page
+    .locator(".final-score-row strong")
+    .evaluateAll((nodes) => nodes.slice(0, 4).map((n) => n.textContent));
+  expect(leaders.filter((t) => t === "Mina" || t === "Mary").length).toBe(2);
+  await expect(page.locator(".podium-step")).toHaveCount(3);
   const stats = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kinesa-stats")),
   );
   expect(stats.games).toBe(1);
   expect(stats.correct).toBe(6);
-  await page.getByRole("button", { name: "One more round?" }).click();
-  await page.getByRole("button", { name: "Create room", exact: true }).click();
-  await page.getByRole("button", { name: "Deal our companions" }).click();
-  expect(
-    new Set(
-      await page
-        .locator(".assignment-slot")
-        .evaluateAll((ns) => ns.map((n) => n.dataset.companion)),
-    ).size,
-  ).toBe(4);
-  await page.getByRole("button", { name: "Game on", exact: true }).click();
-  await expect(page.locator(".score-player").first()).toContainText("0 pts");
+  // Rematch is one tap: same roster, fresh companions, scores reset.
+  await page.getByRole("button", { name: "Rematch", exact: true }).click();
+  await expect(
+    page.getByRole("heading", { name: "Mina, you’re up!" }),
+  ).toBeVisible();
+  const rematch = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("kinesa-match")),
+  );
+  expect(new Set(rematch.game.players.map((p) => p.kind)).size).toBe(4);
+  expect(rematch.game.players.every((p) => p.score === 0)).toBe(true);
   expect(errors).toEqual([]);
 });
 
-test("random match preview fills with labeled bots and bots play their own turns", async ({
+test("Play now starts a practice match in one tap where bots answer alongside the player", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /Random game/ }).click();
-  await expect(page.getByText(/Practice with three bots/)).toBeVisible();
-  await page.getByLabel("What should we call you?").fill("Kerollos");
-  await page.getByRole("button", { name: "Find a game", exact: true }).click();
+  await page.getByRole("button", { name: /^Play now/ }).click();
   await expect(
-    page.getByRole("heading", { name: "Getting the gang together…" }),
+    page.getByRole("heading", { name: "Question 1 of 10" }),
   ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Game on", exact: true }),
-  ).toBeVisible();
-  await expect(page.locator(".assigned-player small")).toHaveCount(3);
-  const kinds = await page
-    .locator(".assignment-slot")
-    .evaluateAll((ns) => ns.map((n) => n.dataset.companion));
+  await expect(page.locator(".score-player .bot-tag")).toHaveCount(3);
+  const kinds = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("kinesa-match")).game.players.map(
+      (p) => p.kind,
+    ),
+  );
   expect(new Set(kinds).size).toBe(4);
-  await page.getByRole("button", { name: "Game on", exact: true }).click();
   await page
     .getByRole("button", { name: "Spin the wheel", exact: true })
     .click();
   await expect(page.locator(".answer-option")).toHaveCount(4);
+  await expect(page.locator(".question-timer")).toBeVisible();
   const text = await page.locator(".question-stage h1").textContent();
   const q = questions.find((q) => q.text === text);
   await page.locator(".answer-option").nth(q.correct).click();
+  // Everyone's pick is revealed together; bots lock in when the player does.
+  await expect(page.locator(".answer-option.correct")).toHaveCount(1);
+  await expect(page.locator(".answer-reveal h2")).toContainText("Correct!");
+  await expect(page.locator(".did-you-know p")).toHaveText(q.explanation);
+  expect(await page.locator(".answer-pickers .picker").count()).toBe(4);
   await page
-    .getByRole("button", { name: "Watch Mina’s turn", exact: true })
+    .getByRole("button", { name: "Next question", exact: true })
     .click();
   await expect(
-    page.getByRole("heading", { name: "Mina is up!" }),
-  ).toBeVisible();
-  await expect(page.locator(".answer-option")).toHaveCount(4);
-  await expect(page.locator(".answer-option").first()).toBeDisabled();
-  await expect(
-    page.getByRole("button", { name: "Watch Mariam’s turn", exact: true }),
+    page.getByRole("heading", { name: "Question 2 of 10" }),
   ).toBeVisible();
   const stats = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kinesa-stats")),
   );
-  expect(stats.correct).toBe(1); // Bot points never inflate the player's collection.
+  expect(stats.correct).toBe(1); // Bot answers never inflate the player's collection.
 });
 
-test("matchmaking can be cancelled without starting a stale game", async ({
+test("Customize saves the round setup and the next Play now uses it", async ({
   page,
 }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: /Random game/ }).click();
-  await page.getByRole("button", { name: "Find a game", exact: true }).click();
-  await page.getByRole("button", { name: "Cancel matchmaking" }).click();
-  await expect(
-    page.getByRole("button", { name: "Find a game", exact: true }),
-  ).toBeVisible();
+  await page.getByRole("button", { name: "Customize", exact: true }).click();
+  const sheet = page.getByRole("dialog");
+  await sheet.getByLabel("Your name").fill("Kerollos");
+  await sheet.getByRole("radio", { name: /Saints/ }).check();
+  await sheet.getByRole("radio", { name: /^Easy/ }).check();
+  await expect(sheet.getByRole("switch")).toBeDisabled();
+  await sheet.getByRole("radio", { name: "5", exact: true }).check();
+  await sheet.getByRole("button", { name: "Play", exact: true }).click();
+  // A locked category skips the wheel and Easy play has no clock.
+  await expect(page.locator(".question-category")).toContainText("Saints");
+  await expect(page.locator(".question-timer")).toContainText("No clock");
+  await expect(page.locator(".score-player").first()).toContainText("Kerollos");
+  const saved = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem("kinesa-match")),
+  );
+  expect(saved.game.settings).toMatchObject({
+    tier: "easy",
+    timed: false,
+    questions: 5,
+    category: "saints",
+  });
   await page.getByRole("button", { name: "Back to play", exact: true }).click();
-  await page.waitForTimeout(2800);
-  await expect(
-    page.getByRole("heading", { name: "Start a game" }),
-  ).toBeVisible();
-  await expect(page.locator(".assignment-slot")).toHaveCount(0);
+  await expect(page.locator(".play-hero-meta")).toContainText(
+    "Saints only · Easy · 5 questions · No clock",
+  );
 });
 
 test("friends preview supports joining its sample room and rejects unknown codes", async ({
@@ -240,9 +256,7 @@ test("blocked storage still supports friend matches and correct answers", async 
   const text = await page.locator(".question-stage h1").textContent();
   const q = questions.find((q) => q.text === text);
   await page.locator(".answer-option").nth(q.correct).click();
-  await expect(
-    page.getByRole("heading", { name: "Correct · +100" }),
-  ).toBeVisible();
+  await expect(page.locator(".answer-reveal h2")).toContainText("Correct!");
 });
 
 test("small-phone hero text and interactive character bounds fit without clipping", async ({
@@ -274,16 +288,16 @@ test("mobile mode actions and navigation stay clear of game content", async ({
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
-  const bounds = await page
-    .locator(".mode-card")
-    .evaluateAll((nodes) => nodes.map((n) => n.getBoundingClientRect().bottom));
-  expect(Math.max(...bounds)).toBeLessThan(650);
+  const play = await page
+    .getByRole("button", { name: /^Play now/ })
+    .boundingBox();
+  expect(play.y + play.height).toBeLessThan(700);
+  // Thumb-reach navigation: a bottom bar on phones.
   const dock = await page
     .getByRole("navigation", { name: "Main navigation" })
     .boundingBox();
-  const header = await page.locator(".app-header").boundingBox();
-  expect(dock.y).toBeLessThan(120);
-  expect(dock.y + dock.height).toBeLessThanOrEqual(header.y + header.height);
+  expect(dock.y + dock.height).toBeGreaterThanOrEqual(844 - 1);
+  expect(dock.y).toBeGreaterThan(700);
   await friendsLobby(page, 4);
   await expect(
     page.getByRole("navigation", { name: "Main navigation" }),
@@ -313,14 +327,15 @@ test("matches survive refresh without reshuffling companions or scoring an answe
   const text = await page.locator(".question-stage h1").textContent();
   const q = questions.find((q) => q.text === text);
   await page.keyboard.press(String(q.correct + 1));
-  await expect(
-    page.getByRole("heading", { name: "Correct · +100" }),
-  ).toBeVisible();
+  await expect(page.locator(".answer-reveal h2")).toContainText("Correct!");
+  const scored = await page.evaluate(
+    () =>
+      JSON.parse(localStorage.getItem("kinesa-match")).game.players[0].score,
+  );
+  expect(scored).toBeGreaterThanOrEqual(100);
   await page.reload();
   await page.getByRole("button", { name: /Resume your game/ }).click();
-  await expect(
-    page.getByRole("heading", { name: "Correct · +100" }),
-  ).toBeVisible();
+  await expect(page.locator(".answer-reveal h2")).toContainText("Correct!");
   await expect(page.locator(".answer-option").first()).toBeDisabled();
   const restored = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kinesa-match")),
@@ -328,7 +343,8 @@ test("matches survive refresh without reshuffling companions or scoring an answe
   expect(restored.game.players.map((p) => p.kind)).toEqual(
     initial.game.players.map((p) => p.kind),
   );
-  expect(restored.game.players[0].score).toBe(100);
+  expect(restored.game.players[0].score).toBe(scored);
+  expect(restored.game.players[0].correct).toBe(1);
   await page.getByRole("button", { name: "Pass to Mary", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Pass to Mary." }),
@@ -362,8 +378,7 @@ test("players can revise the room after a companion reveal and start with the re
   await expect(
     page.getByRole("navigation", { name: "Game setup progress" }),
   ).toContainText("Set up");
-  await page.getByLabel("What should we call you?").fill("Mina");
-  await page.getByRole("button", { name: "Create room", exact: true }).click();
+  await page.getByRole("textbox", { name: "Player 1 name" }).fill("Mina");
   await page.getByRole("textbox", { name: "Player 2 name" }).fill("Mary");
   await page.getByRole("button", { name: "Deal our companions" }).click();
   await expect(
@@ -452,15 +467,13 @@ for (const width of [360, 390, 768, 1440]) {
     expect(resultCompanion.y + resultCompanion.height).toBeLessThanOrEqual(
       nextBox.y,
     );
-    await expect(page.locator(".answer-detail")).toHaveJSProperty(
-      "open",
-      false,
-    );
-    await page.locator(".answer-detail summary").click();
-    await expect(page.locator(".answer-detail p")).toHaveText(
+    // "Did you know?" is part of the reward, shown without an extra tap.
+    await expect(page.locator(".did-you-know p")).toHaveText(
       question.explanation,
     );
-    await expect(page.locator(".answer-detail p")).toBeVisible();
+    await expect(page.locator(".did-you-know .source-chip")).toContainText(
+      question.source,
+    );
     await expect(next).toBeEnabled();
   });
 }

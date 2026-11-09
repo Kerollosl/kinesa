@@ -1,0 +1,43 @@
+[
+  {
+    "id": "symbols-12",
+    "category": "symbols",
+    "difficulty": "medium",
+    "question": "A Coptic cross with three points on each arm has 12 points. They are often said to stand for…",
+    "options": [
+      "The twelve tribes",
+      "The twelve apostles",
+      "The twelve months",
+      "The twelve minor prophets"
+    ],
+    "answerIndex": 1,
+    "explanation": "The three points on each arm are commonly read as the Holy Trinity, and many Copts wear a small cross tattooed on the wrist as a lifelong sign of faith.",
+    "source": "Popular Coptic interpretation of the Coptic cross (e.g. Wikipedia, \"Coptic cross\")",
+    "confidence": "review",
+    "reviewNote": "Verify the 12 points = apostles / 3 points = Trinity reading. It is a widely repeated popular explanation, not a formal church teaching, and Coptic cross designs vary (many have no 12 points). Question already says \"often said\"; confirm you are happy with that framing and with the wrist-tattoo line."
+  },
+  {
+    "id": "symbols-22",
+    "category": "symbols",
+    "difficulty": "hard",
+    "question": "Besides lamps, what unusual objects hang before the icon screen in many old Coptic churches?",
+    "options": ["Ostrich eggs", "Pomegranates", "Bronze bells", "Seashells"],
+    "answerIndex": 0,
+    "explanation": "They are often explained as a sign of God's watchful care, drawn from an old belief that the ostrich never takes its eyes off its eggs.",
+    "source": "Coptic church furnishing tradition (St-Takla.org Coptic glossary: \"Ostrich eggs\")",
+    "confidence": "review",
+    "reviewNote": "Practice is documented (St-Takla glossary; also in Armenian and Greek churches), but its meaning varies by source (God's watchful care, the Resurrection, focus in prayer) and it is more typical of older churches. Check the explanation's wording and whether your audience will recognize it."
+  },
+  {
+    "id": "saints-22",
+    "category": "saints",
+    "difficulty": "hard",
+    "question": "Tradition says St. Maurice's Theban Legion came from which land?",
+    "options": ["Greece", "Egypt", "Syria", "Armenia"],
+    "answerIndex": 1,
+    "explanation": "Tradition holds these Christian soldiers refused to harm fellow believers and were martyred at Agaunum, today the town of Saint-Maurice in Switzerland.",
+    "source": "Eucherius of Lyon, Passion of the Martyrs of Agaunum (c. AD 450)",
+    "confidence": "review",
+    "reviewNote": "Tradition verified (Eucherius: legion from Thebes in Egypt, martyred at Agaunum c. 286), but scholars debate its historicity and St. Maurice is not in the standard Coptic Synaxarium, though Copts venerate him and churches bear his name. Confirm you want him in a Coptic-flavored deck."
+  }
+]

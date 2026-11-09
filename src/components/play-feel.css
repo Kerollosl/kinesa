@@ -1,0 +1,820 @@
+/* Game feel layer: timer, score chips, feedback, handoff, standings, results.
+   Imported last so it wins over the earlier layered game rules. */
+:root {
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --pf-ink-soft: #4b4d5c;
+  --pf-good: #1f8a5b;
+  --pf-bad: #c2415a;
+}
+.round-segments i {
+  width: 100% !important;
+  transform-origin: left center;
+  transition: transform 300ms var(--ease-out-strong);
+}
+
+/* Score chips */
+.game-page .score-chips .score-player {
+  position: relative;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  text-align: left;
+}
+.game-page .score-chips .score-avatar {
+  position: relative;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  overflow: visible;
+}
+.game-page .score-chips .chip-copy {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+.game-page .score-chips .chip-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.chip-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--dye-ochre-600);
+}
+.chip-thinking,
+.chip-locked {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(34, 22, 42, 0.18);
+}
+.chip-thinking {
+  display: flex;
+  gap: 2px;
+}
+.chip-thinking i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--pf-ink-soft);
+  animation: pf-dot 900ms infinite ease-in-out;
+}
+.chip-thinking i:nth-child(2) {
+  animation-delay: 150ms;
+}
+.chip-thinking i:nth-child(3) {
+  animation-delay: 300ms;
+}
+.chip-locked {
+  color: #fff;
+  background: var(--cobalt);
+}
+.score-player.is-you {
+  box-shadow: inset 0 0 0 2px rgba(100, 56, 120, 0.45);
+}
+.chip-bubble {
+  position: absolute;
+  top: -10px;
+  right: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  pointer-events: none;
+  animation: pf-bubble 1400ms var(--ease-out-strong) forwards;
+}
+.chip-bubble.is-cheer {
+  background: var(--pf-good);
+}
+.chip-bubble.is-groan {
+  background: var(--ink-600);
+}
+.score-player.state-cheer .score-avatar {
+  animation: pf-hop 520ms var(--ease-out-strong);
+}
+.score-player.state-groan .score-avatar {
+  animation: pf-droop 600ms var(--ease-out-strong);
+}
+.chip-points {
+  display: inline-block;
+  animation: pf-pop 300ms var(--ease-out-strong);
+}
+
+/* Question */
+.game-page .question-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.game-page .question-meta .question-category {
+  margin: 0;
+}
+.question-timer {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+}
+.question-timer svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.timer-track {
+  fill: #fff;
+  stroke: rgba(34, 22, 42, 0.1);
+  stroke-width: 5;
+}
+.timer-fill {
+  fill: none;
+  stroke: var(--question-color, var(--cobalt));
+  stroke-width: 5;
+  stroke-linecap: round;
+  animation-name: pf-drain;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+}
+.timer-number {
+  position: relative;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.question-timer.is-urgent .timer-fill {
+  stroke: var(--pf-bad);
+}
+.question-timer.is-urgent .timer-number {
+  color: var(--pf-bad);
+  animation: pf-pulse 1s infinite var(--ease-out-strong);
+}
+.question-timer.is-locked {
+  opacity: 0.55;
+}
+.question-timer.is-relaxed {
+  width: auto;
+  height: auto;
+  flex: none;
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pf-ink-soft);
+}
+.game-page .question-stage {
+  animation: pf-rise 280ms var(--ease-out-strong);
+}
+.game-page .answer-option {
+  transition:
+    transform 140ms var(--ease-out-strong),
+    background-color 200ms ease,
+    border-color 200ms ease,
+    opacity 200ms ease;
+  min-height: 60px;
+}
+/* Hover never moves the hit area: a lifted button slips out from under the
+   pointer at its edge and jitters (and on touch, hover sticks after a tap). */
+.game-page .answer-option:not(:disabled):hover {
+  transform: none;
+}
+.game-page .answer-option:not(:disabled):active {
+  transform: scale(0.97);
+}
+.game-page .answer-option .answer-text {
+  flex: 1;
+  text-align: left;
+}
+.game-page .answer-option.is-picked {
+  border-color: var(--cobalt);
+  background: var(--dye-purple-200);
+  box-shadow: 0 0 0 3px rgba(100, 56, 120, 0.18);
+}
+.game-page .answer-option.is-dimmed {
+  opacity: 0.55;
+}
+.game-page .answer-option.correct {
+  animation: pf-pop 360ms var(--ease-out-strong);
+}
+.game-page .answer-option.incorrect {
+  animation: pf-shake 380ms var(--ease-out-strong);
+}
+.answer-pickers {
+  display: inline-flex;
+  margin-left: auto;
+}
+.picker {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  margin-left: -5px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink-900);
+}
+.picker-lion {
+  background: var(--companion-lion);
+}
+.picker-ox {
+  background: var(--companion-ox);
+}
+.picker-eagle {
+  background: var(--companion-eagle);
+}
+.picker-human {
+  background: var(--companion-human);
+}
+.question-hint {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--pf-ink-soft);
+  text-align: center;
+}
+
+/* Feedback */
+.game-page .answer-reveal {
+  animation: pf-rise 320ms var(--ease-out-strong);
+}
+.feedback-title {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.feedback-who {
+  margin-left: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--pf-ink-soft);
+}
+.answer-reveal.is-correct .feedback-heading h2 {
+  color: var(--pf-good);
+}
+.feedback-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.feedback-points,
+.feedback-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 700;
+}
+.feedback-points {
+  color: #fff;
+  background: var(--pf-good);
+  animation: pf-fly 600ms var(--ease-out-strong);
+}
+.feedback-chip {
+  color: var(--pf-ink-soft);
+  background: rgba(34, 22, 42, 0.07);
+}
+.feedback-chip.is-combo {
+  color: var(--dye-purple-600);
+  background: var(--dye-purple-200);
+}
+.feedback-chip.is-streak {
+  color: var(--dye-ochre-600);
+  background: var(--dye-weld-100);
+}
+.feedback-rivals {
+  margin: 0;
+  font-size: 14px;
+  color: var(--pf-ink-soft);
+}
+.did-you-know {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--question-pale, var(--linen-100));
+  box-shadow: 0 6px 18px rgba(34, 22, 42, 0.06);
+  animation: pf-rise 420ms 120ms var(--ease-out-strong) backwards;
+}
+.did-you-know h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink);
+}
+.did-you-know p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ink);
+  max-width: 65ch;
+}
+.source-chip {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pf-ink-soft);
+}
+.burst-layer {
+  position: fixed;
+  z-index: 60;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.burst-layer i {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  border-radius: 3px;
+  will-change: transform, opacity;
+}
+
+/* Handoff cover */
+.game-page .handoff-cover {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 16px;
+  padding: 24px max(24px, env(safe-area-inset-right))
+    max(24px, env(safe-area-inset-bottom));
+  text-align: center;
+  background: radial-gradient(
+    circle at 50% 30%,
+    #fff 0,
+    var(--companion-bg) 62%
+  );
+  animation: pf-cover 360ms var(--ease-out-strong);
+}
+.game-page .handoff-cover .handoff-avatar {
+  width: 180px;
+  height: 180px;
+}
+.game-page .handoff-cover h1 {
+  margin: 0;
+  font-size: clamp(36px, 5vw, 56px);
+  letter-spacing: -0.03em;
+}
+.handoff-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 15px;
+  color: var(--pf-ink-soft);
+}
+.handoff-footnote {
+  font-size: 14px;
+  color: var(--pf-ink-soft);
+}
+
+/* Standings */
+.standings-stage {
+  max-width: 560px;
+  margin: 24px auto 0;
+  display: grid;
+  gap: 14px;
+  animation: pf-rise 300ms var(--ease-out-strong);
+}
+.standings-stage h1 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 32px);
+}
+.standings-lead {
+  margin: 0;
+  font-size: 16px;
+  color: var(--pf-ink-soft);
+}
+.standings-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.standings-list li {
+  display: grid;
+  grid-template-columns: 28px 40px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  animation: pf-rise 300ms calc(var(--n, 0) * 60ms) var(--ease-out-strong)
+    backwards;
+}
+.standings-rank {
+  font-weight: 800;
+  color: var(--pf-ink-soft);
+}
+.standings-avatar {
+  width: 40px;
+  height: 40px;
+}
+.standings-name {
+  display: grid;
+}
+.standings-name span {
+  font-size: 13px;
+  color: var(--pf-ink-soft);
+}
+.standings-score {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Results */
+.results-hero {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+.results-sub {
+  margin: 0;
+  font-size: 16px;
+  color: var(--pf-ink-soft);
+}
+.podium {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px;
+  margin: 18px 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.podium-step {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: min(30%, 150px);
+  animation: pf-rise 460ms calc(var(--step) * 120ms + 200ms)
+    var(--ease-out-strong) backwards;
+}
+.podium-mascot {
+  width: 96px;
+  height: 96px;
+}
+.rank-1 .podium-mascot {
+  width: 124px;
+  height: 124px;
+}
+.podium-name {
+  font-size: 14px;
+  text-align: center;
+}
+.podium-block {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  border-radius: 12px 12px 6px 6px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 6px 16px rgba(34, 22, 42, 0.08);
+  padding: 8px 0;
+}
+.rank-1 .podium-block {
+  min-height: 92px;
+  background: linear-gradient(180deg, var(--dye-weld-100), var(--dye-weld-300));
+}
+.rank-2 .podium-block {
+  min-height: 70px;
+}
+.rank-3 .podium-block {
+  min-height: 54px;
+}
+.podium-rank {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pf-ink-soft);
+}
+.podium-score {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.results-progress {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 6px 18px rgba(34, 22, 42, 0.06);
+}
+.results-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.results-level h2 {
+  margin: 0;
+  font-size: 18px;
+}
+.level-medal {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 800;
+  background: linear-gradient(
+    135deg,
+    var(--dye-purple-500),
+    var(--dye-purple-700)
+  );
+}
+.xp-gained {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--pf-good);
+}
+.xp-track {
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(34, 22, 42, 0.08);
+  overflow: hidden;
+}
+.xp-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--dye-purple-500),
+    var(--dye-purple-700)
+  );
+  transform-origin: left center;
+}
+.xp-caption {
+  font-size: 13px;
+  color: var(--pf-ink-soft);
+}
+.results-unlocks {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.results-unlocks li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--unlock-color) 14%, white);
+  font-size: 14px;
+  animation: pf-pop 420ms 700ms var(--ease-out-strong) backwards;
+}
+.unlock-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: #fff;
+  background: var(--unlock-color);
+}
+.results-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.category-rematch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.category-rematch button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--chip-pale);
+  box-shadow: inset 0 0 0 2px
+    color-mix(in srgb, var(--chip-color) 45%, transparent);
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out-strong);
+}
+.category-rematch button:active {
+  transform: scale(0.97);
+}
+.results-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 16px;
+  margin: 12px 0;
+}
+.results-secondary .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 14px;
+}
+.results-standings-title {
+  margin: 16px 0 8px;
+  font-size: 18px;
+}
+.share-art {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@keyframes pf-drain {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: var(--circumference);
+  }
+}
+@keyframes pf-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+@keyframes pf-bubble {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+@keyframes pf-hop {
+  30% {
+    transform: translateY(-6px) scale(1.06);
+  }
+  60% {
+    transform: translateY(0) scale(0.98);
+  }
+}
+@keyframes pf-droop {
+  40% {
+    transform: rotate(-8deg) translateY(2px);
+  }
+}
+@keyframes pf-pop {
+  0% {
+    transform: scale(0.96);
+  }
+  55% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes pf-shake {
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+@keyframes pf-pulse {
+  50% {
+    transform: scale(1.12);
+  }
+}
+@keyframes pf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes pf-fly {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+}
+@keyframes pf-cover {
+  from {
+    opacity: 0;
+    transform: scale(1.02);
+  }
+}
+
+@media (max-width: 620px) {
+  .game-page .score-chips .score-player {
+    flex-direction: column;
+    text-align: center;
+    gap: 4px;
+    padding: 8px 4px;
+  }
+  .game-page .score-chips .chip-copy {
+    justify-items: center;
+  }
+  .results-actions {
+    grid-template-columns: 1fr;
+  }
+  .podium-mascot {
+    width: 76px;
+    height: 76px;
+  }
+  .rank-1 .podium-mascot {
+    width: 96px;
+    height: 96px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chip-thinking i,
+  .question-timer.is-urgent .timer-number,
+  .score-player .score-avatar,
+  .chip-points,
+  .game-page .answer-option.correct,
+  .game-page .answer-option.incorrect {
+    animation: none !important;
+  }
+  .game-page .question-stage,
+  .game-page .answer-reveal,
+  .did-you-know,
+  .standings-list li,
+  .podium-step,
+  .results-unlocks li,
+  .feedback-points,
+  .game-page .handoff-cover,
+  .standings-stage {
+    animation-name: pf-fade !important;
+    animation-duration: 180ms !important;
+  }
+  .timer-fill {
+    animation-play-state: paused !important;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pf-fade {
+  from {
+    opacity: 0;
+  }
+}

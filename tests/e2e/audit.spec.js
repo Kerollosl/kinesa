@@ -127,8 +127,7 @@ test("a prepared new match cannot replace an unfinished match without a delibera
 }) => {
   const { game, question } = await seedMatch(page);
   await page.getByRole("button", { name: /Play with friends/ }).click();
-  await page.getByLabel("What should we call you?").fill("John");
-  await page.getByRole("button", { name: "Create room", exact: true }).click();
+  await page.getByRole("textbox", { name: "Player 1 name" }).fill("John");
   await page
     .getByRole("textbox", { name: "Player 2 name", exact: true })
     .fill("Mariam");
@@ -162,8 +161,7 @@ test("confirming a new game starts the exact companions shown in its reveal", as
 }) => {
   await seedMatch(page);
   await page.getByRole("button", { name: /Play with friends/ }).click();
-  await page.getByLabel("What should we call you?").fill("John");
-  await page.getByRole("button", { name: "Create room", exact: true }).click();
+  await page.getByRole("textbox", { name: "Player 1 name" }).fill("John");
   await page.getByRole("textbox", { name: "Player 2 name" }).fill("Mariam");
   await page.getByRole("button", { name: "Deal our companions" }).click();
   const kinds = await page

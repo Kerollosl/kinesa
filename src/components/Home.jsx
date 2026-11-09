@@ -1,76 +1,241 @@
 import { useState } from "react";
 import {
   ArrowRight,
-  Globe2,
-  Users,
-  Play,
-  ArrowUpRight,
+  CalendarDays,
+  CircleCheck,
+  Flame,
   Pause,
+  Play,
   RotateCcw,
+  ShieldCheck,
+  SlidersHorizontal,
+  Users,
 } from "lucide-react";
 import GameScene from "./GameScene.jsx";
 import Mascot from "./Mascot.jsx";
-import { CategoryIcon } from "./Wheel.jsx";
+import Wheel, { CategoryIcon } from "./Wheel.jsx";
+import { CopticCross } from "./Ornaments.jsx";
 import { categories } from "../data.js";
-import "./home-experience.css";
+import {
+  activeIndex,
+  currentRound,
+  isSimultaneous,
+  roundCount,
+} from "../engine.js";
+import { describeSettings, loadPrefs } from "../prefs.js";
+import { churchSeason, formatCoptic, nextFeast } from "../calendar.js";
+import { DAILY_LENGTH, dailyStatus, spotlight } from "../daily.js";
+import "./home-tapestry.css";
 
-export default function Home({ game, navigate, openLobby, setModal }) {
+function TodayCard({ stats, playDaily }) {
+  const today = new Date();
+  const { coptic, feast, season } = churchSeason(today);
+  const coming = !feast && !season ? nextFeast(today) : null;
+  const daily = dailyStatus(stats, today);
+  return (
+    <section className="today-card" aria-labelledby="today-title">
+      <div className="today-calendar">
+        <CalendarDays size={18} aria-hidden="true" />
+        <span>
+          <strong>{formatCoptic(coptic)}</strong>
+          {feast
+            ? ` · ${feast.name}`
+            : season
+              ? ` · ${season.name}`
+              : coming
+                ? ` · ${coming.name} in ${coming.days} days`
+                : ""}
+        </span>
+      </div>
+      <div className="today-body">
+        <div className="today-copy">
+          <h2 id="today-title">Today’s five</h2>
+          <p>
+            {daily.done
+              ? `You got ${daily.result.correct} of ${daily.result.total} today. A new set arrives tomorrow.`
+              : `${DAILY_LENGTH} questions, the same for everyone today. One try, then come back tomorrow.`}
+          </p>
+        </div>
+        <div className="today-streak" aria-label={`${daily.streak}-day streak`}>
+          <Flame size={22} aria-hidden="true" />
+          <strong>{daily.streak}</strong>
+          <span>day streak</span>
+        </div>
+      </div>
+      <div className="today-actions">
+        {daily.done ? (
+          <span className="today-done">
+            <CircleCheck size={18} aria-hidden="true" /> Done for today
+          </span>
+        ) : (
+          <button className="primary-button" onClick={playDaily}>
+            Play today’s five <ArrowRight size={18} />
+          </button>
+        )}
+        {daily.freezes > 0 && (
+          <span
+            className="today-freeze"
+            title="A saved freeze covers one missed day"
+          >
+            <ShieldCheck size={16} aria-hidden="true" /> {daily.freezes} streak{" "}
+            {daily.freezes === 1 ? "freeze" : "freezes"} saved
+          </span>
+        )}
+      </div>
+    </section>
+  );
+}
+
+export default function Home({
+  game,
+  navigate,
+  openLobby,
+  playNow,
+  playDaily,
+  stats,
+  setModal,
+}) {
   const [motionPaused, setMotionPaused] = useState(false);
   const [previewCategory, setPreviewCategory] = useState(null);
+  const prefs = loadPrefs();
   const ongoing = game && game.phase !== "finished";
-  const activePlayer = ongoing
-    ? game.players[game.turn % game.players.length]
-    : null;
-  const round = ongoing ? Math.floor(game.turn / game.players.length) + 1 : 1;
+  const activePlayer = ongoing ? game.players[activeIndex(game)] : null;
+  const round = ongoing ? currentRound(game) : 1;
+  const rounds = ongoing ? roundCount(game) : 3;
+  const simultaneous = ongoing && isSimultaneous(game);
+  const solo = ongoing && game.players.length === 1;
+  const featured = spotlight();
+  const locked =
+    prefs.settings.category &&
+    categories.find((c) => c.id === prefs.settings.category);
   return (
-    <div className="home-experience">
-      <div className="play-heading">
-        <div className="mobile-home-title">
-          <h1>Let’s play.</h1>
-        </div>
-        <button
-          className="play-help"
-          onClick={() => setModal({ type: "help" })}
-        >
-          How to play <ArrowUpRight size={16} />
-        </button>
-      </div>
-
+    <div className="home-tapestry">
       {ongoing && (
         <button className="resume-banner" onClick={() => navigate("game")}>
           <span className="resume-companion" aria-hidden="true">
             <Mascot kind={activePlayer.kind} portrait />
           </span>
           <span className="resume-copy">
-            <span className="resume-eyebrow">
-              GAME IN PROGRESS · ROUND {round} OF 3
-            </span>
             <strong>Resume your game</strong>
             <span>
-              {activePlayer.name}’s turn · {game.players.length} players
+              {simultaneous
+                ? `Question ${round} of ${rounds}`
+                : `Round ${round} of ${rounds}`}{" "}
+              ·{" "}
+              {simultaneous
+                ? solo
+                  ? "Today’s five"
+                  : `${activePlayer.name} vs ${game.players.length - 1} practice bots`
+                : `${activePlayer.name}’s turn · ${game.players.length} players`}
             </span>
           </span>
-          <span className="resume-rounds" aria-hidden="true">
-            {[1, 2, 3].map((r) => (
-              <i key={r} className={r <= round ? "reached" : ""} />
-            ))}
-          </span>
           <span className="resume-action">
-            <Play size={15} fill="currentColor" /> Keep playing{" "}
-            <ArrowRight size={18} />
+            Keep playing <ArrowRight size={18} />
           </span>
         </button>
       )}
 
-      <div className="play-layout">
-        <section
-          data-glass
-          className="play-feature"
-          aria-labelledby="feature-heading"
-        >
-          <div className="feature-copy">
-            <h2 id="feature-heading">Meet the companions</h2>
+      <section className="play-hero" aria-labelledby="play-title">
+        <div className="play-hero-copy">
+          <div className="mobile-home-title">
+            <h1 id="play-title">Ready for a round?</h1>
           </div>
+          <p className="play-hero-lead">
+            Scripture, saints, feasts and the story of the Coptic Church.
+            Everyone answers at once; the fastest and steadiest win.
+          </p>
+          <div className="play-hero-actions">
+            <button
+              className="primary-button play-now"
+              onClick={() => playNow()}
+            >
+              <Play size={20} fill="currentColor" /> Play now
+            </button>
+            <button
+              className="secondary-button"
+              onClick={() => setModal({ type: "play-sheet" })}
+            >
+              <SlidersHorizontal size={18} /> Customize
+            </button>
+          </div>
+          <p className="play-hero-meta">
+            {locked ? `${locked.short} only · ` : ""}
+            {describeSettings(prefs.settings)} · vs 3 practice bots
+          </p>
+          <button className="friends-card" onClick={() => openLobby("friends")}>
+            <span className="friends-card-icon" aria-hidden="true">
+              <Users size={24} />
+            </span>
+            <span className="friends-card-copy">
+              <strong>Play with friends</strong>
+              <span>2–4 players take turns on one phone</span>
+            </span>
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="play-hero-roundel" aria-hidden="true">
+          <Wheel decorative rotation={0} />
+        </div>
+      </section>
+
+      <TodayCard stats={stats} playDaily={playDaily} />
+
+      <section className="topics-section" aria-labelledby="topics-heading">
+        <div className="section-heading">
+          <h2 id="topics-heading">On the wheel</h2>
+          <span className="spotlight-note">
+            This week: <strong>{featured.short}</strong> earns 1.5× XP
+          </span>
+          <button
+            className="text-button"
+            onClick={() => navigate("categories")}
+          >
+            Explore all <ArrowRight size={17} />
+          </button>
+        </div>
+        <div className="topic-grid">
+          {categories.map((c) => (
+            <button
+              aria-label={`Explore ${c.name}`}
+              className={`topic-card ${c.id === featured.id ? "is-spotlight" : ""}`}
+              key={c.id}
+              style={{
+                "--topic-color": c.color,
+                "--topic-pale": c.pale,
+                "--topic-ink": c.ink,
+              }}
+              onClick={() => setModal({ type: "category", category: c })}
+            >
+              <span className="topic-tablet" aria-hidden="true">
+                <CategoryIcon category={c} size={26} />
+              </span>
+              <span className="topic-name">{c.name}</span>
+              {c.id === featured.id && (
+                <span className="topic-spotlight">1.5× XP</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section
+        className="companions-section"
+        aria-labelledby="companions-heading"
+      >
+        <div className="section-heading">
+          <h2 id="companions-heading">Your Gospel companions</h2>
+          <button
+            className="text-button"
+            onClick={() => setModal({ type: "squad" })}
+          >
+            Meet the four <ArrowRight size={17} />
+          </button>
+        </div>
+        <p className="companions-lead">
+          Each match deals you one of four companions, after the traditional
+          symbols of the Gospel writers.
+        </p>
+        <div className="companions-stage">
           <div className="feature-art">
             <GameScene paused={motionPaused} onPreview={setPreviewCategory} />
           </div>
@@ -90,7 +255,7 @@ export default function Home({ game, navigate, openLobby, setModal }) {
               ) : (
                 <>
                   <RotateCcw size={16} />
-                  <span>Try the wheel</span>
+                  <span>Try the wheel, or tap a companion</span>
                 </>
               )}
             </div>
@@ -107,117 +272,21 @@ export default function Home({ game, navigate, openLobby, setModal }) {
               {motionPaused ? <Play size={15} /> : <Pause size={15} />}
             </button>
           </div>
-          <div className="feature-bottom">
-            <button onClick={() => setModal({ type: "squad" })}>
-              Meet the four <ArrowUpRight size={16} />
-            </button>
-          </div>
-        </section>
-
-        <section className="mode-section" aria-labelledby="mode-heading">
-          <div className="mode-heading-row">
-            <h2 id="mode-heading">Start a game</h2>
-            <span className="preview-label">Preview</span>
-          </div>
-          <div className="mode-grid">
-            <button
-              data-glass
-              className="mode-card random-mode"
-              onClick={() => openLobby("random")}
-            >
-              <div className="mode-topline">
-                <span className="mode-icon">
-                  <Globe2 size={24} strokeWidth={1.8} />
-                </span>
-                <ArrowUpRight size={21} className="mode-arrow" />
-              </div>
-              <div className="mode-copy">
-                <h3>Random game</h3>
-                <p>3 practice bots</p>
-              </div>
-            </button>
-            <button
-              data-glass
-              className="mode-card friends-mode"
-              onClick={() => openLobby("friends")}
-            >
-              <div className="mode-topline">
-                <span className="mode-icon">
-                  <Users size={24} strokeWidth={1.8} />
-                </span>
-                <ArrowUpRight size={21} className="mode-arrow" />
-              </div>
-              <div className="mode-copy">
-                <h3>Play with friends</h3>
-                <p>2–4 players · one device</p>
-              </div>
-            </button>
-          </div>
-          <p className="mode-preview-note">Local preview · sample questions</p>
-        </section>
-      </div>
-
-      <section className="topics-section" aria-labelledby="topics-heading">
-        <div className="topics-heading">
-          <div>
-            <h2 id="topics-heading">On the wheel</h2>
-          </div>
-          <button
-            className="text-button"
-            onClick={() => navigate("categories")}
-          >
-            Explore all <ArrowRight size={17} />
-          </button>
-        </div>
-        <div className="topic-grid">
-          {categories.map((c, i) => (
-            <button
-              data-glass
-              aria-label={`Explore ${c.name}`}
-              className="topic-card"
-              key={c.id}
-              style={{ "--topic-color": c.color, "--topic-pale": c.pale }}
-              onClick={() => setModal({ type: "category", category: c })}
-            >
-              <span className="topic-illustration">
-                <CategoryIcon category={c} size={32} />
-              </span>
-              <span className="topic-name">
-                {c.short}
-                <ArrowUpRight size={14} />
-              </span>
-            </button>
-          ))}
         </div>
       </section>
 
-      <button
-        className="companions-banner"
-        onClick={() => setModal({ type: "squad" })}
-      >
-        <span className="companion-portraits" aria-hidden="true">
-          {["lion", "ox", "eagle", "human"].map((kind) => (
-            <span key={kind}>
-              <Mascot kind={kind} portrait />
-            </span>
-          ))}
-        </span>
-        <span className="companions-copy">
-          <strong>Meet the Gospel crew</strong>
-        </span>
-        <span className="companions-link">
-          Meet your companions <ArrowRight size={18} />
-        </span>
-      </button>
       <footer className="play-footer">
-        <span>
+        <CopticCross size={22} />
+        <span className="play-footer-name">
           kinesa{" "}
           <span lang="ar" dir="rtl">
             كنيسة
           </span>
         </span>
-        <p>A little knowledge. A little connection.</p>
-        <span>Made for game night.</span>
+        <p>
+          “Kinesa” is the Arabic word for church. A local preview with sample
+          questions.
+        </p>
       </footer>
     </div>
   );

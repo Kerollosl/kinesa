@@ -2,9 +2,9 @@ Live UI playground: https://kinesa-playground.kerollos-lowandy.chatgpt.site
 
 # Kinesa ✦
 
-A Coptic and Bible trivia game frontend for up to four players, with animated Gospel companions and a liquid-glass interface.
+A Coptic and Bible trivia game for teens and adults: solo against practice bots, a daily challenge, or up to four players on one phone. Its look is woven from Coptic tapestry.
 
-![Kinesa game lobby](docs/kinesa-desktop.png)
+![Kinesa home: the tapestry roundel wheel and Play now](docs/redesign/after/desktop-random-home.jpg)
 
 [Watch the companion performance close-up](docs/kinesa-companions-motion.webm) · [See the character detail](docs/kinesa-performance.png)
 
@@ -28,104 +28,47 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 
 ## The experience
 
-- **Random game:** enter a name, preview matchmaking with three explicitly labeled practice bots, reveal the companions, and play. Bots spin and answer on their own turns; the player advances after reading each explanation. Bot points do not inflate the player's collection.
-- **Play with friends:** create a room for two to four people or join a preview room. Seat cards, occupancy, editable names, input focus, and copy feedback make setup clear. Full rooms reject extra players; a saved room can be reopened with its roster intact. The sample join code is `AMEN24`. These preview codes do not connect separate devices.
-- **Random companion assignment:** players never choose their Gospel figure. Each new match uses a fresh Fisher–Yates shuffle of the lion, ox, eagle, and human, dealing without replacement. There can be no duplicate companions in a match. Rematches shuffle again.
-- **Guided setup:** a three-step indicator explains setup, companion reveal, and play. Desktop setup includes an illustrated rules panel, with a compact layout on phones.
-- **Animated reveal:** each player's companion appears on a flipping card before gameplay begins. Card colors follow the companion's identity. Players can return to edit the roster, then deal a new set before starting.
-- **Interactive game scene:** character high-fives cycle distinct greetings, and practice spins land on and announce the actual category. Scene animation can be paused. Reduced-motion preferences disable ambient movement and shorten deliberate spins.
-- **Original illustrated companions:** the soft artwork retains Leo’s fluffy mane, Lou’s calf silhouette, Juno’s feathers and Mattie’s curls. The paintings now sit on deformable texture meshes: curved head turns create parallax across the face, the torso bends above planted feet, wings fold through their feathers, and the mane follows the head’s momentum. Mild brow and smile changes use the same painted texture. Authored performances coordinate anticipation, weight transfer, reach, follow-through and recovery across the body. A greeting raises one hand after committing weight; hugs nestle the head and curl the wings; celebrations use two unequal hops with landing compression. Damped springs retain momentum when another reaction interrupts. These are soft, dimensional painted rigs; the artwork remains the source of their appearance.
-- **A continuously lively crew:** a behavior director blends glances, wing stretches, little shuffles and sways over breathing, blinking and attention. Each companion has its own timing and energy. Dance starts an ongoing groove; greetings, celebrations and hugs blend over it. Celebrate adds anticipated hops, soft landings and sparkles. Send love adds a wing hug and floating hearts; holding a companion does the same, while scrolling cancels the hold. Motion retains its position and momentum across interactions. Pause freezes companions and effects while deliberate practice spins remain available; hidden tabs and dialogs suspend the scene and active spins. All of this runs in the existing React/SVG frontend, with no native app or Apple-only frameworks required.
-- **Lightweight rendering and fallbacks:** visible full-body companions use WebGL to draw the painted meshes. A Canvas 2D mesh works when WebGL is unavailable, and the original articulated SVG remains usable if canvas fails or a graphics context is lost. Context restoration reconnects the same character. Portraits and reduced motion use the original SVG artwork. One animation scheduler suspends hidden, offscreen and paused rigs; animation does not rerender React every frame. No 3D engine or animation service is required.
-- **Mobile-first entry:** both game modes appear above the illustrated arena on phones; the mobile navigation dock hides during room setup and matches so it cannot crowd the reveal or cover answers.
-- **Clear turn handoffs:** pass the device to the named player, confirm readiness, then spin. A segmented round indicator and phase-aware player status keep the turn clear.
-- **Saved match:** unfinished matches survive refresh, including the same companions, scores, question, selected answer, and handoff state. The home screen shows the active companion, current turn, and round with a direct resume action. Invalid saves are rejected.
-- **Keyboard controls:** answer with A–D or 1–4 when a human question is active; shortcuts ignore text fields, links, other controls, and dialogs. Rapid input is credited once in both the game and collection.
-- **Complete local match:** six-category wheel, questions, source explanations, 100 points per correct answer, three rounds per player, shared wins, and rematches. The results screen includes actual match totals, tied rankings, accuracy, and animated score bars.
-- **Discover:** browse all six categories and try their existing sample questions, with correct answers, explanations, and sources. These samples are unscored and never award badges.
-- **Collection:** an actual-progress ring, earned and locked interactive badges, unlock details, correct-answer totals, completed matches, and useful empty states. Progress belongs to this browser and includes human players on this device.
-- **Companion details:** tap any player in the scoreboard or final standings to meet their Gospel companion and inspect their match progress.
-- **Safe navigation:** browser Back/Forward, focused page headings, mobile rules, focus-restoring dialogs, and a skip link. Leaving a match, opening a dialog, or hiding the tab pauses active spins and practice-opponent timers. Starting another match asks before replacing an unfinished game. Sound is optional, off by default, and confirms changes visibly.
-- **Liquid glass:** frosted translucent panes, reflective edges, softly tinted actions, a floating navigation dock, and subtle pointer-driven highlights on desktop. Touch and reduced-motion modes keep lighting steady; reduced-transparency and unsupported-blur browsers receive more opaque surfaces. Questions use a quieter, more opaque pane for reading.
-- **Responsive interface:** desktop navigation, a mobile game dock, keyboard-operable dialogs, visible focus, and reduced-motion support.
+- **Play now:** one tap starts ten questions against three clearly labeled practice bots. Everyone answers the same question at once: bots think, lock in, and cheer or droop on the reveal. **Customize** (a bottom sheet) sets your name, a category or the mixed wheel, Easy / Medium / Hard, 5 / 10 / 15 questions, and the clock; Play now remembers it.
+- **Game feel:** a 20-second countdown ring (15 on Hard; Easy and relaxed play have no clock), streak combos (×1.5 at three in a row, ×2 at five) and a speed bonus of up to +50. Correct answers light up in the category's dye with a small burst; every reveal opens a **Did you know?** note with its source.
+- **Play with friends:** two to four players take turns on one phone. A full-screen cover hides each question until the next player is ready, and standings appear after every round. Room codes are a local preview under "Join a room" (sample code `AMEN24`).
+- **Today's five:** a daily challenge of five questions from five categories, the same for everyone on a given date. One try a day, a day streak, and streak freezes (earned every seven days, up to two) that cover a missed day.
+- **Coptic calendar:** Home shows today's Coptic date (Era of the Martyrs) and the current fast, feast or season — Great Lent, Holy Week, the Holy Fifty Days, the Apostles' Fast, the Nativity Fast and more — computed from the Orthodox Pascha.
+- **Progression:** XP and levels, per-category mastery (Bronze 5, Silver 15, Gold 30 correct), a weekly spotlight category worth 1.5× XP, and badge and level-up moments on the results screen. Results show your own placing, a podium, one-tap **Rematch** or another category, and a shareable result image.
+- **Discover:** sample questions per category, then **Quiz me on** that category.
+- **Collection:** games, correct answers, badges, level and day streak, with mastery on each badge.
+- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each match and appear as avatars, on the handoff cover and on the podium. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
+- **Accessible by default:** keyboard answers (A–D or 1–4), visible focus, AA text colors with a 12px floor, 44px touch targets, reduced-motion paths, sound off by default, and vibration only when sound is on.
 
-The original Gospel-symbol companions are **Leo the lion / Mark**, **Lou the ox / Luke**, **Juno the eagle / John**, and **Mattie the human / Matthew**. They are fictional companions inspired by traditional Gospel symbols, not portraits of the evangelists.
+## The look: Akhmim tapestry
+
+The visual world comes from Coptic woven tunics (Akhmim tapestry): purple-dyed fields carrying fine linen thread, six dye panels for the categories (woad, madder, purple, green, weld, ochre), undyed-linen reading panes, a clavus band for progress, a roundel wheel with a twelve-point Coptic cross at its center, and Alexandria lettering. There is no glass and no gold. See `PRODUCT.md` for the audience, tone and content rules.
+
+## Questions
+
+The bank lives in `src/content/questions.json`: 125 source-noted questions, at least 20 per category, each with a difficulty, four options, one answer, an explanation and a verifiable source. `npm run validate:questions` (also part of `npm test`) checks unique ids, exactly four distinct options, a single valid answer, explanations, sources and the per-category minimum.
+
+Questions that need a subject-matter check wait in `src/content/review-queue.json` and never ship until they are reviewed and moved into the bank.
 
 ## Frontend scope
 
-This edition is an interactive **frontend preview**, not a live multiplayer service. Random matchmaking uses bots; friends play on one device. Online matchmaking, real remote rooms, invitations, accounts, and backend persistence are not implemented. The interface labels the preview before entry and identifies all bots.
-
-The 12 source-noted sample questions demonstrate the experience. There is no production question database. Within a category, unseen questions are preferred until the small sample pool is exhausted. Content expansion and Coptic subject-matter review belong to a later phase.
-
-Unfinished matches, collection progress, sound preference, nickname, and the latest preview room use browser local storage. Matches restore safely after a page reload and completed matches clear the resume slot. If storage is unavailable, play continues in memory. No player information leaves the device. Fonts and illustrations are self-hosted.
-
-## Project structure
-
-```text
-src/
-  App.jsx                  Navigation, dialogs, match state, sound and safe resume
-  components/
-    Home.jsx               Responsive home hierarchy and game-mode entry
-    Discover.jsx           Unscored category samples and source explanations
-    Collection.jsx         Real progress, badge details and empty states
-    GameScene.jsx          Interactive animated hero arena
-    game-scene.css         Scoped arena motion and layout
-    Lobby.jsx              Game modes, room previews, matching and assignment reveal
-    Game.jsx               Wheel, answers, scores and results
-    Mascot.jsx             Accessible assembled artwork and Gospel metadata
-    companion-rig.js       Painted-part source windows, placement and pivots
-    companion-physics.js   Spring poses, continuous behavior director and layered reactions
-    companion-deformation.js  Curved skin fields, texture meshes and attachment transforms
-    companion-materials.js    Shared original paintings, masks and blink composition
-    companion-surface.js      WebGL painted meshes and Canvas 2D rendering fallback
-    useCompanionMotion.js  Shared animation scheduler and pointer attention
-    companion-motion.css   Full-body and portrait framing
-    Wheel.jsx              Six-category wheel and icons
-    *-experience.css       Scoped layout and interaction styling
-  engine.js                Random assignment, scoring, turns, sample selection
-  session.js               Safe local match persistence and restoration
-  data.js                  Category definitions and sample deck
-  styles.css               Core layout, responsive behavior and app motion
-  modern.css               Interface layout, responsive behavior and setup flow
-  glass.css                Liquid-glass materials and transparency fallbacks
-  app-experience.css       Shared dialog, focus and toast details
-  useGlassLight.js          Desktop pointer lighting without React re-renders
-public/fonts/              Self-hosted fonts and OFL licenses
-public/characters/         Self-hosted painted rig, torso and eyelid atlases
-tests/                     Unit and browser tests
-```
-
-To add real multiplayer, replace the local lobby with a server-backed matchmaking/room service and move authoritative assignment, turns, scoring, and validation to the server. Companions must still be shuffled and dealt **once per match** by the authority, never picked by clients. Replace sample selection with a reviewed question provider and appropriate loading/error states.
+This is a local frontend preview, not an online service. Practice play uses bots; friends play on one device. There are no accounts, remote rooms or backend. Saved matches (version 2, migrating version 1), progress, preferences and the daily streak live in browser local storage and stay on the device.
 
 ## Verification
 
-The [component review](docs/experience-review.md) records the screens, interactions, and validation covered in this pass.
-
 ```sh
-npm test
+npm test                      # question validator + unit tests
 npx playwright install chromium
-npm run test:e2e
+npm run test:e2e              # browser tests (KINESA_PORT overrides port 5173)
+npm run play-through          # plays Random, Friends and Today's five at 390×844 and 1280×800
 npm run build
 ```
 
-Unit coverage enumerates all 24 four-player companion permutations, verifies no duplicates, proves submitted character choices are ignored, and checks fresh rematches, scoring, shared wins, turns, and the sample deck.
-
-Motion coverage checks spring integration across frame rates, interruption continuity, authored performance timing, weight support, skin curvature, planted feet, long idle behavior, jump anticipation and landing, and portrait restraint. Mesh checks verify neutral artwork placement, UV stability, surface curvature, attachment transforms and triangle orientation across extreme poses. Browser checks inspect actual rendered mesh vertices and pixels, repeated greetings, pointer and touch attention, long holds, scroll cancellation, dance sessions, exact pause/resume, graphics context loss/restoration and rendering fallbacks.
-
-Browser coverage also includes complete four-player matches, random bot matches, cancellation, sample room joins, input validation, repeated character interactions, mobile navigation, reduced motion, small-phone clipping, safe match restoration, keyboard answers, handoffs, unobstructed mobile answers, blocked local storage, revising a room after the companion reveal, browser history/focus, mobile rules/focus return, interrupted spins, rapid keyboard input, unfinished-match replacement, room recovery, unscored discovery, interactive collection badges, and scene motion controls.
-
-Use an existing Chromium installation if desired:
-
-```sh
-PLAYWRIGHT_CHROMIUM_EXECUTABLE=/usr/bin/chromium npm run test:e2e
-```
-
-`npm run format` formats the source. GitHub Actions runs the tests and production build on pushes and pull requests.
+`npm run play-through` saves a screenshot of every phase to `test-results/play-through/`, probes 360px and 390px layouts for overflow and small text, and fails on any console error. Before-and-after screens for this redesign are in `docs/redesign/`.
 
 ## Credits
 
-Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). DM Sans is bundled under the SIL Open Font License in `public/fonts/`.
+Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). Alexandria and DM Sans are bundled under the SIL Open Font License in `public/fonts/`.
 
-[Mobile preview](docs/kinesa-mobile.png) · [Illustrated companions](docs/kinesa-companions.png) · [Discover](docs/kinesa-discover.png) · [Collection](docs/kinesa-collection.png) · [Results](docs/kinesa-results.png) · [Companion details](docs/kinesa-companion.png) · [Game setup](docs/kinesa-setup.png) · [Friends room](docs/kinesa-room.png) · [Saved game](docs/kinesa-resume.png) · [Assignment reveal](docs/kinesa-assignment.png) · [Gameplay](docs/kinesa-gameplay.png) · [Turn handoff](docs/kinesa-handoff.png) · [Motion preview](docs/kinesa-motion.webm)
+Screens: [Phone home](docs/redesign/after/phone-random-home.jpg) · [Question](docs/redesign/after/phone-random-question.jpg) · [Feedback](docs/redesign/after/phone-random-feedback-a.jpg) · [Results](docs/redesign/after/phone-random-results-full.jpg) · [Pass the phone](docs/redesign/after/phone-friends-handoff.jpg) · [Today’s five](docs/redesign/after/phone-daily-results-full.jpg) · [Collection](docs/redesign/after/desktop-pages-collection.jpg) · [Before the redesign](docs/redesign/before/)
 
 [Companion performance close-up](docs/kinesa-companions-motion.webm). Regenerate it with `node scripts/capture-companion-performance.mjs` while Vite is running; it enlarges the actual homepage components for a clearer camera view.

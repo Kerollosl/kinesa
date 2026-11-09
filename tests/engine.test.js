@@ -78,9 +78,14 @@ test("a full four-player match gives each player three turns, scores correctly, 
   }
   assert.deepEqual(turns, [3, 3, 3, 3]);
   assert.equal(game.phase, "finished");
+  // Three in a row reaches the ×1.5 combo on the third answer.
   assert.deepEqual(
     game.players.map((p) => p.score),
-    [300, 300, 0, 0],
+    [350, 350, 0, 0],
+  );
+  assert.deepEqual(
+    game.players.map((p) => p.correct),
+    [3, 3, 0, 0],
   );
   assert.deepEqual(
     getWinners(game.players).map((p) => p.name),
