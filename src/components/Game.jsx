@@ -1,15 +1,6 @@
 import { useEffect, useRef } from "react";
-import {
-  ArrowLeft,
-  Check,
-  CircleCheck,
-  CloudOff,
-  HelpCircle,
-  RotateCcw,
-  X,
-} from "lucide-react";
+import { ArrowLeft, Check, CloudOff, HelpCircle, X } from "lucide-react";
 import Mascot from "./Mascot.jsx";
-import "./match-experience.css";
 import Wheel, { CategoryIcon } from "./Wheel.jsx";
 import { categories } from "../data.js";
 import {
@@ -158,22 +149,45 @@ export default function Game({
         >
           <ArrowLeft size={20} />
         </button>
-        <span className="round-tag">
+        <span className="round-tag sr-only">
           {finished
             ? "MATCH COMPLETE"
             : `${simultaneous ? "Question" : "Round"} ${round} / ${rounds}`}
         </span>
+        <div
+          className="match-progress"
+          role="progressbar"
+          aria-label="Questions answered"
+          aria-valuenow={answered}
+          aria-valuemin={0}
+          aria-valuemax={total}
+        >
+          <div className="round-segments">
+            {Array.from({ length: rounds }, (_, i) => {
+              const per = simultaneous ? 1 : game.players.length;
+              return (
+                <span key={i}>
+                  <i
+                    style={{
+                      transform: `scaleX(${Math.max(0, Math.min(1, (answered - i * per) / per))})`,
+                    }}
+                  />
+                </span>
+              );
+            })}
+          </div>
+        </div>
         <div className="game-top-tools">
-          <span
-            className="match-save-status"
-            role="img"
-            aria-label={
-              savedLocally ? "Saved on this device" : "This session only"
-            }
-            title={savedLocally ? "Saved on this device" : "This session only"}
-          >
-            {savedLocally ? <CircleCheck size={18} /> : <CloudOff size={18} />}
-          </span>
+          {!savedLocally && (
+            <span
+              className="match-save-status"
+              role="img"
+              aria-label="This session only"
+              title="This session only"
+            >
+              <CloudOff size={18} />
+            </span>
+          )}
           <button
             className="game-help text-button"
             onClick={onHelp}
@@ -182,32 +196,6 @@ export default function Game({
             <HelpCircle size={20} />
           </button>
         </div>
-      </div>
-      <div
-        className="match-progress"
-        role="progressbar"
-        aria-label="Questions answered"
-        aria-valuenow={answered}
-        aria-valuemin={0}
-        aria-valuemax={total}
-      >
-        <div className="round-segments">
-          {Array.from({ length: rounds }, (_, i) => {
-            const per = simultaneous ? 1 : game.players.length;
-            return (
-              <span key={i}>
-                <i
-                  style={{
-                    transform: `scaleX(${Math.max(0, Math.min(1, (answered - i * per) / per))})`,
-                  }}
-                />
-              </span>
-            );
-          })}
-        </div>
-        <span>
-          {answered} / {total}
-        </span>
       </div>
       {!["handoff", "standings"].includes(game.phase) && (
         <ScoreChips
@@ -250,7 +238,20 @@ export default function Game({
                   : `${player.name}, you’re up!`}
             </h1>
           </div>
-          <p role="status">
+          <div className="game-wheel-scene">
+            <Wheel
+              rotation={rotation}
+              spinning={spinning}
+              onSpin={spin}
+              disabled={
+                spinning ||
+                player.isBot ||
+                !!game.settings?.category ||
+                !!game.settings?.plan
+              }
+            />
+          </div>
+          <p className="spin-caption" role="status">
             {game.settings?.plan
               ? "Drawing today’s next question…"
               : game.settings?.category
@@ -259,28 +260,10 @@ export default function Game({
                   ? player.isBot
                     ? `${player.name} is spinning…`
                     : "Choosing a category…"
-                  : simultaneous
-                    ? "Spin for a category. Everyone answers together."
-                    : player.isBot
-                      ? "Practice bot’s turn"
-                      : "Spin for a category"}
+                  : player.isBot
+                    ? "Practice bot’s turn"
+                    : "Tap the wheel"}
           </p>
-          <div className="game-wheel-scene">
-            <Wheel rotation={rotation} spinning={spinning} />
-          </div>
-          <button
-            className="primary-button spin-button"
-            disabled={
-              spinning ||
-              player.isBot ||
-              !!game.settings?.category ||
-              !!game.settings?.plan
-            }
-            onClick={spin}
-          >
-            <RotateCcw size={20} />
-            {spinning ? "Choosing a category…" : "Spin the wheel"}
-          </button>
         </section>
       )}
       {(game.phase === "question" || game.phase === "reveal") && (
@@ -366,9 +349,7 @@ export default function Game({
                 ? "Locked in. Waiting for the others…"
                 : player.isBot
                   ? `${player.name} is thinking…`
-                  : simultaneous
-                    ? "Tap an answer — or press A–D."
-                    : "Tap an answer — or press A–D."}
+                  : "Tap an answer"}
             </p>
           ) : (
             <AnswerFeedback

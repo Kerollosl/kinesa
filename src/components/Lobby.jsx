@@ -4,20 +4,13 @@ import {
   ArrowRight,
   Check,
   ChevronRight,
-  KeyRound,
   Plus,
   Shuffle,
   X,
 } from "lucide-react";
 import Mascot, { MASCOTS } from "./Mascot.jsx";
 import { createGame, readSaved, saveLocal } from "../engine.js";
-import "./lobby-experience.css";
 
-const newCode = () =>
-  Array.from(
-    { length: 6 },
-    () => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)],
-  ).join("");
 const initials = (value) =>
   value
     .trim()
@@ -25,34 +18,18 @@ const initials = (value) =>
     .slice(0, 2)
     .map((word) => word[0])
     .join("") || "?";
-function savedRoom() {
-  const room = readSaved("kinesa-room-preview", null);
-  return room &&
-    typeof room.code === "string" &&
-    /^[A-Z0-9]{6}$/.test(room.code) &&
-    Array.isArray(room.names) &&
-    room.names.length >= 2 &&
-    room.names.length <= 4 &&
-    room.names.every((n) => typeof n === "string" && n.length <= 20)
-    ? room
-    : null;
-}
 const nickname = () => {
   const saved = readSaved("kinesa-nickname", "");
   return typeof saved === "string" ? saved.slice(0, 20) : "";
 };
-// Pass-and-play setup: the roster is the first screen. A saved or sample
-// room code stays available under "Join a room" for the local preview.
+// Pass-and-play setup: two to four players share this phone. Names are the
+// only setup; there are no rooms or codes because play is local to the device.
+const LEGACY_ROOM_KEY = "kinesa-room-preview";
 export default function Lobby({ onBack, onBegin, initialPlayers }) {
-  const [recentRoom] = useState(savedRoom);
   const [stage, setStage] = useState("room");
-  const [joining, setJoining] = useState(false);
   const [names, setNames] = useState(
     initialPlayers?.map((p) => p.name) || [nickname() || "You", "Friend 1"],
   );
-  const [code, setCode] = useState("");
-  const [roomCode, setRoomCode] = useState(newCode);
-  const [error, setError] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const [prepared, setPrepared] = useState(null);
   const [revealed, setRevealed] = useState(false);
@@ -63,6 +40,14 @@ export default function Lobby({ onBack, onBegin, initialPlayers }) {
   useEffect(() => {
     titleRef.current?.focus();
   }, [stage]);
+  useEffect(() => {
+    // The old local "room preview" is gone; drop what it saved.
+    try {
+      localStorage.removeItem(LEGACY_ROOM_KEY);
+    } catch {
+      /* Storage may be blocked; nothing to clean. */
+    }
+  }, []);
   useEffect(() => {
     if (pendingFocus.current === null) return;
     const input = playerInputs.current[pendingFocus.current];
@@ -82,14 +67,11 @@ export default function Lobby({ onBack, onBegin, initialPlayers }) {
       clearTimeout(readyTimer);
     };
   }, [stage]);
-  const remember = (next, codeValue = roomCode) =>
-    saveLocal("kinesa-room-preview", { code: codeValue, names: next });
   const prepare = () => {
     const roster = names.map(
       (n, i) => n.trim() || (i === 0 ? "You" : `Friend ${i}`),
     );
     saveLocal("kinesa-nickname", roster[0]);
-    remember(roster);
     setPrepared(
       createGame(
         roster.map((name) => ({ name })),
@@ -101,55 +83,18 @@ export default function Lobby({ onBack, onBegin, initialPlayers }) {
     setDealDone(false);
     setStage("reveal");
   };
-  const joinRoom = () => {
-    const saved = savedRoom();
-    const host = names[0]?.trim() || "You";
-    if (saved?.code === code) {
-      if (saved.names.length === 4) {
-        setError(
-          "This room already has four players. Start your own group, or try AMEN24.",
-        );
-        return;
-      }
-      const joined = [...saved.names, host];
-      setNames(joined);
-      setRoomCode(saved.code);
-      remember(joined, saved.code);
-    } else if (code === "AMEN24") {
-      setNames([host, "Mina", "Mariam"]);
-      setRoomCode("AMEN24");
-    } else {
-      setError("Try AMEN24, or a room code created in this browser.");
-      return;
-    }
-    setError("");
-    setJoining(false);
-    setAnnouncement("Room joined. Check the players, then deal.");
-  };
   const updateName = (i, value) => {
-    setNames((previous) => {
-      const next = previous.map((n, j) => (i === j ? value : n));
-      remember(next);
-      return next;
-    });
+    setNames((previous) => previous.map((n, j) => (i === j ? value : n)));
   };
   const addFriend = () => {
     if (names.length >= 4) return;
     pendingFocus.current = names.length;
-    setNames((previous) => {
-      const next = [...previous, `Friend ${previous.length}`];
-      remember(next);
-      return next;
-    });
+    setNames((previous) => [...previous, `Friend ${previous.length}`]);
     setAnnouncement(`Player ${names.length + 1} added. Enter their name.`);
   };
   const removeFriend = (index) => {
     pendingFocus.current = Math.max(0, index - 1);
-    setNames((previous) => {
-      const next = previous.filter((_, i) => i !== index);
-      remember(next);
-      return next;
-    });
+    setNames((previous) => previous.filter((_, i) => i !== index));
     setAnnouncement(
       `Player ${index + 1} removed. ${names.length - 1} players in your group.`,
     );
@@ -272,94 +217,6 @@ export default function Lobby({ onBack, onBegin, initialPlayers }) {
               <button className="primary-button full" onClick={prepare}>
                 Deal our companions <Shuffle size={20} />
               </button>
-              <div className="room-extras">
-                {recentRoom && !initialPlayers && (
-                  <button
-                    className="resume-room"
-                    onClick={() => {
-                      setNames(recentRoom.names);
-                      setRoomCode(recentRoom.code);
-                      setError("");
-                      setAnnouncement("Your saved group is back.");
-                    }}
-                  >
-                    <span>
-                      <strong>Continue your room</strong>
-                      <small>
-                        {recentRoom.names.length} players · saved on this device
-                      </small>
-                    </span>
-                    <ArrowRight size={18} />
-                  </button>
-                )}
-                <button
-                  className="text-button join-toggle"
-                  aria-expanded={joining}
-                  aria-controls="join-room"
-                  onClick={() => {
-                    setJoining((v) => !v);
-                    setError("");
-                  }}
-                >
-                  <KeyRound size={16} /> Join a room
-                </button>
-                {joining && (
-                  <form
-                    id="join-room"
-                    className="join-fields"
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      joinRoom();
-                    }}
-                  >
-                    <label className="field-label" htmlFor="room-code">
-                      Room code
-                    </label>
-                    <div className="join-row">
-                      <input
-                        id="room-code"
-                        className="nickname-input code-input"
-                        value={code}
-                        onChange={(e) => {
-                          setError("");
-                          setCode(
-                            e.target.value
-                              .toUpperCase()
-                              .replace(/[^A-Z0-9]/g, ""),
-                          );
-                        }}
-                        maxLength={6}
-                        placeholder="AMEN24"
-                        autoComplete="off"
-                        autoCapitalize="characters"
-                        spellCheck={false}
-                        aria-invalid={Boolean(error)}
-                        aria-describedby={
-                          error
-                            ? "room-code-error room-code-hint"
-                            : "room-code-hint"
-                        }
-                        required
-                      />
-                      <button className="secondary-button" type="submit">
-                        Join room
-                      </button>
-                    </div>
-                    <p id="room-code-hint">
-                      Room codes are a local preview. Try the sample room{" "}
-                      <button type="button" onClick={() => setCode("AMEN24")}>
-                        AMEN24
-                      </button>
-                      .
-                    </p>
-                  </form>
-                )}
-                {error && (
-                  <p className="form-error" id="room-code-error" role="alert">
-                    {error}
-                  </p>
-                )}
-              </div>
             </section>
           )}
           {stage === "reveal" && prepared && (

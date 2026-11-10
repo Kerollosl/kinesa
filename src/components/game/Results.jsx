@@ -207,7 +207,7 @@ const Results = forwardRef(function Results(
       });
       if (result === "downloaded") onToast("Result image saved");
     } catch {
-      onToast("Couldn’t make the image this time");
+      onToast("Couldn’t make the image this time", "warn");
     } finally {
       setSharing(false);
     }

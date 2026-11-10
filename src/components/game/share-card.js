@@ -59,6 +59,50 @@ function roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Palette and cross geometry match the app (DESIGN.md: Akhmim tapestry).
+const INK = {
+  purple700: "#3d1f4a",
+  purple800: "#2f1939",
+  weld300: "#ecc965",
+  linen50: "#fbf9f4",
+  linen100: "#e4ddcf",
+  linen200: "#d3c8b4",
+  thread: "#ece2cc",
+  ink900: "#22162a",
+  ink700: "#4b3e52",
+};
+const FONT = "Alexandria, system-ui, sans-serif";
+// Same twelve-point cross as Ornaments.jsx, on its 48-unit grid.
+const CROSS_ARM = new Path2D(
+  "M21 21V12.5H16.5L15 5.5L19.5 8.5L24 1L28.5 8.5L33 5.5L31.5 12.5H27V21Z",
+);
+function drawCross(ctx, x, y, size, color, eye) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(size / 48, size / 48);
+  ctx.fillStyle = color;
+  for (const angle of [0, 90, 180, 270]) {
+    ctx.save();
+    ctx.translate(24, 24);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.translate(-24, -24);
+    ctx.fill(CROSS_ARM);
+    ctx.restore();
+  }
+  ctx.fillRect(20.5, 20.5, 7, 7);
+  ctx.fillStyle = eye;
+  ctx.fillRect(22.5, 22.5, 3, 3);
+  ctx.restore();
+}
+// Shrinks a line of text until it fits the pane.
+function fitText(ctx, text, weight, startSize, maxWidth) {
+  let size = startSize;
+  do {
+    ctx.font = `${weight} ${size}px ${FONT}`;
+    size -= 2;
+  } while (ctx.measureText(text).width > maxWidth && size > 28);
+}
+
 export async function renderShareCard({
   headline,
   detail,
@@ -66,64 +110,88 @@ export async function renderShareCard({
   companionBg,
 }) {
   await document.fonts?.ready;
+  // Canvas only uses a webfont that is already loaded; ask for the weights we draw.
+  await Promise.all(
+    ["700 64px Alexandria", "800 96px Alexandria", "500 40px Alexandria"].map(
+      (font) => document.fonts?.load(font).catch(() => []),
+    ),
+  );
   const W = 1080;
   const H = 1350;
   const canvas = document.createElement("canvas");
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
-  const sky = ctx.createLinearGradient(0, 0, W, H);
-  sky.addColorStop(0, "#e9efff");
-  sky.addColorStop(0.55, "#f3ecff");
-  sky.addColorStop(1, "#fff1ea");
-  ctx.fillStyle = sky;
+
+  // Undyed linen ground; a purple woven field carries the top of the card.
+  ctx.fillStyle = INK.linen100;
   ctx.fillRect(0, 0, W, H);
+  const FIELD = 700;
+  ctx.fillStyle = INK.purple700;
+  ctx.fillRect(0, 0, W, FIELD);
+  // Clavus: a deeper band with linen lozenges along the field's lower edge.
+  ctx.fillStyle = INK.purple800;
+  ctx.fillRect(0, FIELD - 44, W, 44);
+  ctx.fillStyle = INK.thread;
+  for (let x = 30; x < W; x += 60) {
+    ctx.beginPath();
+    ctx.moveTo(x, FIELD - 22 - 12);
+    ctx.lineTo(x + 12, FIELD - 22);
+    ctx.lineTo(x, FIELD - 22 + 12);
+    ctx.lineTo(x - 12, FIELD - 22);
+    ctx.closePath();
+    ctx.fill();
+  }
 
   // Wordmark: the cross emblem and "kinesa".
-  const emblem = ctx.createLinearGradient(96, 96, 176, 176);
-  emblem.addColorStop(0, "#5b8cff");
-  emblem.addColorStop(1, "#6955d9");
-  ctx.fillStyle = emblem;
-  roundRect(ctx, 96, 96, 80, 80, 22);
-  ctx.fill();
-  ctx.fillStyle = "#fff";
-  ctx.save();
-  ctx.translate(96 + 10, 96 + 10);
-  ctx.scale(60 / 32, 60 / 32);
-  ctx.fill(new Path2D("M12 3h8v9h9v8h-9v9h-8v-9H3v-8h9z"));
-  ctx.restore();
-  ctx.fillStyle = "#242631";
-  ctx.font = "700 64px 'DM Sans', sans-serif";
+  drawCross(ctx, 96, 92, 84, INK.weld300, INK.purple700);
+  ctx.fillStyle = INK.linen50;
+  ctx.font = `700 64px ${FONT}`;
+  ctx.textAlign = "left";
   ctx.textBaseline = "middle";
-  ctx.fillText("kinesa", 200, 138);
+  ctx.fillText("kinesa", 200, 134);
 
-  // Companion on a soft disc.
-  ctx.fillStyle = companionBg || "#fff0cf";
+  // Companion on a pale disc ringed in linen thread.
+  ctx.fillStyle = INK.thread;
   ctx.beginPath();
-  ctx.arc(W / 2, 560, 270, 0, Math.PI * 2);
+  ctx.arc(W / 2, 430, 262, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = companionBg || "#ffe1a3";
+  ctx.beginPath();
+  ctx.arc(W / 2, 430, 248, 0, Math.PI * 2);
   ctx.fill();
   const art = await companionImage(companionSvg).catch(() => null);
-  if (art) ctx.drawImage(art, W / 2 - 260, 300, 520, 520);
+  if (art) ctx.drawImage(art, W / 2 - 250, 180, 500, 500);
 
+  // Reading pane.
+  roundRect(ctx, 96, 760, W - 192, 300, 36);
+  ctx.fillStyle = INK.linen50;
+  ctx.fill();
+  ctx.strokeStyle = INK.linen200;
+  ctx.lineWidth = 3;
+  ctx.stroke();
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
-  ctx.fillStyle = "#242631";
-  ctx.font = "800 104px 'DM Sans', sans-serif";
-  ctx.fillText(headline, W / 2, 1000);
-  ctx.fillStyle = "#4b4d5c";
-  ctx.font = "500 42px 'DM Sans', sans-serif";
-  ctx.fillText(detail, W / 2, 1072);
+  ctx.fillStyle = INK.ink900;
+  fitText(ctx, headline, 800, 92, W - 192 - 80);
+  ctx.fillText(headline, W / 2, 900);
+  ctx.fillStyle = INK.ink700;
+  fitText(ctx, detail, 500, 40, W - 192 - 80);
+  ctx.fillText(detail, W / 2, 984);
 
-  // The six wheel colors as a closing band.
+  // The six category dyes as a closing band.
   const band = (W - 192) / categories.length;
   categories.forEach((c, i) => {
     ctx.fillStyle = c.color;
-    roundRect(ctx, 96 + i * band + 6, 1170, band - 12, 22, 11);
+    roundRect(ctx, 96 + i * band + 5, 1120, band - 10, 26, 6);
     ctx.fill();
   });
-  ctx.fillStyle = "#4b4d5c";
-  ctx.font = "500 34px 'DM Sans', sans-serif";
-  ctx.fillText("Bible · Coptic history · Saints · Feasts", W / 2, 1260);
+  ctx.fillStyle = INK.ink900;
+  ctx.font = `700 40px ${FONT}`;
+  ctx.fillText("Coptic Trivia", W / 2, 1220);
+  ctx.fillStyle = INK.ink700;
+  ctx.font = `500 32px ${FONT}`;
+  ctx.fillText("Bible · Coptic history · Saints · Feasts", W / 2, 1274);
   return new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
 }
 

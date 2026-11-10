@@ -90,7 +90,7 @@ async function captureCompanions(page) {
           });
       });
       const label = document.createElement("span");
-      label.style = "font:500 15px 'DM Sans',sans-serif;color:#64728c;";
+      label.style = "font:500 15px Alexandria,sans-serif;color:#64728c;";
       label.textContent = [
         "Leo · Mark",
         "Lou · Luke",

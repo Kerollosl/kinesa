@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Play, Sparkles } from "lucide-react";
-import { CategoryIcon } from "./Wheel.jsx";
-import { categories } from "../data.js";
+import { Play } from "lucide-react";
 import { QUESTION_COUNTS, TIERS, normalizeSettings } from "../engine.js";
 import { loadPrefs } from "../prefs.js";
 
@@ -53,7 +51,7 @@ export default function PlaySheet({ onPlay }) {
         onPlay({ name, settings });
       }}
     >
-      <h2 id="modal-title">Set up your round</h2>
+      <h2 id="modal-title">Your round</h2>
       <label className="field-label" htmlFor="sheet-name">
         Your name
       </label>
@@ -66,33 +64,6 @@ export default function PlaySheet({ onPlay }) {
         autoComplete="nickname"
         onChange={(e) => setName(e.target.value)}
       />
-      <fieldset>
-        <legend>Category</legend>
-        <div className="sheet-chips">
-          <Choice
-            name="category"
-            value="mix"
-            checked={!settings.category}
-            onChange={() => update({ category: null })}
-            style={{ "--chip-color": "#4a2759" }}
-          >
-            <Sparkles size={16} aria-hidden="true" /> Mix
-          </Choice>
-          {categories.map((c) => (
-            <Choice
-              key={c.id}
-              name="category"
-              value={c.id}
-              checked={settings.category === c.id}
-              onChange={() => update({ category: c.id })}
-              style={{ "--chip-color": c.color }}
-            >
-              <CategoryIcon category={c} size={16} aria-hidden="true" />{" "}
-              {c.short}
-            </Choice>
-          ))}
-        </div>
-      </fieldset>
       <fieldset>
         <legend>Difficulty</legend>
         <div className="sheet-segments">
@@ -126,25 +97,6 @@ export default function PlaySheet({ onPlay }) {
           ))}
         </div>
       </fieldset>
-      <label
-        className={`sheet-switch ${settings.tier === "easy" ? "is-disabled" : ""}`}
-      >
-        <input
-          type="checkbox"
-          role="switch"
-          checked={settings.timed}
-          disabled={settings.tier === "easy"}
-          onChange={(e) => update({ timed: e.target.checked })}
-        />
-        <span>
-          <strong>Countdown clock</strong>
-          <small>
-            {settings.tier === "easy"
-              ? "Easy play is always untimed"
-              : "Faster answers earn up to 50 bonus points"}
-          </small>
-        </span>
-      </label>
       <button className="primary-button full" type="submit">
         <Play size={18} fill="currentColor" /> Play
       </button>

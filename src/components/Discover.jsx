@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Check, RotateCcw } from "lucide-react";
 import { categories, questions } from "../data.js";
 import { CategoryIcon } from "./Wheel.jsx";
-import "./learning-experience.css";
 
 export default function Discover({ setModal, openLobby, onQuiz }) {
   const [categoryId, setCategoryId] = useState("symbols");
@@ -164,7 +163,6 @@ export default function Discover({ setModal, openLobby, onQuiz }) {
           {categories.map((c) => (
             <button
               className={`explore-card le-topic-card ${c.id === categoryId ? "le-topic-selected" : ""}`}
-              data-glass
               key={c.id}
               style={{ "--le-accent": c.color, "--le-pale": c.pale }}
               aria-pressed={c.id === categoryId}

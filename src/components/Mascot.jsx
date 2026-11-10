@@ -1,7 +1,6 @@
 import { useId } from "react";
 import useCompanionMotion from "./useCompanionMotion.js";
 import { COMPANION_RIGS, RIG_ARTWORK, rigPlacement } from "./companion-rig.js";
-import "./companion-motion.css";
 
 export const MASCOTS = [
   {

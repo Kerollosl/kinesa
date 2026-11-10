@@ -4,7 +4,7 @@
 
 ## Platform
 
-web
+web, packaged for the App Store (published as "Coptic Trivia") with a Capacitor iOS wrapper; see `docs/STORE-CHECKLIST.md`
 
 ## Users
 
@@ -30,14 +30,14 @@ Few trivia apps are grounded in Coptic Orthodox tradition: the Coptic calendar, 
 - **Collection:** progress and badges stored on this device.
 - **Help:** "How to play" rules are always available.
 
-Data lives in the browser's localStorage (match, stats, nickname, sound, room preview). The app has no accounts, backend, or analytics.
+Data lives in the browser's localStorage on this device (match, stats, nickname, sound). The app has no accounts, backend, or analytics; there is nothing to sign in to or delete remotely.
 
 ## Capabilities and Constraints
 
-- **Stack:** React 19 + Vite, plain CSS, lucide-react icons, self-hosted DM Sans, painted companion rigs (WebGL → Canvas 2D → SVG fallbacks). Static hosting with hash navigation.
+- **Stack:** React 19 + Vite, plain CSS in a single token-based stylesheet (`src/styles.css`), lucide-react icons, self-hosted Alexandria (woff2), painted companion rigs (WebGL → Canvas 2D → SVG fallbacks). Static hosting with hash navigation.
 - **Saved data must survive upgrades.** Every localStorage format is versioned, and older versions are migrated, never discarded.
 - **No heavy dependencies:** each new dependency must be under 30 KB gzipped. Prefer CSS and the Web Animations API.
-- **Online multiplayer is not built.** Room codes are a local preview only. *Open decision:* whether Kinesa later gains accounts, remote rooms, or server-backed questions. Until that's decided, keep local data shapes plain and easy to sync.
+- **Online multiplayer is not built.** There are no rooms or room codes; friends play on one device. *Open decision:* whether Kinesa later gains accounts, remote rooms, or server-backed questions. Until that's decided, keep local data shapes plain and easy to sync.
 - **Question content** lives in a typed bank with exactly one correct answer, an explanation, and a verifiable source per question, checked by a validator script.
 
 ## Brand Commitments

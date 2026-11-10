@@ -145,13 +145,13 @@ test("Customize saves the round setup and the next Play now uses it", async ({
   await page.getByRole("button", { name: "Customize", exact: true }).click();
   const sheet = page.getByRole("dialog");
   await sheet.getByLabel("Your name").fill("Kerollos");
-  await sheet.getByRole("radio", { name: /Saints/ }).check();
   await sheet.getByRole("radio", { name: /^Easy/ }).check();
-  await expect(sheet.getByRole("switch")).toBeDisabled();
   await sheet.getByRole("radio", { name: "5", exact: true }).check();
   await sheet.getByRole("button", { name: "Play", exact: true }).click();
-  // A locked category skips the wheel and Easy play has no clock.
-  await expect(page.locator(".question-category")).toContainText("Saints");
+  // Easy play is untimed and starts at the wheel.
+  await page
+    .getByRole("button", { name: "Spin the wheel", exact: true })
+    .click();
   await expect(page.locator(".question-timer")).toContainText("No clock");
   await expect(page.locator(".score-player").first()).toContainText("Kerollos");
   const saved = await page.evaluate(() =>
@@ -161,81 +161,11 @@ test("Customize saves the round setup and the next Play now uses it", async ({
     tier: "easy",
     timed: false,
     questions: 5,
-    category: "saints",
   });
   await page.getByRole("button", { name: "Back to play", exact: true }).click();
   await expect(page.locator(".play-hero-meta")).toContainText(
-    "Saints only · Easy · 5 questions · No clock",
+    "Easy · 5 questions · No clock",
   );
-});
-
-test("friends preview supports joining its sample room and rejects unknown codes", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.getByRole("button", { name: /Play with friends/ }).click();
-  await page.getByRole("button", { name: "Join a room", exact: true }).click();
-  await page.getByLabel("Room code").fill("WRONG1");
-  await page.getByRole("button", { name: "Join room", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Try AMEN24");
-  await page.getByRole("button", { name: "AMEN24", exact: true }).click();
-  await page.getByRole("button", { name: "Join room", exact: true }).click();
-  await expect(page.locator(".friend-seat")).toHaveCount(3);
-  await page.getByRole("button", { name: "Deal our companions" }).click();
-  await expect(page.locator(".assignment-slot")).toHaveCount(3);
-});
-
-test("mobile scene reactions, keyboard dialogs, and navigation work without overflow", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  for (const name of ["Leo", "Lou", "Juno", "Mattie", "Leo", "Lou"]) {
-    await page
-      .getByRole("button", { name: `High-five ${name}`, exact: true })
-      .click();
-    await expect(page.locator(".gs-reaction")).toBeVisible();
-    await expect(page.locator(".gs-character-art .mascot")).toHaveCount(4);
-  }
-  await page
-    .getByRole("button", { name: "Give the trivia wheel a practice spin" })
-    .click();
-  await expect(
-    page.getByRole("button", { name: "Give the trivia wheel a practice spin" }),
-  ).toBeDisabled();
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  await page
-    .getByRole("button", { name: "How to play", exact: true })
-    .first()
-    .click();
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog")).toHaveCount(0);
-  await page.getByRole("button", { name: "Discover", exact: true }).click();
-  await expect(page.locator(".explore-card")).toHaveCount(6);
-  await page.getByRole("button", { name: "Collection", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "The trophy shelf." }),
-  ).toBeVisible();
-  await friendsLobby(page, 2);
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
-  await page
-    .getByRole("button", { name: "Spin the wheel", exact: true })
-    .click();
-  await expect(page.locator(".answer-option")).toHaveCount(4);
-  expect(
-    await page.evaluate(
-      () => document.documentElement.scrollWidth <= innerWidth,
-    ),
-  ).toBe(true);
 });
 
 test("blocked storage still supports friend matches and correct answers", async ({
@@ -257,30 +187,6 @@ test("blocked storage still supports friend matches and correct answers", async 
   const q = questions.find((q) => q.text === text);
   await page.locator(".answer-option").nth(q.correct).click();
   await expect(page.locator(".answer-reveal h2")).toContainText("Correct!");
-});
-
-test("small-phone hero text and interactive character bounds fit without clipping", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 320, height: 780 });
-  await page.goto("/");
-  const metrics = await page
-    .locator(".mobile-home-title h1")
-    .evaluate((e) => ({ client: e.clientWidth, scroll: e.scrollWidth }));
-  expect(metrics.scroll).toBeLessThanOrEqual(metrics.client);
-  const bounds = await page.locator(".game-scene").evaluate((scene) => {
-    const parent = scene.getBoundingClientRect();
-    return [...scene.querySelectorAll(".gs-character")].map((el) => {
-      const r = el.getBoundingClientRect();
-      return r.left >= parent.left - 1 && r.right <= parent.right + 1;
-    });
-  });
-  expect(bounds.every(Boolean)).toBe(true);
-  const animation = await page
-    .locator(".gs-character-art")
-    .first()
-    .evaluate((el) => getComputedStyle(el).animationName);
-  expect(animation).toBe("none");
 });
 
 test("mobile mode actions and navigation stay clear of game content", async ({
@@ -439,7 +345,7 @@ for (const width of [360, 390, 768, 1440]) {
         return (
           document
             .elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)
-            ?.closest("button") === button
+            ?.closest('[role="button"]') === button
         );
       }),
     ).toBe(true);

@@ -4,14 +4,11 @@ import {
   CalendarDays,
   CircleCheck,
   Flame,
-  Pause,
   Play,
-  RotateCcw,
   ShieldCheck,
   SlidersHorizontal,
   Users,
 } from "lucide-react";
-import GameScene from "./GameScene.jsx";
 import Mascot from "./Mascot.jsx";
 import Wheel, { CategoryIcon } from "./Wheel.jsx";
 import { CopticCross } from "./Ornaments.jsx";
@@ -25,7 +22,6 @@ import {
 import { describeSettings, loadPrefs } from "../prefs.js";
 import { churchSeason, formatCoptic, nextFeast } from "../calendar.js";
 import { DAILY_LENGTH, dailyStatus, spotlight } from "../daily.js";
-import "./home-tapestry.css";
 
 function TodayCard({ stats, playDaily }) {
   const today = new Date();
@@ -95,8 +91,10 @@ export default function Home({
   stats,
   setModal,
 }) {
-  const [motionPaused, setMotionPaused] = useState(false);
-  const [previewCategory, setPreviewCategory] = useState(null);
+  // One companion greets the player; it is stable for the session.
+  const [greeter] = useState(
+    () => ["lion", "ox", "eagle", "human"][Math.floor(Math.random() * 4)],
+  );
   const prefs = loadPrefs();
   const ongoing = game && game.phase !== "finished";
   const activePlayer = ongoing ? game.players[activeIndex(game)] : null;
@@ -136,13 +134,19 @@ export default function Home({
       )}
 
       <section className="play-hero" aria-labelledby="play-title">
+        <div className="play-hero-roundel">
+          <Wheel decorative rotation={0} onSpin={playNow} />
+          <span className="hero-companion" aria-hidden="true">
+            <Mascot kind={greeter} portrait />
+          </span>
+          <p className="spin-caption" aria-hidden="true">
+            Tap the wheel to play
+          </p>
+        </div>
         <div className="play-hero-copy">
-          <div className="mobile-home-title">
-            <h1 id="play-title">Ready for a round?</h1>
-          </div>
+          <h1 id="play-title">Ready for a round?</h1>
           <p className="play-hero-lead">
-            Scripture, saints, feasts and the story of the Coptic Church.
-            Everyone answers at once; the fastest and steadiest win.
+            Scripture, saints, feasts and the Coptic Church.
           </p>
           <div className="play-hero-actions">
             <button
@@ -152,29 +156,28 @@ export default function Home({
               <Play size={20} fill="currentColor" /> Play now
             </button>
             <button
-              className="secondary-button"
+              className="icon-button customize-button"
+              aria-label="Customize"
+              title="Customize"
               onClick={() => setModal({ type: "play-sheet" })}
             >
-              <SlidersHorizontal size={18} /> Customize
+              <SlidersHorizontal size={20} />
             </button>
           </div>
           <p className="play-hero-meta">
             {locked ? `${locked.short} only · ` : ""}
-            {describeSettings(prefs.settings)} · vs 3 practice bots
+            {describeSettings(prefs.settings)}
           </p>
           <button className="friends-card" onClick={() => openLobby("friends")}>
             <span className="friends-card-icon" aria-hidden="true">
-              <Users size={24} />
+              <Users size={22} />
             </span>
             <span className="friends-card-copy">
               <strong>Play with friends</strong>
-              <span>2–4 players take turns on one phone</span>
+              <span>2–4 players, one phone</span>
             </span>
             <ArrowRight size={20} aria-hidden="true" />
           </button>
-        </div>
-        <div className="play-hero-roundel" aria-hidden="true">
-          <Wheel decorative rotation={0} />
         </div>
       </section>
 
@@ -218,63 +221,6 @@ export default function Home({
         </div>
       </section>
 
-      <section
-        className="companions-section"
-        aria-labelledby="companions-heading"
-      >
-        <div className="section-heading">
-          <h2 id="companions-heading">Your Gospel companions</h2>
-          <button
-            className="text-button"
-            onClick={() => setModal({ type: "squad" })}
-          >
-            Meet the four <ArrowRight size={17} />
-          </button>
-        </div>
-        <p className="companions-lead">
-          Each match deals you one of four companions, after the traditional
-          symbols of the Gospel writers.
-        </p>
-        <div className="companions-stage">
-          <div className="feature-art">
-            <GameScene paused={motionPaused} onPreview={setPreviewCategory} />
-          </div>
-          <div className="scene-controls">
-            <div
-              className="scene-invitation"
-              aria-live="polite"
-              aria-atomic="true"
-            >
-              {previewCategory ? (
-                <>
-                  <CategoryIcon category={previewCategory} size={17} />
-                  <span>
-                    Landed on <strong>{previewCategory.name}</strong>
-                  </span>
-                </>
-              ) : (
-                <>
-                  <RotateCcw size={16} />
-                  <span>Try the wheel, or tap a companion</span>
-                </>
-              )}
-            </div>
-            <button
-              className="scene-motion-toggle"
-              aria-label={
-                motionPaused
-                  ? "Resume scene animation"
-                  : "Pause scene animation"
-              }
-              aria-pressed={motionPaused}
-              onClick={() => setMotionPaused((paused) => !paused)}
-            >
-              {motionPaused ? <Play size={15} /> : <Pause size={15} />}
-            </button>
-          </div>
-        </div>
-      </section>
-
       <footer className="play-footer">
         <CopticCross size={22} />
         <span className="play-footer-name">
@@ -283,10 +229,6 @@ export default function Home({
             كنيسة
           </span>
         </span>
-        <p>
-          “Kinesa” is the Arabic word for church. A local preview with sample
-          questions.
-        </p>
       </footer>
     </div>
   );

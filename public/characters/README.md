@@ -13,6 +13,8 @@ The self-hosted artwork is split into three transparent WebP atlases:
 - `kinesa-companion-torsos.webp`: torso artwork with overlap at moving joints.
 - `kinesa-companion-eyelids.webp`: matching painted blinks.
 
+The atlases ship at 75% of their authored size (1152×768, 1487×595 and 1629×543, about 0.46 MB in total). `RIG_ARTWORK` in `companion-rig.js` and every source window still use the authored (logical) size; `companion-materials.js` maps windows to the decoded pixels, so no coordinates changed. Keep the aspect ratios if you re-export.
+
 `src/components/companion-rig.js` defines source windows, destination boxes, eye positions and joint pivots. `Mascot.jsx` assembles those parts inside an accessible SVG with full-body and face-focused framing. Clip paths isolate each part without stretching its painted proportions.
 
 `companion-materials.js` crops the same paintings into reusable masked textures and composes matching painted eyelids into the head texture. `companion-deformation.js` curves those textures through head turns, torso bends, feather folds, restrained expressions and soft limb bends. `companion-surface.js` draws the mesh with WebGL, with a Canvas 2D mesh fallback. The original SVG stays usable when graphics initialization fails or a context is lost.

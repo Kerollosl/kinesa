@@ -100,7 +100,7 @@ test("leaving during a wheel spin pauses the match until the player resumes", as
     .getByRole("button", { name: "Spin the wheel", exact: true })
     .click();
   await expect(
-    page.getByRole("button", { name: "Choosing a category…", exact: true }),
+    page.getByRole("button", { name: "Spin the wheel", exact: true }),
   ).toBeDisabled();
   await page.getByRole("button", { name: "Back to play", exact: true }).click();
   await page.waitForTimeout(2900);

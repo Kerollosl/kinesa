@@ -81,7 +81,7 @@ const AnswerFeedback = forwardRef(function AnswerFeedback(
         </p>
       )}
       {simultaneous && (
-        <p className="feedback-rivals">{rivalsLine(game, focus)}</p>
+        <p className="feedback-rivals sr-only">{rivalsLine(game, focus)}</p>
       )}
       <section className="did-you-know" aria-labelledby="did-you-know-title">
         <h3 id="did-you-know-title">Did you know?</h3>

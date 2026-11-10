@@ -40,56 +40,56 @@ colors:
   ink-600: "#5f5266"
 typography:
   display:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "clamp(36px, 5vw, 56px)"
     fontWeight: 700
     lineHeight: 1.02
     letterSpacing: "-0.03em"
   headline:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "clamp(24px, 3vw, 32px)"
     fontWeight: 700
     lineHeight: 1.25
     letterSpacing: "-0.02em"
   headline-sm:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "26px"
     fontWeight: 700
     lineHeight: 1.1
     letterSpacing: "-0.02em"
   title:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "22px"
     fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.02em"
   title-sm:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "18px"
     fontWeight: 700
     lineHeight: 1.25
   body-lg:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.55
   body:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.55
   body-sm:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "14px"
     fontWeight: 500
     lineHeight: 1.45
   label:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 700
     lineHeight: 1.3
   caption:
-    fontFamily: "Alexandria, DM Sans, system-ui, sans-serif"
+    fontFamily: "Alexandria, system-ui, sans-serif"
     fontSize: "12px"
     fontWeight: 600
     lineHeight: 1.3
@@ -213,7 +213,7 @@ A committed palette: purple carries structure and the six category dyes carry me
 
 ## Typography
 
-**Display Font:** Alexandria (self-hosted variable woff, Latin subset plus the Arabic letters of كنيسة), with DM Sans and system-ui as fallbacks.
+**Display Font:** Alexandria (self-hosted variable woff2, Latin subset plus the Arabic letters of كنيسة), with system-ui as the fallback.
 **Body Font:** Alexandria.
 
 **Character:** a geometric Egyptian sans named for St. Mark's see. It is set heavy (700) and slightly tight for headings, and regular for reading.

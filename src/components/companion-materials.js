@@ -43,12 +43,18 @@ function croppedPart(part, images) {
   const [x, y, width, height] = part.source;
   const scale = Math.min(1, 512 / Math.max(width, height));
   const { canvas, context } = surface(width * scale, height * scale);
+  // Source windows are authored in the atlas's logical size (RIG_ARTWORK); the
+  // shipped bitmaps may be smaller, so map windows to the decoded pixels.
+  const name = part.art || "parts";
+  const image = images[name];
+  const kx = image.naturalWidth / RIG_ARTWORK[name].width;
+  const ky = image.naturalHeight / RIG_ARTWORK[name].height;
   context.drawImage(
-    images[part.art || "parts"],
-    x,
-    y,
-    width,
-    height,
+    image,
+    x * kx,
+    y * ky,
+    width * kx,
+    height * ky,
     0,
     0,
     canvas.width,

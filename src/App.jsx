@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   Check,
+  CloudOff,
   Compass,
   Gamepad2,
   HelpCircle,
@@ -15,7 +16,6 @@ import {
 } from "lucide-react";
 import Mascot, { MASCOTS } from "./components/Mascot.jsx";
 import Home from "./components/Home.jsx";
-import useGlassLight from "./useGlassLight.js";
 import { loadMatch, persistMatch } from "./session.js";
 import { CategoryIcon } from "./components/Wheel.jsx";
 import Game from "./components/Game.jsx";
@@ -50,6 +50,7 @@ import { createSound } from "./sound.js";
 import { PRACTICE_BOTS, loadPrefs, savePrefs } from "./prefs.js";
 import { CopticCross } from "./components/Ornaments.jsx";
 import PlaySheet from "./components/PlaySheet.jsx";
+import AboutLinks from "./components/AboutLinks.jsx";
 import {
   DAILY_LENGTH,
   SPOTLIGHT_MULTIPLIER,
@@ -72,7 +73,6 @@ const matchBaseline = (stats) => ({
   categoryStart: { ...stats.categoryCorrect },
 });
 export default function App() {
-  useGlassLight();
   const [savedMatch] = useState(loadMatch);
   const [matchMode, setMatchMode] = useState(savedMatch?.mode || "random");
   const [page, setPage] = useState(() =>
@@ -99,7 +99,7 @@ export default function App() {
   const statsRef = useRef(stats);
   const setStats = (next) => {
     statsRef.current = next;
-    saveStats(next);
+    if (!saveStats(next)) warnStorage();
     setStatsState(next);
   };
   const [matchMeta, setMatchMeta] = useState(() =>
@@ -111,7 +111,23 @@ export default function App() {
   gameRef.current = game;
   const spinningRef = useRef(false);
   const mainRef = useRef(null);
-  const [toast, setToast] = useState("");
+  const [toast, setToastText] = useState("");
+  const [toastTone, setToastTone] = useState("ok");
+  const setToast = (text, tone = "ok") => {
+    setToastTone(tone);
+    setToastText(text);
+  };
+  // Storage can be full or blocked (private browsing). Play continues in
+  // memory; say so once instead of silently losing progress.
+  const storageWarned = useRef(false);
+  function warnStorage() {
+    if (storageWarned.current) return;
+    storageWarned.current = true;
+    setToast(
+      "Storage is full or blocked, so progress won’t be kept after you close Kinesa.",
+      "warn",
+    );
+  }
   const spinTimer = useRef(null);
   const revealTimer = useRef(null);
   const soundRef = useRef(sound);
@@ -130,7 +146,9 @@ export default function App() {
     saveLocal("kinesa-sound", sound);
   }, [sound]);
   useEffect(() => {
-    setCanSave(persistMatch(game, matchMode));
+    const saved = persistMatch(game, matchMode);
+    setCanSave(saved);
+    if (!saved && game) warnStorage();
   }, [game, matchMode]);
   useEffect(() => {
     saveLocal("kinesa-match-meta", matchMeta);
@@ -188,9 +206,12 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (!toast) return;
-    const timer = setTimeout(() => setToast(""), 2400);
+    const timer = setTimeout(
+      () => setToastText(""),
+      toastTone === "warn" ? 6000 : 2400,
+    );
     return () => clearTimeout(timer);
-  }, [toast]);
+  }, [toast, toastTone]);
   // Practice play starts in one tap with the saved name and settings.
   const playNow = (overrides = {}) => {
     const prefs = loadPrefs();
@@ -609,14 +630,6 @@ export default function App() {
           >
             <HelpCircle size={20} />
           </button>
-          <button
-            className="guest-pill"
-            onClick={() => navigate("collection")}
-            aria-label="View your collection"
-          >
-            <span>K</span>
-            <strong>Guest player</strong>
-          </button>
         </div>
       </header>
       <main
@@ -691,13 +704,17 @@ export default function App() {
         )}
       </main>
       <div
-        className={`app-toast ${toast ? "is-visible" : ""}`}
+        className={`app-toast ${toast ? "is-visible" : ""} ${toastTone === "warn" ? "is-warn" : ""}`}
         role="status"
         aria-live="polite"
       >
         {toast && (
           <>
-            <Check size={16} />
+            {toastTone === "warn" ? (
+              <CloudOff size={16} />
+            ) : (
+              <Check size={16} />
+            )}
             {toast}
           </>
         )}
@@ -731,7 +748,7 @@ export default function App() {
                 {[
                   [
                     "Find your people",
-                    "Join a random game or invite your friends. This edition previews both flows locally.",
+                    "Tap Play now for a practice match against clearly labeled bots, or pass one phone around with two to four friends.",
                   ],
                   [
                     "Meet your companion",
@@ -757,6 +774,9 @@ export default function App() {
               >
                 Got it <ArrowRight size={20} />
               </button>
+              <p className="modal-about">
+                <AboutLinks />
+              </p>
             </>
           )}
           {modal.type === "squad" && (

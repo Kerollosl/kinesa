@@ -16,7 +16,7 @@ import { CategoryIcon } from "./Wheel.jsx";
 import Mascot from "./Mascot.jsx";
 import { levelInfo, masteryFor, nextMastery } from "../progress.js";
 import { dailyStatus } from "../daily.js";
-import "./learning-experience.css";
+import AboutLinks from "./AboutLinks.jsx";
 
 export default function Collection({ stats, setModal, openLobby }) {
   const badges = categories.filter((c) => stats.badges.includes(c.id));
@@ -160,7 +160,6 @@ export default function Collection({ stats, setModal, openLobby }) {
             const tier = masteryFor(stats.categoryCorrect[c.id] || 0);
             return (
               <button
-                data-glass
                 className={`le-badge-card ${earned ? "le-badge-earned" : ""} ${selectedId === c.id ? "le-badge-selected" : ""} ${tier ? `is-${tier.id}` : ""}`}
                 style={{ "--le-accent": c.color, "--le-pale": c.pale }}
                 key={c.id}
@@ -253,9 +252,12 @@ export default function Collection({ stats, setModal, openLobby }) {
       <div className="le-local-note">
         <BookOpen size={15} />
         <p>
-          Progress stays in this browser. Discover samples don’t earn badges.
+          Progress stays on this device. Discover samples don’t earn badges.
         </p>
       </div>
+      <p className="le-about">
+        <AboutLinks />
+      </p>
     </div>
   );
 }

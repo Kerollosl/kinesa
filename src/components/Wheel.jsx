@@ -27,12 +27,31 @@ export default function Wheel({
   rotation = 0,
   spinning = false,
   decorative = false,
+  onSpin = null,
+  disabled = false,
 }) {
+  // With onSpin the wheel itself is the control: tap, Enter or Space spins it.
+  const interactive = typeof onSpin === "function";
+  const press = (e) => {
+    if (!interactive || disabled) return;
+    if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    onSpin();
+  };
+  const control = interactive
+    ? {
+        role: "button",
+        tabIndex: disabled ? -1 : 0,
+        "aria-label": "Spin the wheel",
+        "aria-disabled": disabled || undefined,
+        onClick: press,
+        onKeyDown: press,
+      }
+    : { role: "img", "aria-label": "Six-category trivia wheel" };
   return (
     <div
-      className={`wheel-wrap roundel-wheel ${decorative ? "decorative" : ""}`}
-      aria-label="Six-category trivia wheel"
-      role="img"
+      className={`wheel-wrap roundel-wheel ${decorative ? "decorative" : ""} ${interactive ? "is-tappable" : ""} ${interactive && disabled ? "is-disabled" : ""}`}
+      {...control}
     >
       <div className="wheel-pointer" />
       <div

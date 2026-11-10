@@ -69,8 +69,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
 ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-DM Sans is distributed with its OFL license in /fonts/.
-
 Alexandria (Copyright 2022 The Alexandria Project Authors, https://github.com/Gue3bara/Alexandria)
 is distributed with its OFL license in /fonts/. The shipped file is a Latin subset
 plus the letters of the Arabic word كنيسة.
