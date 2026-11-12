@@ -12,7 +12,10 @@ const config: CapacitorConfig = {
     // Safe areas are handled in CSS (viewport-fit=cover + env(safe-area-inset-*)), so the webview runs edge to edge.
     contentInset: "never",
     backgroundColor: "#3d1f4a",
-    scrollEnabled: false,
+    // The page scrolls (Home, Collection, long results on small phones), so the
+    // webview must keep native scrolling. Bounce is removed in CSS instead
+    // (overscroll-behavior), not by disabling scroll.
+    scrollEnabled: true,
   },
   plugins: {
     SplashScreen: {

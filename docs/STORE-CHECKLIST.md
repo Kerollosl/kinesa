@@ -16,6 +16,11 @@ Everything below is preparation. Nothing has been run: no `cap add ios`, no Xcod
    - `UIViewControllerBasedStatusBarAppearance` = `true`.
 5. Privacy manifest (`PrivacyInfo.xcprivacy`): no data collected, no tracking. Add a required-reason entry only if a plugin you add uses one.
 
+## Safe areas, status bar and scrolling (checked in CSS, not yet on a device)
+- The webview runs edge to edge (`contentInset: "never"`, `overlaysWebView: true`) and the status bar text is light. Pages with the purple app header put that header under the status bar. In a match and in setup the header is hidden, so a fixed purple band the height of `env(safe-area-inset-top)` is drawn there (Layer 17 in `src/styles.css`).
+- `ios.scrollEnabled` must stay `true`: the page scrolls. Rubber-banding is removed with `overscroll-behavior-y: none`.
+- Check on a device: the Dynamic Island band in a match, the home indicator under the tab bar and the sticky action bars, and the keyboard on the friends setup (the webview should resize so Deal stays above it).
+
 ## Service worker and offline
 - Kinesa has no service worker and no network calls; everything ships in the bundle. Nothing to disable in the wrapper.
 - It is not an installable PWA yet (manifest and icons only). Add a service worker only if you want offline web use; the Heads Up app has a wrapper-safe example.

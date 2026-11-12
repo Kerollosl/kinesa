@@ -27,6 +27,7 @@ export default function Wheel({
   rotation = 0,
   spinning = false,
   decorative = false,
+  quick = false,
   onSpin = null,
   disabled = false,
 }) {
@@ -55,7 +56,7 @@ export default function Wheel({
     >
       <div className="wheel-pointer" />
       <div
-        className={`wheel ${spinning ? "spinning" : ""}`}
+        className={`wheel ${spinning ? "spinning" : ""} ${quick ? "is-quick" : ""}`}
         style={{ transform: `rotate(${rotation}deg)` }}
       >
         <svg viewBox="0 0 320 320" aria-hidden="true">

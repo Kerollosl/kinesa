@@ -6,6 +6,9 @@ test("Discover samples explain answers without changing game progress", async ({
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: "Discover", exact: true }).click();
+  // The sample waits behind a tap; the topics lead.
+  await expect(page.locator(".le-question legend")).toHaveCount(0);
+  await page.getByRole("button", { name: "Try a sample" }).click();
   const text = await page.locator(".le-question legend").textContent();
   const sample = questions.find((q) => q.text === text);
   await page
@@ -24,12 +27,12 @@ test("Discover samples explain answers without changing game progress", async ({
   await expect(page.locator(".le-question legend")).not.toHaveText(text);
   await expect(page.locator(".le-question legend")).toBeFocused();
   await page
-    .locator(".le-topic-card")
+    .locator(".topic-tile")
     .filter({ hasText: "Bible Stories" })
     .click();
   await expect(page.locator("#discovery-heading")).toHaveText("Bible Stories");
   await expect(page.locator(".le-question legend")).toBeFocused();
-  await expect(page.locator(".le-topic-selected")).toContainText(
+  await expect(page.locator(".topic-tile.is-selected")).toContainText(
     "Bible Stories",
   );
   expect(
@@ -74,13 +77,13 @@ test("Collection shows actual progress, badge details, and survives a direct ref
   ).toBeVisible();
   await expect(page.locator(".le-badge-earned")).toHaveCount(1);
   // Games, correct answers, badges, day streak; the level has its own row.
-  await expect(page.locator(".le-stat strong")).toHaveText([
+  await expect(page.locator(".shelf-stat strong")).toHaveText([
     "2",
     "4",
     "1 / 6",
     "0",
   ]);
-  await expect(page.locator(".le-level-name")).toHaveText("Level 1");
+  await expect(page.locator(".shelf-level-name")).toHaveText("Level 1");
 });
 
 test("friends setup has no room codes and clears the retired room preview", async ({

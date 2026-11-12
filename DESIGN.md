@@ -90,7 +90,7 @@ typography:
     lineHeight: 1.3
   caption:
     fontFamily: "Alexandria, system-ui, sans-serif"
-    fontSize: "12px"
+    fontSize: "13px"
     fontWeight: 600
     lineHeight: 1.3
 rounded:
@@ -98,6 +98,7 @@ rounded:
   xs: "6px"
   sm: "8px"
   md: "12px"
+  card: "16px"
   lg: "18px"
   pill: "999px"
 spacing:
@@ -227,21 +228,21 @@ A committed palette: purple carries structure and the six category dyes carry me
 - **Headline small** (700, 26px): the wordmark and big numbers (day streak).
 - **Title small** (700, 18px): strip and card titles (Play with friends).
 - **Body large / small** (16px / 14px): leads and short helper lines; meta and links.
-- **Label / Caption** (700 13px / 600 12px): chips, tabs, tags, nav labels. Nothing informative is smaller than 12px.
+- **Label / Caption** (700 13px / 600 13px): chips, tabs, tags, nav labels. Nothing informative is smaller than 13px.
 
 ### Named Rules
 
 **The Question Leads Rule.** On the question screen, the question outranks every other element in size and weight.
 
-**The Twelve Pixel Rule.** No informative or interactive text below 12px, including BOT tags and stat labels.
+**The Thirteen Pixel Rule.** No informative or interactive text below 13px, including BOT tags, tab labels and stat labels. Scores, timers and counts use tabular numerals.
 
 ## Layout
 
-The layout is a single centered column (max 1120px on Home; question panes up to 760px). Home stacks the hero (copy plus roundel, side by side on desktop and roundel-first on phones; Play now, Customize and the friends strip sit together in it), the Today card, a friends strip, a category grid (6 columns, then 3, then 2 at 380px) and the companions panel. Spacing steps are 8, 12, 16, 22 and 34px, with more space above a section heading than below it. Below 760px the main tabs move into a fixed bottom bar with safe-area padding, and content gets matching bottom padding. In matches and setup the bottom bar is hidden. Layouts are verified at 360px with no horizontal scroll.
+The layout is a single centered column (max 1120px on Home; question panes up to 760px). Home stacks the hero (copy plus roundel, side by side on desktop and roundel-first on phones; Play now, Customize and the friends strip sit together in it), the Today card, a friends strip, a category grid (6 columns, then 3, then 2 at 380px) and the companions panel. Spacing steps are 8, 12, 16, 22 and 34px, with more space above a section heading than below it. Below 760px the main tabs move into a fixed bottom bar with safe-area padding, and content gets matching bottom padding. In matches and setup the app header and the bottom bar are hidden; a woven purple band the height of the top safe area keeps the status bar legible. On phones every flow screen is one top row, the content, and a primary action anchored at the bottom in an **action bar** (Rematch, Next round, Deal our companions, Game on). Tablets and desktops letterbox results, standings and setup into a 600px column. Layouts are verified from 360px to 1024px with no horizontal scroll.
 
 ## Elevation & Depth
 
-Depth comes mostly from material contrast: purple fields against linen, and linen panes on a linen ground. A single soft edge shadow (a hairline plus a long, low blur) lifts reading panes and chips off the ground; buttons and podium blocks take a slightly deeper version of it. There are no inset button lips, glass, blur or glow.
+Depth comes mostly from material contrast: purple fields against linen, and linen panes on a linen ground. A surface takes one elevation: a single soft edge shadow (a hairline plus a long, low blur) lifts reading panes and chips off the ground, with no border on top of it; buttons and podium blocks take a slightly deeper version of it. There are no inset button lips, glass, blur or glow.
 
 ### Shadow Vocabulary
 
@@ -250,7 +251,7 @@ Depth comes mostly from material contrast: purple fields against linen, and line
 
 ## Shapes
 
-Shapes are soft rectangles like folded cloth: 3px for progress cells and bars, 6px for small tags, 8px for letter tabs and nav tabs, 12px for buttons, answers, chips and inputs, and 18px for panes and the woven fields. Circles are reserved for the roundel wheel, the level medal, the cross emblem and companion portraits. Borders are 1–1.5px linen strokes; a selected state swaps to purple. The clavus band (linen lozenges on a dyed strip) is the recurring edge motif: under the header and across the top of each question pane in the category's dye.
+Shapes are soft rectangles like folded cloth: 3px for progress cells and bars, 6px for small tags, 8px for letter tabs and nav tabs, 12px for small controls, answers, chips and inputs, 16px for cards, rows, tiles and primary buttons, and 18px for dialogs, panes and the woven fields. Circles are reserved for the roundel wheel, the level medal, the cross emblem and companion portraits. Borders are 1–1.5px linen strokes; a selected state swaps to purple. The clavus band (linen lozenges on a dyed strip) is the recurring edge motif: under the header and across the top of each question pane in the category's dye.
 
 ## Components
 
@@ -266,9 +267,25 @@ Shapes are soft rectangles like folded cloth: 3px for progress cells and bars, 6
 
 Answers are white tabs with a pale category letter square. A picked answer (while waiting for the others) turns pale purple with a purple stroke. On reveal, the correct answer floods dye green with white text and a small burst; a wrong pick turns pale madder with a short shake. The rest dim to 60%. In practice play, initials of everyone who chose an option sit on it.
 
-### Score chips
+### Match top row and avatar rail
 
-Chips are linen tabs with a portrait, name and score. The current player's chip (or yours, in practice play) becomes a purple woven field. Bots carry a small corner tab. Live states: thinking dots, a green locked-in tick, then a "+points" or "Missed" bubble on reveal. The streak count shows with a flame.
+In a match there is one top row: back, an avatar rail and the rules button, with the progress as a thin segmented line beneath it (no bar, no box). The rail holds one round portrait over a tabular score per player; the current player's chip (or yours, in practice play) becomes a purple woven field. Live states: thinking dots, a green locked-in tick, then a "+points" or "Missed" bubble on reveal (pale madder with dark text, AA). The streak flame sits on the chip corner and pops once each time the streak grows.
+
+### Question stage and inline reveal
+
+The question sits flat on the page, not in a card: a category-dye clavus band, the category pill and timer, the question in the free space, and the four answers anchored at the thumb. On reveal nothing overlays: the answers stay visible with the right and wrong rows marked, the category-tinted "Did you know?" pane and its one-line source follow in the flow, and Next is sticky at the bottom.
+
+### Action bar
+
+The primary action of a flow screen sits in a bar anchored at the bottom of the screen (safe-area aware) with up to three icon buttons beside it (Results: Different category, Share result, Change players). Icon buttons carry accessible names and titles.
+
+### Ranked rows
+
+Results and the between-round standings share one list: rank (a trophy for the leader), round portrait, name (a BOT tag for practice bots), a check and the correct count, and the score in tabular numerals. The player's own row is a purple woven field. There is no separate podium. Results lead with three icon figures (correct, XP, streak) and the level bar.
+
+### Topic tiles and the shelf
+
+Discover leads with six tall topic tiles filled with their dye, a check on the selected one, then a "Try a sample" toggle and the Quiz action. Collection opens with a short summary (progress ring around a companion portrait, one line, one action), the four-across ledger, the level bar and badges as medallions three across.
 
 ### Inputs and controls
 
@@ -288,11 +305,15 @@ Lucide line icons for five categories; Church Traditions uses the twelve-point C
 
 ### Ledger strip
 
-Collection figures (games, correct answers, badges, day streak) read inline with their labels in one linen strip divided by 1px hairlines (four across; two by two on phones), not as separate icon cards or big-number tiles. The level and XP bar follow on their own labelled row.
+Collection figures (games, correct answers, badges, day streak) read as one row of four, each an icon over a tabular number over a short label, divided by 1px hairlines, not as separate cards. The level and XP bar follow on their own labelled row.
 
 ### Clavus progress
 
-Match progress is a purple band holding one linen cell per question (per round in pass-and-play); answered cells fill weld yellow.
+Match progress is a thin segmented line, one cell per question (per round in pass-and-play); answered cells fill weld yellow.
+
+### Motion
+
+Motion is quiet and one-shot, under 350ms, with a strong ease-out; only transform, opacity and colour animate. Press feedback is scale 0.97. The few authored moments: the wheel's category landing on the question, the streak flame pop, the results emblem spring and the figures counting up, a new friend row easing in, the Today dots filling, and the tab bar's pill sliding between tabs. Nothing loops except the timer and the 90-second turn of the Home wheel. Under reduced motion, movement is removed (the pill snaps, numbers show their final value) while colour and state changes stay. Vibration follows the sound toggle.
 
 ## Do's and Don'ts
 
@@ -302,7 +323,7 @@ Match progress is a purple band holding one linen cell per question (per round i
 - **Do** color a question's band, letter tabs, "Did you know?" pane and timer with its category dye.
 - **Do** draw Coptic forms from exact geometry, and describe Coptic practice as Coptic tradition.
 - **Do** keep one madder primary action per view, with press feedback at scale 0.97.
-- **Do** keep secondary text at ink-700 or darker on linen, and nothing below 12px.
+- **Do** keep secondary text at ink-700 or darker on linen, and nothing below 13px.
 
 ### Don't:
 

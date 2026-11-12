@@ -1,12 +1,15 @@
-import { useState } from "react";
 import {
   ArrowRight,
   CalendarDays,
-  CircleCheck,
+  Check,
   Flame,
+  Gauge,
+  ListChecks,
   Play,
   ShieldCheck,
   SlidersHorizontal,
+  Timer,
+  TimerOff,
   Users,
 } from "lucide-react";
 import Mascot from "./Mascot.jsx";
@@ -28,57 +31,115 @@ function TodayCard({ stats, playDaily }) {
   const { coptic, feast, season } = churchSeason(today);
   const coming = !feast && !season ? nextFeast(today) : null;
   const daily = dailyStatus(stats, today);
+  const got = daily.done ? daily.result.correct : 0;
+  const note = feast
+    ? feast.name
+    : season
+      ? season.name
+      : coming
+        ? `${coming.name} in ${coming.days} days`
+        : "";
   return (
-    <section className="today-card" aria-labelledby="today-title">
-      <div className="today-calendar">
-        <CalendarDays size={18} aria-hidden="true" />
-        <span>
-          <strong>{formatCoptic(coptic)}</strong>
-          {feast
-            ? ` · ${feast.name}`
-            : season
-              ? ` · ${season.name}`
-              : coming
-                ? ` · ${coming.name} in ${coming.days} days`
-                : ""}
-        </span>
-      </div>
-      <div className="today-body">
-        <div className="today-copy">
+    <section className="home-today" aria-labelledby="today-title">
+      <div className="home-today-head">
+        <div className="home-today-title">
           <h2 id="today-title">Today’s five</h2>
-          <p>
-            {daily.done
-              ? `You got ${daily.result.correct} of ${daily.result.total} today. A new set arrives tomorrow.`
-              : `${DAILY_LENGTH} questions, the same for everyone today. One try, then come back tomorrow.`}
-          </p>
         </div>
-        <div className="today-streak" aria-label={`${daily.streak}-day streak`}>
-          <Flame size={22} aria-hidden="true" />
-          <strong>{daily.streak}</strong>
-          <span>day streak</span>
+        <div className="home-today-stats">
+          <span
+            className="home-today-streak"
+            role="img"
+            aria-label={`${daily.streak}-day streak`}
+          >
+            <Flame size={18} aria-hidden="true" />
+            <strong>{daily.streak}</strong>
+          </span>
+          {daily.freezes > 0 && (
+            <span
+              className="home-today-freeze"
+              role="img"
+              aria-label={`${daily.freezes} streak ${daily.freezes === 1 ? "freeze" : "freezes"} saved`}
+              title="A saved freeze covers one missed day"
+            >
+              <ShieldCheck size={16} aria-hidden="true" />
+              <strong>{daily.freezes}</strong>
+            </span>
+          )}
         </div>
       </div>
-      <div className="today-actions">
+      <span className="home-today-date">
+        <CalendarDays size={15} aria-hidden="true" />
+        <span>
+          {formatCoptic(coptic)}
+          {note ? ` · ${note}` : ""}
+        </span>
+      </span>
+      <div className="home-today-row">
+        <ol
+          className="home-today-dots"
+          aria-label={
+            daily.done
+              ? `${got} of ${daily.result.total} correct today`
+              : `${DAILY_LENGTH} questions today`
+          }
+        >
+          {Array.from({ length: DAILY_LENGTH }, (_, i) => (
+            <li
+              key={i}
+              className={i < got ? "is-got" : ""}
+              style={{ "--d": i }}
+            />
+          ))}
+        </ol>
         {daily.done ? (
-          <span className="today-done">
-            <CircleCheck size={18} aria-hidden="true" /> Done for today
+          <span className="home-today-done">
+            <Check size={18} aria-hidden="true" /> Done
           </span>
         ) : (
-          <button className="primary-button" onClick={playDaily}>
-            Play today’s five <ArrowRight size={18} />
-          </button>
-        )}
-        {daily.freezes > 0 && (
-          <span
-            className="today-freeze"
-            title="A saved freeze covers one missed day"
+          <button
+            className="primary-button home-today-play"
+            aria-label="Play today’s five"
+            onClick={playDaily}
           >
-            <ShieldCheck size={16} aria-hidden="true" /> {daily.freezes} streak{" "}
-            {daily.freezes === 1 ? "freeze" : "freezes"} saved
-          </span>
+            Play <ArrowRight size={18} aria-hidden="true" />
+          </button>
         )}
       </div>
     </section>
+  );
+}
+
+function SettingChips({ settings, locked }) {
+  const tier = settings.tier[0].toUpperCase() + settings.tier.slice(1);
+  const clock = settings.timed ? `${settings.seconds}s` : "Off";
+  return (
+    <ul
+      className="home-chips"
+      aria-label={`${locked ? `${locked.short} only, ` : ""}${describeSettings(settings).replaceAll(" · ", ", ")}`}
+    >
+      {locked && (
+        <li style={{ "--chip-color": locked.color }}>
+          <CategoryIcon category={locked} size={15} aria-hidden="true" />
+          {locked.short}
+        </li>
+      )}
+      <li>
+        <Gauge size={15} aria-hidden="true" />
+        {tier}
+      </li>
+      <li>
+        <ListChecks size={15} aria-hidden="true" />
+        {settings.questions}
+      </li>
+      <li>
+        {settings.timed ? (
+          <Timer size={15} aria-hidden="true" />
+        ) : (
+          <TimerOff size={15} aria-hidden="true" />
+        )}
+        {clock}
+      </li>
+    </ul>
   );
 }
 
@@ -91,10 +152,6 @@ export default function Home({
   stats,
   setModal,
 }) {
-  // One companion greets the player; it is stable for the session.
-  const [greeter] = useState(
-    () => ["lion", "ox", "eagle", "human"][Math.floor(Math.random() * 4)],
-  );
   const prefs = loadPrefs();
   const ongoing = game && game.phase !== "finished";
   const activePlayer = ongoing ? game.players[activeIndex(game)] : null;
@@ -133,55 +190,41 @@ export default function Home({
         </button>
       )}
 
-      <section className="play-hero" aria-labelledby="play-title">
-        <div className="play-hero-roundel">
+      <section className="home-play" aria-labelledby="play-title">
+        <h1 id="play-title" className="sr-only">
+          Ready for a round?
+        </h1>
+        <div className="home-wheel">
           <Wheel decorative rotation={0} onSpin={playNow} />
-          <span className="hero-companion" aria-hidden="true">
-            <Mascot kind={greeter} portrait />
-          </span>
-          <p className="spin-caption" aria-hidden="true">
-            Tap the wheel to play
-          </p>
         </div>
-        <div className="play-hero-copy">
-          <h1 id="play-title">Ready for a round?</h1>
-          <p className="play-hero-lead">
-            Scripture, saints, feasts and the Coptic Church.
-          </p>
-          <div className="play-hero-actions">
-            <button
-              className="primary-button play-now"
-              onClick={() => playNow()}
-            >
-              <Play size={20} fill="currentColor" /> Play now
-            </button>
-            <button
-              className="icon-button customize-button"
-              aria-label="Customize"
-              title="Customize"
-              onClick={() => setModal({ type: "play-sheet" })}
-            >
-              <SlidersHorizontal size={20} />
-            </button>
-          </div>
-          <p className="play-hero-meta">
-            {locked ? `${locked.short} only · ` : ""}
-            {describeSettings(prefs.settings)}
-          </p>
-          <button className="friends-card" onClick={() => openLobby("friends")}>
-            <span className="friends-card-icon" aria-hidden="true">
-              <Users size={22} />
-            </span>
-            <span className="friends-card-copy">
-              <strong>Play with friends</strong>
-              <span>2–4 players, one phone</span>
-            </span>
-            <ArrowRight size={20} aria-hidden="true" />
+        <div className="home-actions">
+          <button className="primary-button play-now" onClick={() => playNow()}>
+            <Play size={20} fill="currentColor" /> Play now
+          </button>
+          <button
+            className="icon-button customize-button"
+            aria-label="Customize"
+            title="Customize"
+            onClick={() => setModal({ type: "play-sheet" })}
+          >
+            <SlidersHorizontal size={20} />
           </button>
         </div>
+        <SettingChips settings={prefs.settings} locked={locked} />
       </section>
 
       <TodayCard stats={stats} playDaily={playDaily} />
+
+      <button className="home-friends" onClick={() => openLobby("friends")}>
+        <span className="home-friends-icon" aria-hidden="true">
+          <Users size={22} />
+        </span>
+        <span className="home-friends-copy">
+          <strong>Play with friends</strong>
+          <span>2–4 players, one phone</span>
+        </span>
+        <ArrowRight size={20} aria-hidden="true" />
+      </button>
 
       <section className="topics-section" aria-labelledby="topics-heading">
         <div className="section-heading">

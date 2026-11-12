@@ -64,6 +64,8 @@ import { dayKey } from "./calendar.js";
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const SPIN_MS = 2200;
+// Practice and daily rounds spin themselves, so the beat is short.
+const SPIN_QUICK_MS = 1000;
 // A short beat after everyone locks in, so the reveal lands as one moment.
 const LOCK_BEAT_MS = 650;
 
@@ -317,9 +319,10 @@ export default function App() {
   const spin = () => {
     if (spinningRef.current || gameRef.current?.phase !== "spin") return;
     spinningRef.current = true;
+    const quick = isSimultaneous(gameRef.current);
     const index = Math.floor(Math.random() * categories.length);
     const target = (360 - (index * 60 + 30)) % 360;
-    setRotation((r) => r + (360 - (r % 360)) + 1080 + target);
+    setRotation((r) => r + (360 - (r % 360)) + (quick ? 720 : 1080) + target);
     setSpinning(true);
     play("spin");
     spinTimer.current = setTimeout(
@@ -330,7 +333,7 @@ export default function App() {
         spinningRef.current = false;
         setSpinning(false);
       },
-      reducedMotion() ? 150 : SPIN_MS,
+      reducedMotion() ? 150 : quick ? SPIN_QUICK_MS : SPIN_MS,
     );
   };
 
@@ -502,6 +505,23 @@ export default function App() {
     }, 200);
     return () => clearTimeout(timer);
   }, [game?.phase, game?.turn, page]);
+  // Practice and daily rounds spin the wheel themselves: Play now is one tap
+  // and the question follows. Friends keep the tap, so each player spins.
+  useEffect(() => {
+    if (
+      page !== "game" ||
+      !tabActive ||
+      modal ||
+      spinning ||
+      game?.phase !== "spin" ||
+      !isSimultaneous(game) ||
+      game.settings?.category ||
+      game.settings?.plan
+    )
+      return;
+    const timer = setTimeout(spin, game.turn === 0 ? 200 : 450);
+    return () => clearTimeout(timer);
+  }, [game?.phase, game?.turn, page, spinning, modal, tabActive]);
   const advance = () => {
     const current = gameRef.current;
     if (current?.phase !== "reveal") return;
@@ -584,6 +604,13 @@ export default function App() {
           <span className="brand-word">kinesa</span>
         </button>
         <nav className="main-nav" aria-label="Main navigation">
+          <span
+            className="nav-indicator"
+            aria-hidden="true"
+            style={{
+              "--i": page === "categories" ? 1 : page === "collection" ? 2 : 0,
+            }}
+          />
           {[
             ["home", Gamepad2, "Play"],
             ["categories", Compass, "Discover"],
@@ -698,7 +725,6 @@ export default function App() {
               if (current?.phase === "standings")
                 updateGame({ ...current, phase: "handoff" });
             }}
-            onHome={() => navigate("home")}
             onToast={setToast}
           />
         )}
@@ -738,7 +764,6 @@ export default function App() {
               <span className="modal-sticker">
                 <Gamepad2 size={36} />
               </span>
-              <div className="eyebrow">THE 30-SECOND TOUR</div>
               <h2 id="modal-title">
                 Easy to play.
                 <br />
@@ -781,7 +806,6 @@ export default function App() {
           )}
           {modal.type === "squad" && (
             <>
-              <div className="eyebrow">FOUR GOSPELS. FOUR PERSONALITIES.</div>
               <h2 id="modal-title">Who’s your game-day self?</h2>
               <p className="modal-lead">
                 You’ll find out when the game deals your companion. Every player
@@ -808,7 +832,6 @@ export default function App() {
               const m = MASCOTS.find((m) => m.kind === modal.player.kind);
               return (
                 <div className="player-detail">
-                  <div className="eyebrow">{modal.player.name}’S COMPANION</div>
                   <h2 id="modal-title">Meet {m.name}.</h2>
                   <div
                     className="player-detail-art"
@@ -817,7 +840,8 @@ export default function App() {
                     <Mascot kind={m.kind} />
                   </div>
                   <p className="modal-lead">
-                    The {m.kind} · Gospel of {m.gospel}
+                    {modal.player.name}’s companion · the {m.kind} · Gospel of{" "}
+                    {m.gospel}
                   </p>
                   <p className="companion-personality">{m.personality}</p>
                   <div className="player-detail-stats">
@@ -847,7 +871,6 @@ export default function App() {
               <span className="modal-sticker">
                 <Gamepad2 size={32} />
               </span>
-              <div className="eyebrow">YOU HAVE A GAME IN PROGRESS</div>
               <h2 id="modal-title">Start a fresh game?</h2>
               <p className="modal-lead">
                 Starting this match replaces the current game on this device,
@@ -891,7 +914,6 @@ export default function App() {
               >
                 <CategoryIcon category={modal.category} size={36} />
               </span>
-              <div className="eyebrow">EXPLORE THE WHEEL</div>
               <h2 id="modal-title">{modal.category.name}</h2>
               <p className="modal-lead">{modal.category.detail}</p>
               <div className="category-example">

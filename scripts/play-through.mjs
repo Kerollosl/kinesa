@@ -133,7 +133,8 @@ async function playMatch(page, shot, { friends }) {
     const spin = button(page, /^Spin( the wheel)?$/i);
     if ((await visible(spin)) && (await spin.isEnabled().catch(() => false))) {
       await shot("spin");
-      await spin.click();
+      // Practice and daily rounds spin themselves; friends rounds wait for a tap.
+      await spin.click({ timeout: 1500 }).catch(() => {});
       await page.waitForTimeout(500);
       await shot("spinning");
       continue;

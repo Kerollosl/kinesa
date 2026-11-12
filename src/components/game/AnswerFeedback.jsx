@@ -75,18 +75,13 @@ const AnswerFeedback = forwardRef(function AnswerFeedback(
           </div>
         </div>
       </div>
-      {!correct && (
-        <p className="correct-answer-label">
-          The answer: <strong>{q.answers[q.correct]}</strong>
-        </p>
-      )}
       {simultaneous && (
         <p className="feedback-rivals sr-only">{rivalsLine(game, focus)}</p>
       )}
       <section className="did-you-know" aria-labelledby="did-you-know-title">
         <h3 id="did-you-know-title">Did you know?</h3>
         <p>{q.explanation}</p>
-        <span className="source-chip">
+        <span className="did-you-know-source">
           <BookOpen size={14} aria-hidden="true" />
           <span className="sr-only">Source: </span>
           {q.source}

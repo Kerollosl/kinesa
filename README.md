@@ -33,11 +33,11 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 - **Play with friends:** two to four players take turns on one phone. A full-screen cover hides each question until the next player is ready, and standings appear after every round.
 - **Today's five:** a daily challenge of five questions from five categories, the same for everyone on a given date. One try a day, a day streak, and streak freezes (earned every seven days, up to two) that cover a missed day.
 - **Coptic calendar:** Home shows today's Coptic date (Era of the Martyrs) and the current fast, feast or season — Great Lent, Holy Week, the Holy Fifty Days, the Apostles' Fast, the Nativity Fast and more — computed from the Orthodox Pascha.
-- **Progression:** XP and levels, per-category mastery (Bronze 5, Silver 15, Gold 30 correct), a weekly spotlight category worth 1.5× XP, and badge and level-up moments on the results screen. Results show your own placing, a podium, one-tap **Rematch** or another category, and a shareable result image.
+- **Progression:** XP and levels, per-category mastery (Bronze 5, Silver 15, Gold 30 correct), a weekly spotlight category worth 1.5× XP, and badge and level-up moments on the results screen. Results lead with what you got right, your XP and streak, then one ranked list with your own row highlighted, a one-tap **Rematch** in a bottom bar, another category, and a shareable result image.
 - **Discover:** sample questions per category, then **Quiz me on** that category.
 - **Collection:** games, correct answers, badges, level and day streak, with mastery on each badge.
-- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each match and appear as avatars, on the handoff cover and on the podium. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
-- **Accessible by default:** keyboard answers (A–D or 1–4), visible focus, AA text colors with a 12px floor, 44px touch targets, reduced-motion paths, sound off by default, and vibration only when sound is on.
+- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each match and appear as avatars, on the handoff cover and in the ranked lists. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
+- **Accessible by default:** keyboard answers (A–D or 1–4), visible focus, AA text colors with a 13px floor, 44px touch targets, reduced-motion paths, sound off by default, and vibration only when sound is on.
 
 ## The look: Akhmim tapestry
 

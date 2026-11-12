@@ -68,7 +68,11 @@ export default function ScoreChips({
                   {p.score}
                 </span>
                 {p.streak >= 2 && !finished && (
-                  <span className="chip-streak" title={`${p.streak} in a row`}>
+                  <span
+                    key={p.streak}
+                    className="chip-streak"
+                    title={`${p.streak} in a row`}
+                  >
                     <Flame size={13} aria-hidden="true" />
                     {p.streak}
                   </span>

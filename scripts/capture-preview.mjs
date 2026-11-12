@@ -208,15 +208,12 @@ if (!process.argv.includes("--motion-only")) {
   await capture(page, "docs/kinesa-results.png");
   await page.setViewportSize({ width: 390, height: 844 });
   await capture(page, "docs/kinesa-results-mobile.png");
-  await page.locator(".final-score-row").first().click();
+  await page.locator(".rank-row").first().click();
   await page
     .getByRole("dialog")
     .screenshot({ path: "docs/kinesa-companion.png" });
   await page.keyboard.press("Escape");
-  await page
-    .locator(".results-actions")
-    .getByRole("button", { name: "Back to play", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Back to play", exact: true }).click();
   await page.getByRole("button", { name: "Collection", exact: true }).click();
   await page.locator(".le-badge-earned").first().click();
   await page.setViewportSize({ width: 1440, height: 1120 });

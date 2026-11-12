@@ -51,17 +51,34 @@ export default function Collection({ stats, setModal, openLobby }) {
 
   return (
     <div className="le-page le-collection">
-      <header className="le-intro">
-        <div>
-          <h1>The trophy shelf.</h1>
-        </div>
-      </header>
+      <h1 className="sr-only">The trophy shelf.</h1>
 
       <section
-        className="le-collection-overview"
+        className="shelf-summary"
         aria-labelledby="collection-progress-heading"
       >
-        <div className="le-collection-copy">
+        <div className="shelf-ring">
+          <svg
+            viewBox="0 0 200 200"
+            role="img"
+            aria-label={`${badges.length} of 6 category badges earned`}
+          >
+            <circle className="shelf-ring-track" cx="100" cy="100" r="88" />
+            <circle
+              className="shelf-ring-fill"
+              cx="100"
+              cy="100"
+              r="88"
+              pathLength="100"
+              strokeDasharray={`${(badges.length / 6) * 100} 100`}
+              transform="rotate(-90 100 100)"
+            />
+          </svg>
+          <span className="shelf-ring-character" aria-hidden="true">
+            <Mascot kind="lion" portrait />
+          </span>
+        </div>
+        <div className="shelf-copy">
           <h2 id="collection-progress-heading">
             {completed
               ? "You’ve explored every side."
@@ -71,55 +88,25 @@ export default function Collection({ stats, setModal, openLobby }) {
           </h2>
           <p>
             {completed
-              ? "All six categories, all yours. There’s always another question to get right."
+              ? "All six categories, all yours."
               : "Correct answers unlock category badges."}
           </p>
-          <button
-            className="le-solid-action"
-            onClick={() => openLobby("random")}
-          >
-            {badges.length ? "Keep collecting" : "Play your first game"}
-            <ArrowRight size={17} />
-          </button>
         </div>
-        <div className="le-collection-orbit">
-          <svg
-            className="le-progress-ring"
-            viewBox="0 0 200 200"
-            role="img"
-            aria-label={`${badges.length} of 6 category badges earned`}
-          >
-            <circle className="le-ring-track" cx="100" cy="100" r="83" />
-            <circle
-              className="le-ring-fill"
-              cx="100"
-              cy="100"
-              r="83"
-              pathLength="100"
-              strokeDasharray={`${(badges.length / 6) * 100} 100`}
-              transform="rotate(-90 100 100)"
-            />
-          </svg>
-          <span className="le-ring-character" aria-hidden="true">
-            <Mascot kind="lion" />
-          </span>
-          <span className="le-ring-count">
-            <Medal size={14} /> {badges.length} / 6
-          </span>
-        </div>
+        <button className="le-solid-action" onClick={() => openLobby("random")}>
+          {badges.length ? "Keep collecting" : "Play your first game"}
+          <ArrowRight size={17} />
+        </button>
       </section>
 
-      <div className="le-stats-grid" aria-label="Your game statistics">
+      <div className="shelf-stats" aria-label="Your game statistics">
         {[
-          [Trophy, stats.games, "Games completed"],
-          [Zap, stats.correct, "Correct answers"],
-          [Medal, `${badges.length} / 6`, "Category badges"],
-          [Flame, daily.streak, "Day streak"],
+          [Trophy, stats.games, "Games"],
+          [Zap, stats.correct, "Correct"],
+          [Medal, `${badges.length} / 6`, "Badges"],
+          [Flame, daily.streak, "Streak"],
         ].map(([Icon, value, label]) => (
-          <div className="le-stat" key={label}>
-            <span className="le-stat-icon">
-              <Icon size={19} />
-            </span>
+          <div className="shelf-stat" key={label}>
+            <Icon size={20} aria-hidden="true" />
             <strong>{value}</strong>
             <span>{label}</span>
           </div>
@@ -127,20 +114,20 @@ export default function Collection({ stats, setModal, openLobby }) {
       </div>
 
       <div
-        className="le-level-track"
+        className="shelf-level"
         role="progressbar"
         aria-label={`Level ${level.level} progress`}
         aria-valuemin={0}
         aria-valuemax={level.span}
         aria-valuenow={level.into}
       >
-        <span>
-          <strong className="le-level-name">Level {level.level}</strong>{" "}
+        <span className="shelf-level-text">
+          <strong className="shelf-level-name">Level {level.level}</strong> ·{" "}
           <strong>{stats.xp} XP</strong> · {level.next - stats.xp} to level{" "}
           {level.level + 1}
           {daily.best > 0 && ` · best daily streak ${daily.best}`}
         </span>
-        <span className="le-level-bar" aria-hidden="true">
+        <span className="shelf-level-bar" aria-hidden="true">
           <i style={{ transform: `scaleX(${level.progress})` }} />
         </span>
       </div>

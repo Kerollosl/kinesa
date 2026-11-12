@@ -76,10 +76,15 @@ test("a four-player friends match randomly assigns unique companions, scores tie
     }),
   ).toBeVisible();
   const leaders = await page
-    .locator(".final-score-row strong")
+    .locator(".rank-row .rank-name strong")
     .evaluateAll((nodes) => nodes.slice(0, 4).map((n) => n.textContent));
   expect(leaders.filter((t) => t === "Mina" || t === "Mary").length).toBe(2);
-  await expect(page.locator(".podium-step")).toHaveCount(3);
+  // One ranked list holds every player; there is no separate podium.
+  await expect(page.locator(".rank-row")).toHaveCount(4);
+  await expect(page.locator(".podium-step")).toHaveCount(0);
+  await expect(
+    page.getByRole("button", { name: "Rematch", exact: true }),
+  ).toBeInViewport();
   const stats = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kinesa-stats")),
   );
@@ -103,9 +108,6 @@ test("Play now starts a practice match in one tap where bots answer alongside th
 }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /^Play now/ }).click();
-  await expect(
-    page.getByRole("heading", { name: "Question 1 of 10" }),
-  ).toBeVisible();
   await expect(page.locator(".score-player .bot-tag")).toHaveCount(3);
   const kinds = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kinesa-match")).game.players.map(
@@ -113,9 +115,7 @@ test("Play now starts a practice match in one tap where bots answer alongside th
     ),
   );
   expect(new Set(kinds).size).toBe(4);
-  await page
-    .getByRole("button", { name: "Spin the wheel", exact: true })
-    .click();
+  // Practice rounds spin themselves: no second tap before the question.
   await expect(page.locator(".answer-option")).toHaveCount(4);
   await expect(page.locator(".question-timer")).toBeVisible();
   const text = await page.locator(".question-stage h1").textContent();
@@ -129,9 +129,14 @@ test("Play now starts a practice match in one tap where bots answer alongside th
   await page
     .getByRole("button", { name: "Next question", exact: true })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "Question 2 of 10" }),
-  ).toBeVisible();
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => JSON.parse(localStorage.getItem("kinesa-match")).game.turn,
+      ),
+    )
+    .toBe(1);
+  await expect(page.locator(".answer-option")).toHaveCount(4);
   const stats = await page.evaluate(() =>
     JSON.parse(localStorage.getItem("kinesa-stats")),
   );
@@ -148,10 +153,7 @@ test("Customize saves the round setup and the next Play now uses it", async ({
   await sheet.getByRole("radio", { name: /^Easy/ }).check();
   await sheet.getByRole("radio", { name: "5", exact: true }).check();
   await sheet.getByRole("button", { name: "Play", exact: true }).click();
-  // Easy play is untimed and starts at the wheel.
-  await page
-    .getByRole("button", { name: "Spin the wheel", exact: true })
-    .click();
+  // Easy play is untimed, and the wheel spins itself.
   await expect(page.locator(".question-timer")).toContainText("No clock");
   await expect(page.locator(".score-player").first()).toContainText("Kerollos");
   const saved = await page.evaluate(() =>
@@ -163,9 +165,10 @@ test("Customize saves the round setup and the next Play now uses it", async ({
     questions: 5,
   });
   await page.getByRole("button", { name: "Back to play", exact: true }).click();
-  await expect(page.locator(".play-hero-meta")).toContainText(
-    "Easy · 5 questions · No clock",
-  );
+  // The settings read as icon chips; the list's label spells them out.
+  await expect(
+    page.getByRole("list", { name: "Easy, 5 questions, No clock" }),
+  ).toBeVisible();
 });
 
 test("blocked storage still supports friend matches and correct answers", async ({
@@ -287,13 +290,13 @@ test("players can revise the room after a companion reveal and start with the re
   await page.getByRole("textbox", { name: "Player 1 name" }).fill("Mina");
   await page.getByRole("textbox", { name: "Player 2 name" }).fill("Mary");
   await page.getByRole("button", { name: "Deal our companions" }).click();
-  await expect(
-    page.locator('.setup-progress [aria-current="step"]'),
-  ).toContainText("Meet your companions");
+  await expect(page.locator('.setup-dots [aria-current="step"]')).toContainText(
+    "Meet your companions",
+  );
   await page.getByRole("button", { name: "Edit players", exact: true }).click();
-  await expect(
-    page.locator('.setup-progress [aria-current="step"]'),
-  ).toContainText("Set up");
+  await expect(page.locator('.setup-dots [aria-current="step"]')).toContainText(
+    "Set up",
+  );
   await expect(
     page.getByRole("textbox", { name: "Player 2 name" }),
   ).toHaveValue("Mary");
@@ -370,16 +373,20 @@ for (const width of [360, 390, 768, 1440]) {
     const resultCompanion = await page.locator(".reveal-mascot").boundingBox();
     const next = page.locator(".answer-reveal .primary-button");
     const nextBox = await next.boundingBox();
-    expect(resultCompanion.y + resultCompanion.height).toBeLessThanOrEqual(
-      nextBox.y,
-    );
+    // Phones drop the reveal companion (the score chips already show each
+    // verdict); wider layouts keep it clear of the Next button.
+    if (resultCompanion)
+      expect(resultCompanion.y + resultCompanion.height).toBeLessThanOrEqual(
+        nextBox.y,
+      );
+    else expect(width).toBeLessThanOrEqual(760);
     // "Did you know?" is part of the reward, shown without an extra tap.
     await expect(page.locator(".did-you-know p")).toHaveText(
       question.explanation,
     );
-    await expect(page.locator(".did-you-know .source-chip")).toContainText(
-      question.source,
-    );
+    await expect(
+      page.locator(".did-you-know .did-you-know-source"),
+    ).toContainText(question.source);
     await expect(next).toBeEnabled();
   });
 }

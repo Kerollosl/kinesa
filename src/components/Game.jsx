@@ -38,7 +38,6 @@ export default function Game({
   onRematch,
   onPractice,
   onEditPlayers,
-  onHome,
   onReady,
   onContinue,
   onHelp,
@@ -68,10 +67,12 @@ export default function Game({
   useEffect(() => {
     if (game.phase === "reveal") {
       feedbackRef.current?.focus({ preventScroll: true });
-      feedbackRef.current?.scrollIntoView({
-        block: "nearest",
-        behavior: reduced() ? "instant" : "smooth",
-      });
+      // Phones keep the score chips in view; the Next button is sticky.
+      if (!window.matchMedia("(max-width: 760px)").matches)
+        feedbackRef.current?.scrollIntoView({
+          block: "nearest",
+          behavior: reduced() ? "instant" : "smooth",
+        });
       const entry = game.answers?.[focus];
       if (entry?.correct && !player.isBot)
         burst(optionRefs.current[q.correct], [
@@ -156,6 +157,7 @@ export default function Game({
         </span>
         <div
           className="match-progress"
+          hidden={finished}
           role="progressbar"
           aria-label="Questions answered"
           aria-valuenow={answered}
@@ -177,6 +179,15 @@ export default function Game({
             })}
           </div>
         </div>
+        {!finished && !["handoff", "standings"].includes(game.phase) && (
+          <ScoreChips
+            game={game}
+            focus={focus}
+            simultaneous={simultaneous}
+            finished={finished}
+            onInspectPlayer={onInspectPlayer}
+          />
+        )}
         <div className="game-top-tools">
           {!savedLocally && (
             <span
@@ -197,15 +208,6 @@ export default function Game({
           </button>
         </div>
       </div>
-      {!["handoff", "standings"].includes(game.phase) && (
-        <ScoreChips
-          game={game}
-          focus={focus}
-          simultaneous={simultaneous}
-          finished={finished}
-          onInspectPlayer={onInspectPlayer}
-        />
-      )}
       {game.phase === "handoff" && (
         <HandoffCover
           player={player}
@@ -227,9 +229,11 @@ export default function Game({
       {game.phase === "spin" && (
         <section className="spin-stage">
           <div className="turn-heading">
-            <div className="turn-companion" aria-hidden="true">
-              <Mascot kind={player.kind} />
-            </div>
+            {!simultaneous && (
+              <div className="turn-companion" aria-hidden="true">
+                <Mascot kind={player.kind} />
+              </div>
+            )}
             <h1 ref={phaseHeading} tabIndex={-1}>
               {simultaneous
                 ? `Question ${round} of ${rounds}`
@@ -242,6 +246,7 @@ export default function Game({
             <Wheel
               rotation={rotation}
               spinning={spinning}
+              quick={simultaneous}
               onSpin={spin}
               disabled={
                 spinning ||
@@ -251,7 +256,10 @@ export default function Game({
               }
             />
           </div>
-          <p className="spin-caption" role="status">
+          <p
+            className={`spin-status ${simultaneous ? "sr-only" : ""}`}
+            role="status"
+          >
             {game.settings?.plan
               ? "Drawing today’s next question…"
               : game.settings?.category
@@ -344,7 +352,10 @@ export default function Game({
             })}
           </div>
           {game.phase === "question" ? (
-            <p className="question-hint" aria-live="polite">
+            <p
+              className={`question-hint ${!locked && !player.isBot ? "sr-only" : ""}`}
+              aria-live="polite"
+            >
               {locked
                 ? "Locked in. Waiting for the others…"
                 : player.isBot
@@ -373,7 +384,6 @@ export default function Game({
           onRematch={onRematch}
           onPractice={onPractice}
           onEditPlayers={onEditPlayers}
-          onHome={onHome}
           onInspectPlayer={onInspectPlayer}
           onToast={onToast}
         />
