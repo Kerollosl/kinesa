@@ -2,7 +2,7 @@ import { forwardRef } from "react";
 import { ArrowRight, Check, X } from "lucide-react";
 import { categories } from "../../data.js";
 import { CategoryIcon } from "../Wheel.jsx";
-import Mascot from "../Mascot.jsx";
+import Companion from "../Companion.jsx";
 import { goalOf } from "../../classic.js";
 import { Scoreboard } from "./Board.jsx";
 import { PlayTop } from "./Parts.jsx";
@@ -26,7 +26,7 @@ const Rival = forwardRef(function Rival(
       <PlayTop onExit={onExit} onRules={onRules} />
       <div className="rival-hero">
         <span className="rival-art" aria-hidden="true">
-          <Mascot kind={bot.kind} mood={won.length ? "celebrate" : "happy"} />
+          <Companion kind={bot.kind} act={won.length ? "cheer" : "sad"} />
         </span>
         <h1 id="rival-title" ref={ref} tabIndex={-1}>
           {bot.name}’s turn

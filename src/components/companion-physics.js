@@ -553,7 +553,8 @@ function targetsFor(state) {
   const featherLag =
     Math.sin(t * 2.1 + phase * 0.8) * (state.kind === "eagle" ? 0.65 : 0.22);
   const freeHand = Math.sin(t * 1.7 + phase) * (human ? 0.65 : 0.24);
-  const armLimit = (angle) => clamp(angle, human ? -55 : -30, human ? 55 : 30);
+  // Small enough that a limb never swings its painted peg out from the body.
+  const armLimit = (angle) => clamp(angle, human ? -32 : -22, human ? 32 : 22);
   const bodyRotation = weightShift * 3.1 + torsoLean * 4.0 - landing * 0.7;
   const headRotation =
     curiosity * profile.curiosity +

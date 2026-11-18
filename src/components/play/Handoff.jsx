@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { ArrowRight, EyeOff } from "lucide-react";
-import Mascot from "../Mascot.jsx";
+import Companion from "../Companion.jsx";
 import { InterlaceRing } from "../Ornaments.jsx";
 import { CategoryPips, Meter } from "./Pips.jsx";
 
@@ -15,7 +15,7 @@ const Handoff = forwardRef(function Handoff(
         <svg viewBox="0 0 320 320" aria-hidden="true">
           <InterlaceRing radius={146} width={14} crossings={24} />
         </svg>
-        <Mascot kind={player.kind} mood="celebrate" />
+        <Companion kind={player.kind} act="wave" />
       </div>
       <p className="handoff-kicker">
         <EyeOff size={16} aria-hidden="true" /> Pass the phone

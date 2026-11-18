@@ -1,4 +1,11 @@
-import { COMPANION_RIGS, RIG_ARTWORK, rigPlacement } from "./companion-rig.js";
+import {
+  COMPANION_RIGS,
+  LID_COVER,
+  LID_SOLID,
+  RIG_ARTWORK,
+  jointFeather,
+  rigPlacement,
+} from "./companion-rig.js";
 
 // The source paintings are decoded once. Cropped, masked materials are shared
 // across rigs; a blink only recomposes the small head texture that needs it.
@@ -76,6 +83,37 @@ function croppedPart(part, images) {
   return { image: canvas, placement, version: 0 };
 }
 
+// Fades a part out around its joint so the painted peg melts into the body.
+function featherJoint(material, feather) {
+  if (!feather) return material;
+  const { canvas, context } = surface(
+    material.image.width,
+    material.image.height,
+  );
+  context.drawImage(material.image, 0, 0);
+  context.globalCompositeOperation = "destination-out";
+  worldCoordinates(context, canvas, material.placement);
+  const fade = context.createRadialGradient(
+    feather.x,
+    feather.y,
+    0,
+    feather.x,
+    feather.y,
+    feather.radius,
+  );
+  fade.addColorStop(0, "black");
+  fade.addColorStop(feather.clear, "black");
+  fade.addColorStop(1, "transparent");
+  context.fillStyle = fade;
+  context.fillRect(
+    feather.x - feather.radius,
+    feather.y - feather.radius,
+    feather.radius * 2,
+    feather.radius * 2,
+  );
+  return { ...material, image: canvas };
+}
+
 function collarMaterial(body, rig) {
   const { canvas, context } = surface(body.image.width, body.image.height);
   context.drawImage(body.image, 0, 0);
@@ -95,8 +133,8 @@ function collarMaterial(body, rig) {
 
 function lidMaterial(rig, index, images) {
   const eye = rig.eyes[index];
-  const rx = eye.rx * 1.28;
-  const ry = eye.ry * 1.28;
+  const rx = eye.rx * LID_COVER;
+  const ry = eye.ry * LID_COVER;
   const box = { x: eye.x - rx, y: eye.y - ry, width: rx * 2, height: ry * 2 };
   const { canvas, context } = surface(box.width * 3, box.height * 3);
   worldCoordinates(context, canvas, box);
@@ -113,7 +151,7 @@ function lidMaterial(rig, index, images) {
   context.scale(rx, ry);
   const feather = context.createRadialGradient(0, 0, 0, 0, 0, 1);
   feather.addColorStop(0, "white");
-  feather.addColorStop(0.8, "white");
+  feather.addColorStop(LID_SOLID, "white");
   feather.addColorStop(1, "transparent");
   context.fillStyle = feather;
   context.fillRect(-1, -1, 2, 2);
@@ -153,7 +191,13 @@ export function loadCompanionMaterials(kind) {
               "wingRight",
               "armLeft",
               "armRight",
-            ].map((name) => [name, croppedPart(rig[name], images)]),
+            ].map((name) => [
+              name,
+              featherJoint(
+                croppedPart(rig[name], images),
+                jointFeather(kind, name),
+              ),
+            ]),
           );
           if (rig.collar) parts.collar = collarMaterial(parts.body, rig);
           if (kind === "human") parts.halo = haloMaterial();

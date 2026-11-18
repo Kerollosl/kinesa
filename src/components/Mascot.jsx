@@ -1,6 +1,13 @@
 import { useId } from "react";
 import useCompanionMotion from "./useCompanionMotion.js";
-import { COMPANION_RIGS, RIG_ARTWORK, rigPlacement } from "./companion-rig.js";
+import {
+  COMPANION_RIGS,
+  LID_COVER,
+  LID_SOLID,
+  RIG_ARTWORK,
+  jointFeather,
+  rigPlacement,
+} from "./companion-rig.js";
 
 export const MASCOTS = [
   {
@@ -37,7 +44,7 @@ export const MASCOTS = [
   },
 ];
 
-function RigPart({ part, id }) {
+function RigPart({ part, id, feather = null }) {
   const placement = rigPlacement(part);
   const art = RIG_ARTWORK[part.art || "parts"];
   const { x, y, width, height } = placement;
@@ -57,16 +64,49 @@ function RigPart({ part, id }) {
             <rect x={x} y={y} width={width} height={height} />
           )}
         </clipPath>
+        {feather && (
+          <>
+            <radialGradient
+              id={`${id}-fade`}
+              cx={feather.x}
+              cy={feather.y}
+              r={feather.radius}
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0" stopColor="black" />
+              <stop offset={feather.clear} stopColor="black" />
+              <stop offset="1" stopColor="white" />
+            </radialGradient>
+            <mask
+              id={`${id}-mask`}
+              maskUnits="userSpaceOnUse"
+              x={x - 20}
+              y={y - 20}
+              width={width + 40}
+              height={height + 40}
+            >
+              <rect
+                x={x - 20}
+                y={y - 20}
+                width={width + 40}
+                height={height + 40}
+                fill={`url(#${id}-fade)`}
+              />
+            </mask>
+          </>
+        )}
       </defs>
-      <image
-        href={art.href}
-        x={placement.imageX}
-        y={placement.imageY}
-        width={art.width * placement.scale}
-        height={art.height * placement.scale}
-        preserveAspectRatio="none"
-        clipPath={`url(#${id})`}
-      />
+      <g mask={feather ? `url(#${id}-mask)` : undefined}>
+        <image
+          href={art.href}
+          x={placement.imageX}
+          y={placement.imageY}
+          width={art.width * placement.scale}
+          height={art.height * placement.scale}
+          preserveAspectRatio="none"
+          clipPath={`url(#${id})`}
+        />
+      </g>
     </g>
   );
 }
@@ -81,15 +121,15 @@ function Eyelids({ rig, id }) {
         <defs>
           <radialGradient id={`${id}-lid-feather-${index}`}>
             <stop offset="0" stopColor="white" />
-            <stop offset=".8" stopColor="white" />
+            <stop offset={LID_SOLID} stopColor="white" />
             <stop offset="1" stopColor="black" />
           </radialGradient>
           <mask id={`${id}-lid-mask-${index}`}>
             <ellipse
               cx={eye.x}
               cy={eye.y}
-              rx={eye.rx * 1.28}
-              ry={eye.ry * 1.28}
+              rx={eye.rx * LID_COVER}
+              ry={eye.ry * LID_COVER}
               fill={`url(#${id}-lid-feather-${index})`}
             />
           </mask>
@@ -178,17 +218,33 @@ export default function Mascot({
       )}
       <g className="mascot-body" data-joint="body" data-pivot="100 181">
         <g {...joint("wingLeft")}>
-          <RigPart part={rig.wingLeft} id={`${id}-wing-left`} />
+          <RigPart
+            part={rig.wingLeft}
+            id={`${id}-wing-left`}
+            feather={jointFeather(companion.kind, "wingLeft")}
+          />
         </g>
         <g {...joint("wingRight")}>
-          <RigPart part={rig.wingRight} id={`${id}-wing-right`} />
+          <RigPart
+            part={rig.wingRight}
+            id={`${id}-wing-right`}
+            feather={jointFeather(companion.kind, "wingRight")}
+          />
         </g>
         <RigPart part={rig.body} id={`${id}-torso`} />
         <g {...joint("armLeft")}>
-          <RigPart part={rig.armLeft} id={`${id}-arm-left`} />
+          <RigPart
+            part={rig.armLeft}
+            id={`${id}-arm-left`}
+            feather={jointFeather(companion.kind, "armLeft")}
+          />
         </g>
         <g {...joint("armRight")}>
-          <RigPart part={rig.armRight} id={`${id}-arm-right`} />
+          <RigPart
+            part={rig.armRight}
+            id={`${id}-arm-right`}
+            feather={jointFeather(companion.kind, "armRight")}
+          />
         </g>
         {rig.collar && (
           <g>

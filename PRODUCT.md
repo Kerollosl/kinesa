@@ -53,6 +53,7 @@ Data lives in the browser's localStorage on this device (match, stats, nickname,
 - **Reverence:** be playful about the *game*, never about God, the saints, scripture, or liturgy. No jokes at any denomination's expense.
 - **Neutral framing:** present Coptic Orthodox positions as Coptic tradition, not as the only Christian view, unless the category is explicitly Coptic. Keep broadly Christian content accessible to everyone.
 - **About the companions:** they are fictional characters inspired by the traditional Gospel symbols, not portraits of the evangelists.
+- **Companion direction (November 2026):** flat 2D cartoon characters animated in Rive, lively and bouncy, moving as one piece. The painted rig is a stopgap until new layered art exists; see `docs/companions-brief.md`. Adding the Rive runtime (~222 KB) needs an exception to the dependency-size rule below.
 
 ## Evidence on Hand
 

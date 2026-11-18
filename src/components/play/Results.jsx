@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import Mascot, { MASCOTS } from "../Mascot.jsx";
+import Companion from "../Companion.jsx";
 import { CategoryIcon } from "../Wheel.jsx";
 import { InterlaceRing } from "../Ornaments.jsx";
 import { categories } from "../../data.js";
@@ -272,7 +273,18 @@ const Results = forwardRef(function Results(
           <svg viewBox="0 0 320 320">
             <InterlaceRing radius={146} width={14} crossings={24} />
           </svg>
-          <Mascot kind={hero.kind} mood={iWon ? "celebrate" : "happy"} />
+          <Companion
+            kind={hero.kind}
+            act={
+              daily
+                ? me.correct >= total - 1
+                  ? "win"
+                  : me.correct >= 2
+                    ? "cheer"
+                    : "sad"
+                : "win"
+            }
+          />
           {iWon && !daily && (
             <span className="results-trophy">
               <Trophy size={22} />

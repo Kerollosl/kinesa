@@ -21,6 +21,8 @@ The atlases ship at 75% of their authored size (1152×768, 1487×595 and 1629×5
 
 `companion-physics.js` coordinates authored performance beats with spring-driven joints and skin fields. Retargeting preserves position and velocity. Greetings commit weight before reaching; hugs nestle the head and curl the wings; jumps anticipate, lift and regain foot contact. `useCompanionMotion.js` shares one scheduler, suspends hidden/offscreen rigs and freezes the current pose when paused. Portraits and reduced motion use the original SVG artwork.
 
+Joints: the parts were painted like toy pieces with round pegs and knobs. `jointFeather()` in `companion-rig.js` fades each wing and arm out around its pivot (in both the SVG and the canvas/WebGL materials) so pegs melt into the body, arm swing is clamped to ±22° (±32° for Mattie), and blink patches (`LID_COVER`) reach past the painted eye so no outline shows. Screens ask for acts through `src/components/Companion.jsx` (`idle`, `wave`, `cheer`, `win`, `sad`); whole-body squash, stretch and droop live in CSS (`.toon-*`). The planned flat 2D Rive rebuild is described in `docs/companions-brief.md`.
+
 When revising placement or motion, preserve the original faces and silhouettes. Review joint overlap, blinks, repeated greetings, portrait cropping and the full cast at phone and desktop sizes. Keep movement restrained enough that the painted parts remain connected.
 
 Regenerate the cast gallery with `node scripts/capture-preview.mjs --companions-only`, or all app previews and the motion recording with `node scripts/capture-preview.mjs`, against the running Vite server. The script also supports `--stills-only`, `--motion-only` and `PLAYWRIGHT_CHROMIUM_EXECUTABLE`.

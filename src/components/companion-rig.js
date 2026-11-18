@@ -142,6 +142,38 @@ export const COMPANION_RIGS = {
   },
 };
 
+// The parts were painted like toy pieces, with round pegs and knobs where
+// they attach. Around each moving joint the part fades out (fully clear within
+// `clear` of the pivot, opaque by `radius`), so it melts into the body instead
+// of showing its peg.
+const JOINT_FEATHER = {
+  wingLeft: { radius: 10, clear: 0.6 },
+  wingRight: { radius: 10, clear: 0.6 },
+  armLeft: { radius: 11, clear: 0.35 },
+  armRight: { radius: 11, clear: 0.35 },
+};
+const FEATHER_OVERRIDES = {
+  human: {
+    armLeft: { radius: 12, clear: 0.4 },
+    armRight: { radius: 12, clear: 0.4 },
+  },
+  eagle: {
+    armLeft: { radius: 8, clear: 0.3 },
+    armRight: { radius: 8, clear: 0.3 },
+  },
+};
+export function jointFeather(kind, name) {
+  const base = JOINT_FEATHER[name];
+  if (!base) return null;
+  const [x, y] = COMPANION_RIGS[kind].pivots[name];
+  return { x, y, ...base, ...FEATHER_OVERRIDES[kind]?.[name] };
+}
+
+// A blink lays the closed-eye painting over the open eye. The patch reaches
+// past the painted eye (and fades out) so no outline of the open eye shows.
+export const LID_COVER = 1.45;
+export const LID_SOLID = 0.75;
+
 export function rigPlacement(part) {
   const [sourceX, sourceY, sourceWidth, sourceHeight] = part.source;
   const [boxX, boxY, boxWidth, boxHeight] = part.box;

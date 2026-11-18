@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef, useState } from "react";
 import { ArrowRight, BookOpen, Check, Coffee, X } from "lucide-react";
 import Mascot from "../Mascot.jsx";
+import Companion from "../Companion.jsx";
 import { CategoryIcon } from "../Wheel.jsx";
 import { burst } from "../game/burst.js";
 
@@ -232,9 +233,9 @@ export const RevealSheet = forwardRef(function RevealSheet(
       <div className="sheet-head">
         {kind && (
           <span className="sheet-avatar" aria-hidden="true">
-            <Mascot
+            <Companion
               kind={kind}
-              mood={tone === "good" ? "celebrate" : "happy"}
+              act={tone === "good" ? "cheer" : "sad"}
               softSurface={false}
             />
           </span>
