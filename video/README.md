@@ -20,3 +20,5 @@ The renderer draws 1920×1080 frames at 24 fps in parallel headless Chromium, sy
 - `node video/contacts.mjs` checks that every hand that should touch something does, on every frame.
 - `node video/stills.mjs dir 4.9 15.3` renders single stills.
 - `node video/sheet.mjs sheet.png` renders the character sheet (front, three-quarter, full turn).
+
+The companions were redesigned after this film was rendered (merged silhouettes, new faces and wings, a path shape). The film's WebGL renderer predates that, so before the next render it should draw the characters with `src/companions/canvas.js` like the app does.

@@ -4,6 +4,6 @@ The companions are no longer image files. They are drawn in code from rounded sh
 
 - `src/companions/model.js`: the four characters (Leo, Lou, Juno, Mattie) as lists of shapes built from a pose.
 - `src/companions/motion.js`: the acts the game asks for (idle, wave, cheer, win, sad) as poses over time.
-- `src/companions/canvas.js`: draws them on a canvas with cel shading and a thin outline.
+- `src/companions/canvas.js`: draws them on a canvas: each merged silhouette gets one warm outline, one shadow and a rim of light.
 
 The film in `video/` draws the same model with WebGL.
