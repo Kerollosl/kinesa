@@ -2,15 +2,13 @@
 
 Written 18 November 2026. Draft for an illustrator/animator.
 
-> Status: the app and the film now use flat 2D companions drawn in code (`src/companions/`), which already fixes the visible joints. This brief is for a possible later pass by a professional animator in Rive; the acts below match the ones the app already sends.
-
 ## Goal
 
 Rebuild the four Gospel companions as **flat 2D cartoon characters animated in Rive**, so each one moves as a single piece (no visible joints) and reacts to the game. Target feel: lively, bouncy, squash-and-stretch, big expressive faces. Reference: "Meta's Muse" (link still to be added).
 
 ## Why
 
-The original companions were glossy painted figures cut into toy-like parts, with round pegs and knobs where they attached; moving a part showed the cut. They were replaced by in-code flat 2D characters on 18 November 2026. A professional animator could take them further: richer faces, mesh-bent limbs and more personality in each act.
+The current companions are glossy painted figures cut into toy-like parts: heads, torsos, arms and wings with round pegs and knobs where they attach. Moving a part shows the cut, so motion has to stay small. A stopgap shipped on 18 November 2026 (softened joints, limited swing, whole-body squash and droop), but real liveliness needs art made for animation.
 
 ## The cast (keep identity)
 

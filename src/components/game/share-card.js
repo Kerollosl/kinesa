@@ -1,7 +1,53 @@
 import { categories } from "../../data.js";
 
-import { FRAMES, drawCompanion } from "../../companions/canvas.js";
-import { KINDS, poseFor } from "../../companions/motion.js";
+const dataUrls = new Map();
+async function inline(href) {
+  if (!dataUrls.has(href))
+    dataUrls.set(
+      href,
+      fetch(href)
+        .then((r) => r.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            }),
+        ),
+    );
+  return dataUrls.get(href);
+}
+
+// Serializes a rendered companion SVG with its painted atlases inlined, so it can be drawn to canvas.
+async function companionImage(svg) {
+  if (!svg) return null;
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  clone.setAttribute("width", "600");
+  clone.setAttribute("height", "600");
+  await Promise.all(
+    [...clone.querySelectorAll("image")].map(async (node) => {
+      const href = node.getAttribute("href");
+      if (href && !href.startsWith("data:"))
+        node.setAttribute("href", await inline(href));
+    }),
+  );
+  const url = URL.createObjectURL(
+    new Blob([new XMLSerializer().serializeToString(clone)], {
+      type: "image/svg+xml",
+    }),
+  );
+  try {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    return image;
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
 
 function roundRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -60,7 +106,7 @@ function fitText(ctx, text, weight, startSize, maxWidth) {
 export async function renderShareCard({
   headline,
   detail,
-  companionKind,
+  companionSvg,
   companionBg,
 }) {
   await document.fonts?.ready;
@@ -114,17 +160,8 @@ export async function renderShareCard({
   ctx.beginPath();
   ctx.arc(W / 2, 430, 248, 0, Math.PI * 2);
   ctx.fill();
-  if (companionKind) {
-    // The companion mid-cheer, framed head to toe inside the disc.
-    const [x0, y0, x1, y1] = FRAMES.full;
-    const unit = Math.min(440 / (x1 - x0), 440 / (y1 - y0));
-    ctx.save();
-    ctx.translate(W / 2 - ((x0 + x1) / 2) * unit, 440 - ((y0 + y1) / 2) * unit);
-    ctx.scale(unit, unit);
-    const kind = KINDS[companionKind] || "leo";
-    drawCompanion(ctx, kind, poseFor(kind, "cheer", 0.42, 0.42), unit);
-    ctx.restore();
-  }
+  const art = await companionImage(companionSvg).catch(() => null);
+  if (art) ctx.drawImage(art, W / 2 - 250, 180, 500, 500);
 
   // Reading pane.
   roundRect(ctx, 96, 760, W - 192, 300, 36);

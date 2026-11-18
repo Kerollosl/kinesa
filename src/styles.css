@@ -523,7 +523,7 @@ svg {
 .avatar-human {
   background: var(--companion-human);
 }
-.avatar .mascot {
+.avatar svg {
   width: 100%;
   height: 100%;
 }
@@ -1015,7 +1015,7 @@ svg {
   width: min(44vw, 170px);
   aspect-ratio: 1;
 }
-.rival-art .mascot {
+.rival-art svg {
   width: 100%;
   height: 100%;
 }
@@ -1463,7 +1463,7 @@ svg {
   background: var(--linen-50);
   box-shadow: 0 0 0 2px currentColor;
 }
-.answer-pickers .mascot {
+.answer-pickers svg {
   width: 100%;
   height: 100%;
 }
@@ -1556,7 +1556,7 @@ svg {
   height: 68px;
   margin: -14px 0 -6px -4px;
 }
-.sheet-avatar .mascot {
+.sheet-avatar svg {
   width: 100%;
   height: 100%;
 }
@@ -2692,16 +2692,110 @@ svg {
   outline-offset: 2px;
 }
 
-/* ===== Companions (drawn on canvas, see src/companions/) ===== */
-.mascot {
+/* ===== Companions ===== */
+.mascot.mascot-rig {
+  overflow: visible;
+  isolation: isolate;
+}
+.mascot.mascot-rig [data-joint],
+.mascot.mascot-rig [data-lid],
+.mascot.mascot-rig [data-contact-shadow] {
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+.companion-painted-part,
+.mascot-rig [data-lid],
+.mascot-rig [data-lid-line] {
+  pointer-events: none;
+  user-select: none;
+}
+.mascot.mascot-rig.mascot-portrait {
+  overflow: hidden;
+}
+.companion-soft-surface {
+  visibility: hidden;
+  overflow: visible;
+  pointer-events: none;
+}
+.companion-soft-surface canvas {
   display: block;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
+.mascot[data-skinning] > .mascot-body {
+  opacity: 0;
+}
+.mascot[data-skinning] > .companion-soft-surface {
+  visibility: visible;
+}
+
+/* Companion acts: whole-body cartoon motion on top of the painted rig.
+   The character moves as one piece, so squash and stretch never open a
+   joint. Feet stay planted (origin at the base). */
 .toon {
   display: block;
   width: 100%;
   height: 100%;
+  transform-origin: 50% 92%;
+}
+.toon > .mascot {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.toon-wave,
+.toon-cheer,
+.toon-win {
+  animation: toon-pop 0.6s var(--ease-out) both;
+}
+.toon-sad {
+  animation:
+    toon-droop 0.9s var(--ease-out) both,
+    toon-sigh 3.2s 0.9s ease-in-out infinite;
+}
+@keyframes toon-pop {
+  0% {
+    transform: translateY(8%) scale(0.72, 0.68);
+  }
+  40% {
+    transform: translateY(-7%) scale(0.92, 1.12);
+  }
+  68% {
+    transform: translateY(0) scale(1.09, 0.91);
+  }
+  84% {
+    transform: scale(0.97, 1.03);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes toon-droop {
+  0% {
+    transform: none;
+  }
+  28% {
+    transform: scale(1.1, 0.86);
+  }
+  48% {
+    transform: scale(1.03, 0.95) rotate(-6deg);
+  }
+  68% {
+    transform: scale(1.03, 0.95) rotate(5deg);
+  }
+  100% {
+    transform: scale(1.03, 0.95) rotate(-2deg);
+  }
+}
+@keyframes toon-sigh {
+  0%,
+  100% {
+    transform: scale(1.03, 0.95) rotate(-2deg);
+  }
+  50% {
+    transform: scale(1.05, 0.93) rotate(1.5deg);
+  }
 }
 
 /* Confetti burst from a right answer */
@@ -2813,12 +2907,17 @@ svg {
     transition-duration: 0.01ms !important;
   }
   .home-wheel .wheel-disc,
+  .toon,
   .confetti,
   .timer-bar i {
     animation: none !important;
   }
   .timer-bar {
     display: none;
+  }
+  .mascot.mascot-rig * {
+    animation: none !important;
+    transition: none !important;
   }
 }
 
