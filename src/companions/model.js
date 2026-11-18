@@ -1,15 +1,16 @@
-// The four Gospel companions as flat 2D cartoon characters. Shared by the
-// app (src/companions/canvas.js draws them with Canvas2D) and the film in
-// video/. A character is a list of primitives built from a pose; nothing
-// here touches the DOM.
+// The four Gospel companions, drawn in code. Shared by the app
+// (src/companions/canvas.js draws them with Canvas2D in a soft, dimensional
+// style) and the film in video/. A character is a list of primitives built
+// from a pose; nothing here touches the DOM.
 //
 // Primitive types: 0 ellipse, 1 tapered capsule, 2 round box, 3 arc stroke,
 // 4 scallop, 5 trapezoid, 6 ellipse ring, 7 rounded triangle, 8 soft blob,
 // 9 path (a smooth or rounded closed outline through control points).
 //
-// Primitives drawn inside one `g.merge(...)` share a merge group: they read
-// as one silhouette with a single outline, so a character is a few clean
-// shapes (head, body, wing) rather than a pile of outlined parts.
+// Primitives drawn inside one `g.merge(...)` share a merge group, lit as one
+// form. Per primitive: `shade` (0 is a flat fill), `fx` (core shadow, bounce
+// and rim light), `gloss` (a soft highlight), `ao` (a contact shadow cast
+// on what is beneath) and `ol` (an optional thin edge).
 
 // ---------- small math ----------
 export const TAU = Math.PI * 2;
@@ -105,12 +106,6 @@ export class Group {
     return M.ap(this.m, x, y);
   }
   push(type, x, y, ang, p, col, br, o = {}) {
-    let crease = o.crease ?? null;
-    if (Array.isArray(crease)) {
-      const a = this.world(crease[0], crease[1]);
-      const b = this.world(crease[2], crease[3]);
-      crease = [a[0], a[1], b[0], b[1]];
-    }
     const line = o.line ?? this.line;
     this.prims.push({
       type,
@@ -120,15 +115,16 @@ export class Group {
       p,
       col: typeof col === "string" ? hex(col) : col,
       shade: o.shade ?? 1,
-      ol: o.ol ?? 2.6,
+      ol: o.ol ?? 0,
       clip: o.clip ?? -1,
       clipMode: o.clipMode ?? 1,
       alpha: o.alpha ?? 1,
       br,
       grp: o.grp ?? this.grp,
       line: line ? hex(line) : null,
-      rim: o.rim ?? 0,
-      crease,
+      fx: o.fx ?? 1,
+      gloss: o.gloss ?? 0,
+      ao: o.ao ?? 0,
       pts: o.pts ?? null,
     });
     return this.prims.length - 1;
@@ -168,11 +164,6 @@ export class Group {
     const k = this.k;
     const len = Math.max(0.01, Math.hypot(B[0] - A[0], B[1] - A[1]));
     const ang = Math.atan2(B[1] - A[1], B[0] - A[0]);
-    // crease: true on a capsule fades its edge in from the root end
-    const crease =
-      o.crease === "root"
-        ? [ax, ay, ax + (bx - ax) * 0.5, ay + (by - ay) * 0.5]
-        : o.crease;
     return this.push(
       1,
       A[0],
@@ -181,7 +172,7 @@ export class Group {
       [r1 * k, r2 * k, len, 0],
       col,
       len + Math.max(r1, r2) * k,
-      { ...o, crease },
+      o,
     );
   }
   box(x, y, hx, hy, r, col, o = {}) {
@@ -287,144 +278,148 @@ export class Group {
 }
 
 // =====================================================================
-// The companions: chibi proportions (big head, small soft body, stubby
-// limbs), modelled ~200 units tall with feet at y = 0. Screen x is to the
+// The companions: stylised, slightly grown-up proportions (about three
+// heads tall), almond eyes with irises and lids, and soft dimensional
+// forms. Modelled ~200 units tall with feet at y = 0. Screen x is to the
 // right, y is down; side -1 is screen left.
 // =====================================================================
-export const WING = "#fff6e6";
-const WING_LINE = "#8f6c58";
-const EYE = "#2b1813";
-const EYE_GLOW = "#7c4529";
-const MOUTH = "#7d2433";
-const TONGUE = "#f37f8e";
-const BLUSH = "#ff8b8b";
+export const WING = "#f3ece0";
+const COVERT = "#fbf8f2";
+const SCLERA = "#fbf8f4";
+const PUPIL = "#170e0c";
+const MOUTH = "#5a1a26";
+const TONGUE = "#e46f7e";
+const TEETH = "#fffaf2";
+const GOLD = "#f2c14e";
 
 export const SPEC = {
   leo: {
-    line: "#7c3a15",
-    body: "#f6b63e",
-    belly: "#fff0cd",
-    arm: "#f6b63e",
-    hand: "#ffe4ab",
-    foot: "#ffe4ab",
-    mane: "#e3792a",
-    tuft: "#d0661f",
-    ear: "#f59a62",
-    nose: "#6b2d1d",
-    brow: "#c4621c",
-    freckle: "#e6a463",
-    bodyC: [0, -50],
-    bodyR: [36, 42],
+    body: "#eba23a",
+    belly: "#ffe0a6",
+    arm: "#eba23a",
+    hand: "#ffd896",
+    foot: "#ffd896",
+    mane: "#bf511c",
+    maneIn: "#df7a2c",
+    ear: "#cf6a43",
+    muzzle: "#ffe9c6",
+    nose: "#3b1f18",
+    iris: "#d48c18",
+    line: "#3a1c15",
+    brow: "#b8601f",
+    tuft: "#bf511c",
+    legR: [9, 8],
+    bodyC: [0, -60],
+    bodyR: [29, 40],
     shoulder: [
-      [-25, -78],
-      [25, -78],
+      [-20, -90],
+      [20, -90],
     ],
-    reach: 40,
-    armR: [11.5, 10.5],
-    handR: 12,
-    footR: [15, 10],
-    footX: 16,
-    neck: [0, -94],
-    headC: [0, -136],
-    headR: 48,
+    reach: 42,
+    armR: [9, 8],
+    handR: 9.5,
+    footR: [12.5, 7.5],
+    footX: 12,
+    neck: [0, -102],
+    headC: [0, -140],
+    headR: 40,
     sitDrop: 9,
     wings: true,
-    wingRoot: [18, -84],
+    wingRoot: [12, -92],
   },
   lou: {
-    line: "#4f2413",
-    body: "#c97a45",
-    belly: "#f8e4c6",
-    arm: "#c97a45",
-    hand: "#6a4030",
-    foot: "#5a3424",
-    muzzle: "#f7cdb6",
-    horn: "#f6ead2",
-    ear: "#f2a2a0",
-    tuft: "#7a3e1f",
-    patch: "#a65a2e",
-    nostril: "#9a4c45",
-    brow: "#6e3a1d",
-    bodyC: [0, -60],
-    bodyR: [38, 42],
+    body: "#b5683a",
+    belly: "#f0d9bd",
+    arm: "#b5683a",
+    hand: "#3b2a24",
+    foot: "#3b2a24",
+    muzzle: "#e9b9a2",
+    horn: "#f1e4c8",
+    ear: "#e39b94",
+    tuft: "#62301a",
+    nostril: "#7c3d36",
+    iris: "#6b3a1e",
+    line: "#2e1610",
+    brow: "#7a3e1e",
+    legR: [10, 9],
+    bodyC: [0, -62],
+    bodyR: [33, 40],
     shoulder: [
-      [-27, -86],
-      [27, -86],
+      [-23, -92],
+      [23, -92],
     ],
-    reach: 40,
-    armR: [12, 11],
-    handR: 11,
-    footR: [13, 9],
-    footX: 17,
-    neck: [0, -100],
-    headC: [0, -140],
-    headR: 50,
+    reach: 42,
+    armR: [10, 9],
+    handR: 9,
+    footR: [11, 7.5],
+    footX: 14,
+    neck: [0, -104],
+    headC: [0, -142],
+    headR: 42,
     sitDrop: 11,
     wings: true,
-    wingRoot: [20, -90],
-    legs: true,
+    wingRoot: [14, -94],
   },
   juno: {
-    line: "#3f2414",
-    body: "#8a5532",
-    belly: "#b47e4f",
-    arm: "#7d4a2a",
-    hand: "#5e341c",
-    foot: "#f4b534",
-    head: "#fbf7ef",
-    beak: "#ffbd2e",
-    brow: "#6b4426",
-    bodyC: [0, -54],
-    bodyR: [34, 44],
+    body: "#6d4126",
+    belly: "#a5754a",
+    arm: "#6d4126",
+    hand: "#4f2c18",
+    foot: "#f0b232",
+    head: "#f6f3ee",
+    beak: "#f7b52c",
+    iris: "#e3a21a",
+    line: "#2a1810",
+    brow: "#f6f3ee",
+    legR: [4.5, 4],
+    bodyC: [0, -60],
+    bodyR: [30, 42],
     shoulder: [
-      [-24, -84],
-      [24, -84],
+      [-21, -92],
+      [21, -92],
     ],
-    reach: 38,
-    armR: [9, 13.5],
-    handR: 12,
-    footR: [14, 7],
-    footX: 14,
-    neck: [0, -98],
-    headC: [0, -134],
-    headR: 46,
+    reach: 40,
+    armR: [8, 11],
+    handR: 10,
+    footR: [12, 6],
+    footX: 12,
+    neck: [0, -102],
+    headC: [0, -138],
+    headR: 38,
     sitDrop: 11,
     wings: false,
     wingRoot: [0, 0],
   },
   mattie: {
-    line: "#4a2a20",
-    body: "#b9a0ea",
+    body: "#9d86dc",
     belly: null,
-    arm: "#b9a0ea",
-    hand: "#f7c6a0",
-    foot: "#8a5232",
-    robeLine: "#4b3677",
-    robeDark: "#9d84d8",
-    skin: "#f7c6a0",
-    skinLine: "#8f4f33",
-    hair: "#5b321f",
-    hairHi: "#87532f",
-    sash: "#f0c95c",
-    halo: "#f3cf5e",
-    brow: "#4a2614",
-    bodyC: [0, -54],
-    bodyR: [34, 42],
+    arm: "#9d86dc",
+    hand: "#d99a6c",
+    foot: "#7a4a2c",
+    mantle: "#6f58b8",
+    skin: "#d99a6c",
+    hair: "#2b1810",
+    iris: "#5a3420",
+    line: "#2a1612",
+    brow: "#2b1810",
+    legR: [5, 4.5],
+    bodyC: [0, -56],
+    bodyR: [27, 46],
     shoulder: [
-      [-19, -88],
-      [19, -88],
+      [-19, -96],
+      [19, -96],
     ],
-    reach: 38,
-    armR: [8.5, 11.5],
-    handR: 8.5,
-    footR: [12, 7],
-    footX: 13,
-    neck: [0, -100],
-    headC: [0, -142],
-    headR: 47,
+    reach: 44,
+    armR: [5.5, 7.5],
+    handR: 6.5,
+    footR: [10.5, 5.5],
+    footX: 10,
+    neck: [0, -106],
+    headC: [0, -144],
+    headR: 36,
     sitDrop: 10,
     wings: true,
-    wingRoot: [16, -88],
+    wingRoot: [12, -96],
   },
 };
 
@@ -467,7 +462,7 @@ export function shoulderLocal(S, P, side) {
   const near = side === sg;
   const b = S.shoulder[side < 0 ? 0 : 1];
   return [
-    b[0] + T * (near ? 6 : 46),
+    b[0] + T * (near ? 6 : 40),
     b[1] + P.sit * S.sitDrop + P.bob - (near ? 0 : 4 * Math.abs(T)),
   ];
 }
@@ -478,28 +473,50 @@ export function bodyLocal(S, P) {
   };
 }
 
+// A feather or lock: narrow root, full belly, pointed tip.
+function feather(g, x, y, ang, len, wid, col, o = {}, sharp = true) {
+  const c = Math.cos(ang),
+    s = Math.sin(ang);
+  const P = (u, v, sharp) => [x + c * u - s * v, y + s * u + c * v, sharp];
+  return g.path(
+    [
+      P(-wid * 0.2, 0),
+      P(len * 0.12, -wid * 0.5),
+      P(len * 0.45, -wid),
+      P(len * 0.82, -wid * 0.55),
+      P(len, 0, sharp),
+      P(len * 0.82, wid * 0.55),
+      P(len * 0.45, wid),
+      P(len * 0.12, wid * 0.5),
+    ],
+    col,
+    o,
+  );
+}
+// A closed outline from points relative to a centre and a size.
+const shape = (g, cx, cy, R, pts, col, o, sx = 1) =>
+  g.path(
+    pts.map(([x, y, s]) => [cx + x * R * sx, cy + y * R, s]),
+    col,
+    o,
+  );
+
 // ---------- wings ----------
 // One angel wing in its own frame: root at the origin, reaching out (+x)
-// and up (-y). A soft covert shape over a scalloped row of feathers; the
-// covert's lower edge shows inside the wing as the one feather line.
-const COVERT = [
-  [-6, 10],
-  [-7, -12],
-  [6, -34],
-  [28, -50],
-  [52, -57],
-  [68, -52],
-  [68, -38],
-  [52, -24],
-  [32, -10],
-  [14, 4],
+// and up (-y). Long primaries fan from the wrist; coverts sit over them.
+const PRIMARIES = [
+  [50, -42, -0.62, 46, 7],
+  [46, -35, -0.32, 48, 7.5],
+  [40, -27, -0.02, 46, 7.5],
+  [33, -19, 0.3, 41, 7.5],
+  [25, -12, 0.62, 35, 7],
+  [16, -5, 0.95, 28, 6.5],
 ];
-const SCALLOPS = [
-  [64, -32, 9.5],
-  [55, -18, 10.5],
-  [42, -6, 11],
-  [27, 4, 10.5],
-  [12, 10, 9],
+const COVERTS = [
+  [12, -2, 0.85, 22, 6],
+  [22, -10, 0.55, 24, 6.5],
+  [32, -19, 0.3, 24, 6.5],
+  [42, -29, 0.05, 22, 6],
 ];
 function drawWings(g, P, S) {
   const T = P.turn,
@@ -512,16 +529,30 @@ function drawWings(g, P, S) {
     const sc = back ? 1 + 0.08 * aT : 1 - 0.5 * aT;
     g.save();
     g.apply(M.tr(side * root[0] - T * 14 * (back ? 1.2 : 0.6), root[1]));
-    g.apply(M.sc(side * sc * 1.2, 1.2));
-    g.apply(M.rot(-0.18 - flap * 0.75));
+    g.apply(M.sc(side * sc, 1));
+    g.apply(M.rot(-0.22 - flap * 0.75));
     g.merge(() => {
-      for (const [x, y, r] of SCALLOPS)
-        g.circle(x, y, r, WING, { line: WING_LINE });
-      g.path(COVERT, WING, {
-        line: WING_LINE,
-        crease: [8, -20, 40, -14],
-        rim: 0.6,
-      });
+      for (const [x, y, a, l, w] of PRIMARIES)
+        feather(g, x, y, a, l, w * 1.4, WING);
+    });
+    g.merge(() => {
+      g.path(
+        [
+          [-6, 8],
+          [-6, -14],
+          [12, -36],
+          [38, -50],
+          [56, -50],
+          [56, -38],
+          [40, -24],
+          [22, -8],
+          [6, 6],
+        ],
+        COVERT,
+        { ao: 0.7 },
+      );
+      for (const [x, y, a, l, w] of COVERTS)
+        feather(g, x, y, a, l, w * 1.3, COVERT, { ao: 0.5 });
     });
     g.restore();
   }
@@ -534,46 +565,40 @@ function drawTail(g, P, S, kind) {
   const sw = Math.sin(P.t * 3.1 + P.tail) * 0.25;
   const sit = P.sit * S.sitDrop;
   if (kind === "juno") {
-    const y0 = -26 + sit;
-    const bx = -sg * 10;
+    const y0 = -40 + sit;
     g.merge(() => {
-      for (const k of [1, -1, 0]) {
-        const a = Math.PI / 2 + sg * (0.85 + k * 0.34) + sw * 0.2;
-        g.capsule(
-          bx,
+      for (const k of [1, -1, 0])
+        feather(
+          g,
+          -sg * 6,
           y0,
-          bx + Math.cos(a) * 34,
-          y0 + Math.sin(a) * 30,
-          9,
-          8.5,
+          Math.PI / 2 + sg * (0.75 + k * 0.28) + sw * 0.2,
+          40,
+          8,
           S.head,
         );
-      }
     });
     return;
   }
-  const bx = -sg * (S.bodyR[0] - 10);
-  const y0 = -24 + sit;
-  const p1 = [bx - sg * 20, y0 - 2 + sw * 6];
-  const p2 = [bx - sg * 34, y0 - 18 + sw * 8];
-  const p3 = [bx - sg * (37 + sw * 6), y0 - 38];
+  const bx = -sg * (S.bodyR[0] - 8);
+  const y0 = -32 + sit;
+  const p1 = [bx - sg * 18, y0 + 2 + sw * 6];
+  const p2 = [bx - sg * 32, y0 - 12 + sw * 8];
+  const p3 = [bx - sg * (36 + sw * 6), y0 - 32];
   g.merge(() => {
-    g.capsule(bx, y0, p1[0], p1[1], 5, 4.6, S.body);
-    g.capsule(p1[0], p1[1], p2[0], p2[1], 4.6, 4.2, S.body);
-    g.capsule(p2[0], p2[1], p3[0], p3[1], 4.2, 3.8, S.body);
-    for (const [dx, dy, r] of [
-      [0, -6, 8.5],
-      [-6, -1, 6.5],
-      [6, -1, 6.5],
-      [0, -13, 6],
-    ])
-      g.circle(p3[0] + dx, p3[1] + dy, r, S.tuft);
+    g.capsule(bx, y0, p1[0], p1[1], 4, 3.6, S.body);
+    g.capsule(p1[0], p1[1], p2[0], p2[1], 3.6, 3.3, S.body);
+    g.capsule(p2[0], p2[1], p3[0], p3[1], 3.3, 3, S.body);
+  });
+  g.merge(() => {
+    for (const a of [-2.3, -1.6, -0.9, -1.95, -1.25])
+      feather(g, p3[0], p3[1] + 3, a - sg * 0.2, 15, 5, S.tuft, { ao: 0.5 });
   });
 }
 
 // ---------- arms ----------
-// Short tapered arms with a mitten, paw, hoof or feathered tip. A world
-// target makes the hand land exactly there (contacts); otherwise an angle.
+// Arms with a paw, hoof, hand or feathered tip. A world target makes the
+// hand land exactly there (contacts); otherwise an angle.
 function drawArm(g, P, S, kind, side, spec, report) {
   const s = shoulderLocal(S, P, side);
   const far = side !== (P.turn >= 0 ? 1 : -1) && Math.abs(P.turn) > 0.3;
@@ -599,98 +624,70 @@ function drawArm(g, P, S, kind, side, spec, report) {
     dir = [Math.cos(a), Math.sin(a)];
     len = S.reach * (spec.len ?? 0.82);
   }
-  const a0 = [s[0] - dir[0] * 8, s[1] - dir[1] * 8];
+  const a0 = [s[0] - dir[0] * 6, s[1] - dir[1] * 6];
   const w = [s[0] + dir[0] * len, s[1] + dir[1] * len];
-  const fade = [
-    a0[0],
-    a0[1],
-    s[0] + dir[0] * len * 0.7,
-    s[1] + dir[1] * len * 0.7,
-  ];
   const ang = Math.atan2(dir[1], dir[0]);
+  const flip = side * (P.turn >= 0 ? 1 : -1) < 0 ? -1 : 1;
   const at = (d, u = 0) => [
-    w[0] + dir[0] * d - dir[1] * u,
-    w[1] + dir[1] * d + dir[0] * u,
+    w[0] + dir[0] * d - dir[1] * u * flip,
+    w[1] + dir[1] * d + dir[0] * u * flip,
   ];
   if (kind === "juno") {
-    // a feathered wing: the arm ends in a scalloped row of flight feathers
-    const L = len + 8;
-    const flip = side * (P.turn >= 0 ? 1 : -1) < 0 ? -1 : 1;
-    const pt = (d, u, sharp) => {
-      const q = [
-        s[0] + dir[0] * d - dir[1] * u * flip,
-        s[1] + dir[1] * d + dir[0] * u * flip,
-      ];
-      return sharp ? [...q, 1] : q;
-    };
-    g.path(
-      [
-        pt(-8, -6),
-        pt(4, -11),
-        pt(L * 0.55, -14),
-        pt(L - 2, -12),
-        pt(L + 8, -9, true),
-        pt(L + 2, -4),
-        pt(L + 13, 0, true),
-        pt(L + 2, 4),
-        pt(L + 8, 9, true),
-        pt(L - 2, 12),
-        pt(L * 0.55, 13),
-        pt(4, 10),
-        pt(-8, 6),
-      ],
-      S.arm,
-      { crease: [...pt(-8, 0), ...pt(L * 0.6, 0)] },
-    );
-    for (const u of [-4, 4]) {
-      const c0 = pt(L - 6, u * 1.2),
-        c1 = pt(L + 2, u);
-      g.capsule(c0[0], c0[1], c1[0], c1[1], 0.9, 0.9, S.line, {
-        ol: 0,
-        shade: 0,
+    // a folded wing: flight feathers from the wrist, coverts over the arm
+    g.merge(() => {
+      for (const [u, da, l] of [
+        [-5, -0.3, 22],
+        [0, -0.08, 26],
+        [5, 0.16, 22],
+      ]) {
+        const r = at(-12, u);
+        feather(g, r[0], r[1], ang + da * flip, l, 5.5, S.hand);
+      }
+    });
+    g.merge(() => {
+      g.capsule(a0[0], a0[1], w[0], w[1], S.armR[0], S.armR[1], S.arm, {
+        ao: 1,
       });
-    }
+    });
     return;
   }
   if (kind === "mattie") {
-    const flip = side * (P.turn >= 0 ? 1 : -1) < 0 ? -1 : 1;
-    g.capsule(a0[0], a0[1], w[0], w[1], S.armR[0], S.armR[1], S.body, {
-      crease: fade,
-      line: S.robeLine,
+    g.merge(() => {
+      g.capsule(a0[0], a0[1], w[0], w[1], S.armR[0], S.armR[1], S.body, {
+        ao: 1,
+      });
+      const c0 = at(-1, -S.armR[1]),
+        c1 = at(-1, S.armR[1]);
+      g.capsule(c0[0], c0[1], c1[0], c1[1], 1.3, 1.3, GOLD, { fx: 0 });
     });
-    const c0 = at(-1, -S.armR[1] * 0.85),
-      c1 = at(-1, S.armR[1] * 0.85);
-    g.capsule(c0[0], c0[1], c1[0], c1[1], 1.2, 1.2, S.robeDark, {
-      ol: 0,
-      shade: 0,
+    g.merge(() => {
+      const h = at(6);
+      const th = at(4, -5);
+      g.circle(th[0], th[1], 2.6, S.skin);
+      g.ellipse(h[0], h[1], S.handR, S.handR * 0.85, S.skin, { ang, ao: 0.6 });
     });
-    const h = at(9);
-    const th = at(7, -flip * 7);
-    g.circle(th[0], th[1], 3.8, S.skin, { line: S.skinLine, crease: true });
-    g.circle(h[0], h[1], S.handR, S.skin, { line: S.skinLine, crease: true });
     return;
   }
-  g.capsule(a0[0], a0[1], w[0], w[1], S.armR[0], S.armR[1], S.arm, {
-    crease: fade,
+  g.merge(() => {
+    g.capsule(a0[0], a0[1], w[0], w[1], S.armR[0], S.armR[1], S.arm, {
+      ao: 1,
+    });
+    const hc = at(S.handR * 0.35);
+    g.ellipse(hc[0], hc[1], S.handR, S.handR * 0.88, S.hand, {
+      ang,
+      gloss: kind === "lou" ? 0.5 : 0,
+    });
+    if (kind === "lou") {
+      const c0 = at(S.handR * 0.7),
+        c1 = at(S.handR * 1.3);
+      g.capsule(c0[0], c0[1], c1[0], c1[1], 0.8, 0.8, "#1c120e", {
+        shade: 0,
+      });
+    }
   });
-  const hc = at(S.handR * 0.4);
-  if (kind === "lou") {
-    g.ellipse(hc[0], hc[1], S.handR, S.handR * 0.92, S.hand, { ang });
-    const c0 = at(S.handR * 0.6),
-      c1 = at(S.handR * 1.3);
-    g.capsule(c0[0], c0[1], c1[0], c1[1], 1, 1, "#3a2016", { ol: 0, shade: 0 });
-    return;
-  }
-  // a soft paw with two toe creases
-  g.ellipse(hc[0], hc[1], S.handR, S.handR * 0.9, S.hand, { ang });
-  for (const u of [-0.32, 0.32]) {
-    const t0 = at(S.handR * 0.75, u * S.handR),
-      t1 = at(S.handR * 1.3, u * S.handR);
-    g.capsule(t0[0], t0[1], t1[0], t1[1], 1, 1, S.line, { ol: 0, shade: 0 });
-  }
 }
 
-// ---------- feet ----------
+// ---------- legs and feet ----------
 function footSpot(P, S, side) {
   const T = P.turn,
     aT = Math.abs(T),
@@ -726,72 +723,85 @@ function footSpot(P, S, side) {
   }
   return { x: fx, y: fy - lift, ang, rx, ry, sg };
 }
-function drawFeet(g, P, S, kind) {
+function drawLegs(g, P, S, kind) {
+  const hipY = bodyLocal(S, P).c[1] + S.bodyR[1] * 0.55;
   for (const side of [-1, 1]) {
     const f = footSpot(P, S, side);
-    if (kind === "lou") {
-      const top = bodyLocal(S, P).c[1] + S.bodyR[1] * 0.4;
-      g.merge(() => {
-        g.capsule(f.x * 0.9, top, f.x, f.y - 4, 10.5, 9.5, S.body);
-        g.box(f.x, f.y + 1, S.footR[0], S.footR[1], 6, S.foot, { ang: f.ang });
-        g.capsule(f.x, f.y + 4, f.x, f.y + 9, 0.9, 0.9, "#8a5a46", {
-          ol: 0,
-          shade: 0,
+    const legCol =
+      kind === "mattie" ? S.skin : kind === "juno" ? S.foot : S.body;
+    g.merge(() => {
+      g.capsule(f.x * 0.8, hipY, f.x, f.y - 3, S.legR[0], S.legR[1], legCol);
+      if (kind === "lou") {
+        g.box(f.x, f.y + 0.5, S.footR[0], S.footR[1], 5, S.foot, {
+          ang: f.ang,
+          gloss: 0.5,
         });
-      });
-    } else if (kind === "juno") {
-      g.merge(() => {
-        g.capsule(f.x * 0.8, f.y - 16, f.x, f.y - 2, 5, 4.5, S.foot);
+      } else if (kind === "juno") {
         for (const k of [-1, 0, 1])
           g.capsule(
             f.x,
             f.y,
-            f.x + f.sg * 4 + k * 8,
-            f.y + 4 - Math.abs(k) * 1.5,
-            4.6,
-            3.8,
+            f.x + f.sg * 3 + k * 8,
+            f.y + 3.5 - Math.abs(k) * 1.5,
+            3.6,
+            2.6,
             S.foot,
           );
-      });
-    } else if (kind === "mattie") {
+      } else if (kind === "mattie") {
+        g.ellipse(f.x + f.sg * 2, f.y + 1, f.rx, f.ry, S.skin, { ang: f.ang });
+      } else {
+        g.ellipse(f.x + f.sg, f.y, f.rx, f.ry, S.foot, { ang: f.ang });
+      }
+    });
+    if (kind === "mattie")
       g.merge(() => {
-        g.ellipse(f.x + f.sg * 2, f.y + 1, f.rx, f.ry, S.foot, { ang: f.ang });
-        g.ellipse(f.x + f.sg * 2, f.y - 1.5, f.rx * 0.78, f.ry * 0.62, S.skin, {
-          ang: f.ang,
-        });
         g.capsule(
-          f.x - 7 + f.sg * 2,
-          f.y - 2,
-          f.x + 9 + f.sg * 2,
-          f.y - 2,
-          2,
-          2,
+          f.x - 9 + f.sg * 2,
+          f.y + 5,
+          f.x + 12 + f.sg * 2,
+          f.y + 5,
+          1.6,
+          1.6,
           S.foot,
           {
-            ol: 0,
+            fx: 0,
+          },
+        );
+        g.capsule(
+          f.x - 4 + f.sg * 2,
+          f.y - 4,
+          f.x + 6 + f.sg * 2,
+          f.y - 1,
+          1.8,
+          1.8,
+          S.foot,
+          {
+            fx: 0,
           },
         );
       });
-    } else {
-      g.merge(() => {
-        g.ellipse(f.x, f.y, f.rx, f.ry, S.foot, { ang: f.ang, rim: 0.5 });
-        for (const u of [-0.3, 0.3])
-          g.capsule(
-            f.x + u * f.rx,
-            f.y + f.ry * 0.25,
-            f.x + u * f.rx,
-            f.y + f.ry * 0.85,
-            1,
-            1,
-            S.line,
-            { ol: 0, shade: 0 },
-          );
-      });
-    }
+    if (kind === "juno")
+      for (const k of [-1, 0, 1]) {
+        const tx = f.x + f.sg * 3 + k * 8 + (k || f.sg) * 2.5;
+        g.tri(tx, f.y + 3.5 - Math.abs(k) * 1.5, 3, 1.4, 0.4, "#2a1a12", {
+          ang: Math.PI / 2 - (k || f.sg) * 0.6,
+          shade: 0,
+        });
+      }
   }
 }
 
-// ---------- body ----------
+// ---------- bodies ----------
+const TORSO = [
+  [-0.56, -1],
+  [0.56, -1],
+  [0.98, -0.32],
+  [1.05, 0.5],
+  [0.62, 1.08],
+  [-0.62, 1.08],
+  [-1.05, 0.5],
+  [-0.98, -0.32],
+];
 function drawBody(g, P, S, kind) {
   const B = bodyLocal(S, P);
   const T = P.turn,
@@ -799,398 +809,544 @@ function drawBody(g, P, S, kind) {
   const [cx, cy] = B.c;
   const [rx, ry] = B.r;
   if (kind === "mattie") {
-    const robe = g.path(
-      [
-        [cx - 17 + T * 3, cy - 46],
-        [cx + 17 + T * 3, cy - 46],
-        [cx + 40, cy + 42],
-        [cx + T * 6, cy + 47],
-        [cx - 40, cy + 42],
-      ],
-      S.body,
-      { round: 9, line: S.robeLine, rim: 0.5 },
-    );
-    const o = { clip: robe, clipMode: 2, ol: 0, shade: 0 };
-    // folds
-    for (const u of [-0.45, 0.4])
-      g.capsule(
-        cx + u * 22 + T * 4,
-        cy - 6,
-        cx + u * 34 + T * 4,
-        cy + 40,
-        1.4,
-        2.2,
-        S.robeDark,
-        o,
+    let tunic;
+    g.merge(() => {
+      tunic = g.path(
+        [
+          [cx - 15 + T * 3, cy - 50],
+          [cx + 15 + T * 3, cy - 50],
+          [cx + 27, cy - 26],
+          [cx + 36, cy + 44],
+          [cx + T * 6, cy + 49],
+          [cx - 36, cy + 44],
+          [cx - 27, cy - 26],
+        ],
+        S.body,
+        { ao: 0.6 },
       );
-    // V neck
+      const inT = { clip: tunic, clipMode: 2, fx: 0 };
+      // folds
+      for (const u of [-0.5, 0.05, 0.5])
+        g.capsule(
+          cx + u * 18 + T * 4,
+          cy + 2,
+          cx + u * 32 + T * 4,
+          cy + 46,
+          1.2,
+          2.4,
+          "#8670c8",
+          {
+            ...inT,
+            shade: 0,
+            alpha: 0.6,
+          },
+        );
+      // V neck
+      g.path(
+        [
+          [cx - 8 + T * 5, cy - 51, 1],
+          [cx + 8 + T * 5, cy - 51, 1],
+          [cx + T * 6, cy - 38, 1],
+        ],
+        S.skin,
+        { ...inT, round: 3 },
+      );
+      // belt
+      g.box(cx + T * 4, cy - 8, 40, 2.6, 2, GOLD, { ...inT, gloss: 0.6 });
+      // a mantle over one shoulder, edged in gold
+      g.path(
+        [
+          [cx - 28, cy - 30],
+          [cx - 14, cy - 52],
+          [cx + 2, cy - 48],
+          [cx + 40, cy + 8],
+          [cx + 36, cy + 30],
+          [cx + 18, cy + 18],
+        ],
+        S.mantle,
+        { clip: tunic, clipMode: 2, ao: 0.8 },
+      );
+      g.path(
+        [
+          [cx + 2, cy - 49],
+          [cx + 5, cy - 49],
+          [cx + 42, cy + 8],
+          [cx + 39, cy + 10],
+        ],
+        GOLD,
+        { clip: tunic, clipMode: 2, fx: 0, gloss: 0.5 },
+      );
+    });
+    return tunic;
+  }
+  let torso;
+  g.merge(() => {
+    torso = shape(
+      g,
+      cx,
+      cy,
+      1,
+      TORSO.map(([x, y]) => [x * rx, y * ry]),
+      S.body,
+      {
+        gloss: 0.15,
+      },
+    );
+    const inT = { clip: torso, clipMode: 2, fx: 0 };
     g.path(
       [
-        [cx - 10 + T * 5, cy - 47, 1],
-        [cx + 10 + T * 5, cy - 47, 1],
-        [cx + T * 6, cy - 33, 1],
+        [cx + T * rx * 0.3 - rx * 0.42, cy - ry * 0.55],
+        [cx + T * rx * 0.3 + rx * 0.42, cy - ry * 0.55],
+        [cx + T * rx * 0.3 + rx * 0.62, cy + ry * 0.45],
+        [cx + T * rx * 0.3 + rx * 0.3, cy + ry * 1.0],
+        [cx + T * rx * 0.3 - rx * 0.3, cy + ry * 1.0],
+        [cx + T * rx * 0.3 - rx * 0.62, cy + ry * 0.45],
       ],
-      S.skin,
-      { ...o, round: 3 },
+      S.belly,
+      inT,
     );
-    // sash with a knot
-    g.box(cx + T * 4, cy - 12, 44, 4.5, 3, S.sash, {
-      clip: robe,
-      clipMode: 2,
-      ol: 1.8,
-      shade: 0.6,
-      line: "#9a6a1a",
-    });
-    const kx = cx + 12 + T * 10;
-    g.capsule(kx, cy - 10, kx - 3, cy + 8, 3, 2.2, S.sash, {
-      line: "#9a6a1a",
-      ol: 1.8,
-    });
-    g.capsule(kx, cy - 10, kx + 5, cy + 6, 3, 2.2, S.sash, {
-      line: "#9a6a1a",
-      ol: 1.8,
-    });
-    g.circle(kx, cy - 12, 4.5, S.sash, { line: "#9a6a1a", ol: 1.8 });
-    return robe;
-  }
-  const torso = g.ellipse(cx, cy - ry * 0.1, rx * 0.9, ry * 0.92, S.body, {
-    rim: 0.8,
+    if (kind === "juno")
+      for (const [u, v] of [
+        [-0.3, -0.25],
+        [0.05, -0.32],
+        [0.38, -0.25],
+        [-0.15, 0.05],
+        [0.22, 0.05],
+        [-0.3, 0.35],
+        [0.05, 0.32],
+        [0.38, 0.35],
+      ])
+        g.arc(
+          cx + T * rx * 0.3 + u * rx,
+          cy + v * ry,
+          4.5,
+          0.4,
+          Math.PI - 0.4,
+          0.9,
+          "#7e5232",
+          {
+            clip: torso,
+            clipMode: 2,
+            alpha: 0.7,
+          },
+        );
   });
-  const hips = g.ellipse(cx, cy + ry * 0.3, rx, ry * 0.68, S.body);
-  g.ellipse(
-    cx + T * rx * 0.32,
-    cy + ry * 0.22,
-    rx * 0.6 * (1 - 0.2 * aT),
-    ry * 0.62,
-    S.belly,
-    { ol: 0, clip: hips, clipMode: 2 },
-  );
-  if (kind === "juno") {
-    // feather marks on the chest
-    for (const [u, v] of [
-      [-0.28, -0.05],
-      [0.02, -0.12],
-      [0.3, -0.05],
-      [-0.14, 0.18],
-      [0.16, 0.18],
-      [0.02, 0.4],
-    ])
-      g.arc(
-        cx + T * rx * 0.32 + u * rx,
-        cy + ry * v + ry * 0.22,
-        5.5,
-        0.35,
-        Math.PI - 0.35,
-        1.3,
-        "#8f5a34",
-        {
-          clip: hips,
-          clipMode: 2,
-        },
-      );
-  }
   return torso;
 }
 
 // ---------- faces ----------
-// Glossy dark eyes with two catch-lights, small soft brows, simple mouths.
+// Almond eyes: a white, a coloured iris with a pupil and catch-light, an
+// upper lid that settles a little over the eye, and a lash line. Brows,
+// lids and mouth carry the expression.
 export const FACES = {
-  happy: { eyes: "open", brow: 0.1, mouth: "smile" },
-  det: { eyes: "open", brow: 1, mouth: "flat" },
-  strain: { eyes: "squeeze", brow: 1.2, mouth: "grit" },
-  sad: { eyes: "open", brow: -1, mouth: "frown", lookDown: true },
-  pant: { eyes: "half", brow: -0.4, mouth: "o" },
-  wow: { eyes: "wide", brow: -0.8, mouth: "o" },
-  joy: { eyes: "happy", brow: 0.1, mouth: "beam" },
-  grin: { eyes: "open", brow: 0.1, mouth: "beam" },
-  idea: { eyes: "wide", brow: -0.5, mouth: "open" },
+  happy: { eyes: "open", brow: 0, lid: 0.07, mouth: "smile" },
+  det: { eyes: "open", brow: 1, lid: 0.28, mouth: "flat" },
+  strain: { eyes: "squeeze", brow: 1.2, lid: 0.3, mouth: "grit" },
+  sad: { eyes: "open", brow: -1, lid: 0.22, mouth: "frown", lookDown: true },
+  pant: { eyes: "open", brow: -0.4, lid: 0.45, mouth: "o" },
+  wow: { eyes: "open", brow: -0.9, lid: 0, mouth: "o", wide: true },
+  joy: { eyes: "happy", brow: -0.2, lid: 0, mouth: "beam" },
+  grin: { eyes: "open", brow: -0.1, lid: 0.05, mouth: "beam" },
+  idea: { eyes: "open", brow: -0.6, lid: 0.02, mouth: "open", wide: true },
 };
+const faceOf = (face) => FACES[face] || FACES.happy;
 const isOpenMouth = (face) =>
-  ["beam", "o", "open"].includes((FACES[face] || FACES.happy).mouth);
+  ["beam", "o", "open"].includes(faceOf(face).mouth);
 
 function drawEyes(g, P, hc, R, o) {
   const T = P.turn,
     aT = Math.abs(T),
     sg = T >= 0 ? 1 : -1;
-  const F = FACES[P.face] || FACES.happy;
+  const F = faceOf(P.face);
   const fx = T * 0.42 * R;
   const look = F.lookDown ? [P.look[0] * 0.5, 0.8] : P.look;
-  const lx = clamp(look[0], -1, 1) * 0.05 * R,
-    ly = clamp(look[1], -1, 1) * 0.045 * R;
   const eyeY = hc[1] + (o.eyeY ?? 0) * R;
-  const th = 0.032 * R;
-  const size = o.eyeR ?? 0.165;
+  const th = 0.03 * R;
   for (const side of [-1, 1]) {
     const near = side === sg || aT < 0.05;
-    const squash = near ? 1 - 0.08 * aT : 1 - 0.42 * aT;
+    const squash = near ? 1 - 0.08 * aT : 1 - 0.45 * aT;
     const ex =
       hc[0] +
       fx +
-      side * (o.eyeX ?? 0.36) * R * (near ? 1 - 0.12 * aT : 1 - 0.55 * aT) +
-      lx;
-    const ey = eyeY + ly;
-    const big = F.eyes === "wide" ? 1.14 : 1;
-    const rx = size * R * squash * big,
-      ry = size * 1.3 * R * big;
+      side * (o.eyeX ?? 0.37) * R * (near ? 1 - 0.12 * aT : 1 - 0.55 * aT);
+    const big = F.wide ? 1.12 : 1;
+    const w = (o.w ?? 0.155) * R * squash * big,
+      h = (o.h ?? 0.14) * R * big;
+    const s = side;
+    // brow first, so the eye sits cleanly under it
+    const by = eyeY - h - (o.browGap ?? 0.13) * R;
+    const bIn = [ex - s * w * 0.8, by + F.brow * 0.05 * R];
+    const bMid = [ex + s * w * 0.1, by - 0.035 * R - F.brow * 0.012 * R];
+    const bOut = [ex + s * w * 1.0, by + 0.01 * R - F.brow * 0.02 * R];
+    if (o.ridge) {
+      g.merge(() =>
+        g.path(
+          [
+            [bIn[0], bIn[1] + 0.04 * R],
+            [bMid[0], bMid[1] - 0.05 * R],
+            [bOut[0] + s * 0.06 * R, bOut[1] - 0.02 * R],
+            [bOut[0], bOut[1] + 0.07 * R],
+            [bMid[0], bMid[1] + 0.06 * R],
+          ],
+          o.brow,
+          { ao: 0.8 },
+        ),
+      );
+    } else {
+      g.capsule(
+        bIn[0],
+        bIn[1],
+        bMid[0],
+        bMid[1],
+        th * 1.05,
+        th * 0.95,
+        o.brow,
+        { shade: 0 },
+      );
+      g.capsule(
+        bMid[0],
+        bMid[1],
+        bOut[0],
+        bOut[1],
+        th * 0.95,
+        th * 0.55,
+        o.brow,
+        { shade: 0 },
+      );
+    }
     let blink = P.blink;
-    if (F.eyes === "half") blink = Math.max(blink, 0.42);
     if (F.eyes === "happy") {
       g.arc(
         ex,
-        ey + ry * 0.45,
-        rx * 1.05,
-        Math.PI + 0.4,
-        TAU - 0.4,
-        th,
+        eyeY + h * 0.9,
+        w * 1.05,
+        Math.PI + 0.55,
+        TAU - 0.55,
+        th * 1.1,
         o.line,
       );
-    } else if (F.eyes === "squeeze") {
-      const d = side * 0.16 * R;
-      g.capsule(ex - d, ey - 5, ex + d * 0.4, ey, th, th, o.line, {
-        shade: 0,
-        ol: 0,
-      });
-      g.capsule(ex + d * 0.4, ey, ex - d, ey + 5, th, th, o.line, {
-        shade: 0,
-        ol: 0,
-      });
-    } else if (blink > 0.82) {
-      g.arc(ex, ey - ry * 0.25, rx * 1.0, 0.35, Math.PI - 0.35, th, o.line);
-    } else {
-      const eye = g.ellipse(ex, ey, rx, ry, EYE, { ol: 0, shade: 0 });
-      const inEye = { ol: 0, shade: 0, clip: eye, clipMode: 2 };
-      g.ellipse(ex, ey + ry * 0.55, rx * 0.8, ry * 0.5, EYE_GLOW, inEye);
-      g.circle(ex - rx * 0.3, ey - ry * 0.36, rx * 0.44, "#ffffff", inEye);
-      g.circle(ex + rx * 0.36, ey + ry * 0.36, rx * 0.17, "#ffffff", {
-        ...inEye,
-        alpha: 0.9,
-      });
-      if (blink > 0.02) {
-        const edge = ey - ry + 2 * ry * blink;
-        const top = ey - ry * 1.3;
-        g.box(
-          ex,
-          (top + edge) / 2,
-          rx * 1.4,
-          (edge - top) / 2,
-          0,
-          o.skin,
-          inEye,
-        );
-        g.capsule(
-          ex - rx * 1.2,
-          edge,
-          ex + rx * 1.2,
-          edge,
-          th * 0.8,
-          th * 0.8,
-          o.line,
-          inEye,
-        );
-      }
+      continue;
     }
-    // brow: inner end lower when determined, higher when sad
-    const by = eyeY - ry - 0.13 * R;
-    g.arc(
+    if (F.eyes === "squeeze") {
+      const d = s * w;
+      g.capsule(ex - d, eyeY - h * 0.7, ex + d * 0.5, eyeY, th, th, o.line, {
+        shade: 0,
+      });
+      g.capsule(ex + d * 0.5, eyeY, ex - d, eyeY + h * 0.7, th, th, o.line, {
+        shade: 0,
+      });
+      continue;
+    }
+    if (blink > 0.85) {
+      g.arc(ex, eyeY - h * 0.6, w * 1.0, 0.45, Math.PI - 0.45, th, o.line);
+      continue;
+    }
+    const eye = g.path(
+      [
+        [ex - s * w, eyeY + 0.15 * h, 1],
+        [ex - s * 0.45 * w, eyeY - 1.15 * h],
+        [ex + s * 0.5 * w, eyeY - 1.2 * h],
+        [ex + s * w, eyeY - 0.15 * h, 1],
+        [ex + s * 0.5 * w, eyeY + 1.05 * h],
+        [ex - s * 0.4 * w, eyeY + 1.05 * h],
+      ],
+      SCLERA,
+      { fx: 0, shade: 0 },
+    );
+    const inEye = { clip: eye, clipMode: 2 };
+    const ix = ex + clamp(look[0], -1, 1) * w * 0.32,
+      iy = eyeY + 0.05 * h + clamp(look[1], -1, 1) * h * 0.25;
+    g.circle(ix, iy, h * 0.98, o.iris, { ...inEye, fx: 0 });
+    g.circle(ix, iy, h * 0.52, PUPIL, { ...inEye, shade: 0 });
+    g.circle(ix - h * 0.32, iy - h * 0.36, h * 0.26, "#ffffff", {
+      ...inEye,
+      shade: 0,
+    });
+    g.circle(ix + h * 0.38, iy + h * 0.3, h * 0.1, "#ffffff", {
+      ...inEye,
+      shade: 0,
+      alpha: 0.8,
+    });
+    // the lid's shadow on the eye, then the lid itself
+    const lid = clamp(Math.max(F.lid, blink));
+    const edge = eyeY - h * 0.95 + h * 2.0 * lid;
+    g.soft(ex, edge + h * 0.15, w * 1.2, h * 0.5, "#4a2a3a", {
+      ...inEye,
+      alpha: 0.35,
+      core: 0.1,
+    });
+    const top = eyeY - h * 1.5;
+    g.box(
       ex,
-      by + 0.16 * R,
-      0.16 * R * squash,
-      Math.PI + 1.0,
-      TAU - 1.0,
-      th * 0.9,
-      o.brow,
+      (top + edge) / 2,
+      w * 1.3,
+      Math.max(0.01, (edge - top) / 2),
+      0,
+      o.skin,
       {
-        ang: -side * F.brow * 0.3,
+        ...inEye,
+        shade: 0,
       },
     );
+    // lash line along the lid, with a small flick at the outer corner
+    const A = [ex - s * w * 1.02, eyeY + 0.12 * h];
+    const B = [ex - s * w * 0.35, Math.min(edge, eyeY - 0.1 * h) - h * 0.05];
+    const C = [ex + s * w * 0.45, Math.min(edge, eyeY - 0.15 * h) - h * 0.05];
+    const D = [ex + s * w * 1.12, eyeY - 0.3 * h];
+    g.capsule(A[0], A[1], B[0], B[1], th * 0.55, th * 0.9, o.line, {
+      shade: 0,
+    });
+    g.capsule(B[0], B[1], C[0], C[1], th * 0.9, th * 1.0, o.line, { shade: 0 });
+    g.capsule(C[0], C[1], D[0], D[1], th * 1.0, th * 0.45, o.line, {
+      shade: 0,
+    });
   }
-  if (o.blush !== false)
-    for (const side of [-1, 1]) {
-      const near = side === sg || aT < 0.05;
-      if (!near && aT > 0.6) continue;
-      g.soft(
-        hc[0] + fx + side * (o.blushX ?? 0.58) * R * (near ? 1 : 0.55),
-        eyeY + (o.blushY ?? 0.3) * R,
-        0.15 * R,
-        0.09 * R,
-        BLUSH,
-        { alpha: 0.5, core: 0.35 },
-      );
-    }
 }
 
 // mouth at (mx, my) with half-width mw
-function drawMouth(g, face, mx, my, mw, line, R) {
-  const F = FACES[face] || FACES.happy;
-  const th = 0.03 * R;
-  if (F.mouth === "smile")
-    g.arc(mx, my - mw * 0.6, mw, 0.5, Math.PI - 0.5, th, line);
-  else if (F.mouth === "flat")
-    g.capsule(mx - mw * 0.55, my, mx + mw * 0.55, my, th, th, line, {
+function drawMouth(g, face, mx, my, mw, line, R, smirk = 0.15) {
+  const F = faceOf(face);
+  const th = 0.026 * R;
+  if (F.mouth === "smile") {
+    g.arc(mx + mw * smirk, my - mw * 0.75, mw, 0.6, Math.PI - 0.45, th, line);
+  } else if (F.mouth === "flat")
+    g.capsule(mx - mw * 0.5, my, mx + mw * 0.5, my - mw * 0.05, th, th, line, {
       shade: 0,
-      ol: 0,
     });
   else if (F.mouth === "frown")
-    g.arc(mx, my + mw * 0.7, mw * 0.8, Math.PI + 0.6, TAU - 0.6, th, line);
+    g.arc(mx, my + mw * 0.75, mw * 0.75, Math.PI + 0.6, TAU - 0.6, th, line);
   else if (F.mouth === "beam" || F.mouth === "open") {
-    const h = F.mouth === "open" ? 1.05 : 0.85;
+    const h = F.mouth === "open" ? 1.0 : 0.8;
     const m = g.path(
       [
-        [mx - mw, my - mw * 0.25, 1],
-        [mx + mw, my - mw * 0.25, 1],
-        [mx + mw * 0.85, my + mw * h * 0.7],
-        [mx, my + mw * h * 1.05],
-        [mx - mw * 0.85, my + mw * h * 0.7],
+        [mx - mw, my - mw * 0.2, 1],
+        [mx + mw * 1.05, my - mw * 0.28, 1],
+        [mx + mw * 0.8, my + mw * h * 0.65],
+        [mx, my + mw * h],
+        [mx - mw * 0.75, my + mw * h * 0.6],
       ],
       MOUTH,
-      { ol: 2, shade: 0, line },
+      { shade: 0, ao: 0.4 },
     );
-    g.ellipse(mx, my + mw * h * 0.85, mw * 0.55, mw * 0.36, TONGUE, {
-      ol: 0,
-      shade: 0,
+    g.box(mx, my - mw * 0.1, mw * 1.2, mw * 0.18, 1, TEETH, {
       clip: m,
       clipMode: 2,
+      shade: 0,
+    });
+    g.ellipse(mx + mw * 0.1, my + mw * h * 0.85, mw * 0.55, mw * 0.32, TONGUE, {
+      clip: m,
+      clipMode: 2,
+      fx: 0,
     });
   } else if (F.mouth === "o") {
-    const m = g.ellipse(mx, my + mw * 0.2, mw * 0.4, mw * 0.5, MOUTH, {
-      ol: 2,
+    const m = g.ellipse(mx, my + mw * 0.2, mw * 0.36, mw * 0.46, MOUTH, {
       shade: 0,
-      line,
     });
-    g.ellipse(mx, my + mw * 0.55, mw * 0.28, mw * 0.2, TONGUE, {
-      ol: 0,
-      shade: 0,
+    g.ellipse(mx, my + mw * 0.55, mw * 0.26, mw * 0.18, TONGUE, {
       clip: m,
       clipMode: 2,
-    });
-  } else if (F.mouth === "grit") {
-    g.box(mx, my, mw * 0.9, mw * 0.34, 3, "#ffffff", { ol: 2, shade: 0, line });
-    g.capsule(mx - mw * 0.85, my, mx + mw * 0.85, my, 0.7, 0.7, line, {
-      ol: 0,
       shade: 0,
     });
+  } else if (F.mouth === "grit") {
+    g.box(mx, my, mw * 0.85, mw * 0.3, 3, TEETH, { shade: 0, ol: 0.8, line });
   }
 }
 
 // ---------- heads ----------
+const LION_FACE = [
+  [0, -0.94],
+  [0.62, -0.84],
+  [0.96, -0.24],
+  [0.92, 0.36],
+  [0.6, 0.84],
+  [0, 0.96],
+  [-0.6, 0.84],
+  [-0.92, 0.36],
+  [-0.96, -0.24],
+  [-0.62, -0.84],
+];
+const OX_FACE = [
+  [0, -0.9],
+  [0.72, -0.84],
+  [1.0, -0.34],
+  [0.94, 0.26],
+  [0.7, 0.78],
+  [0, 0.92],
+  [-0.7, 0.78],
+  [-0.94, 0.26],
+  [-1.0, -0.34],
+  [-0.72, -0.84],
+];
+const ROUND_FACE = [
+  [0, -1],
+  [0.72, -0.8],
+  [1, -0.12],
+  [0.86, 0.48],
+  [0.5, 0.86],
+  [0, 0.96],
+  [-0.5, 0.86],
+  [-0.86, 0.48],
+  [-1, -0.12],
+  [-0.72, -0.8],
+];
+const HUMAN_FACE = [
+  [0, -0.96],
+  [0.7, -0.82],
+  [0.92, -0.2],
+  [0.86, 0.36],
+  [0.56, 0.82],
+  [0, 1.0],
+  [-0.56, 0.82],
+  [-0.86, 0.36],
+  [-0.92, -0.2],
+  [-0.7, -0.82],
+];
 const HEADS = {
   leo(g, P, S, hc) {
     const T = P.turn,
       R = S.headR,
       aT = Math.abs(T),
       fx = T * 0.42 * R;
-    // mane: a ring of soft lobes, one silhouette
+    const mc = [hc[0] - T * 0.16 * R, hc[1] + 0.04 * R];
+    // a mane of swept locks: an outer ring, then a lighter inner ring
     g.merge(() => {
-      const n = 15;
+      const n = 11;
       for (let i = 0; i < n; i++) {
-        const a = (i / n) * TAU + 0.21;
-        const wob = 0.94 + 0.12 * hash(i, 7) + 0.03 * Math.sin(P.t * 1.6 + i);
-        g.circle(
-          hc[0] - T * 8 + Math.cos(a) * R * 0.98 * (1 - 0.06 * aT),
-          hc[1] + 3 + Math.sin(a) * R * 0.94,
-          R * 0.34 * wob,
+        const a = (i / n) * TAU - Math.PI / 2 + 0.1;
+        const len = R * (0.82 + 0.1 * hash(i, 5));
+        feather(
+          g,
+          mc[0] + Math.cos(a) * R * 0.6,
+          mc[1] + Math.sin(a) * R * 0.62,
+          a + 0.62,
+          len,
+          R * 0.42,
           S.mane,
+          {},
+          false,
+        );
+      }
+    });
+    g.merge(() => {
+      const n = 10;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * TAU - Math.PI / 2 + 0.4;
+        feather(
+          g,
+          mc[0] + Math.cos(a) * R * 0.58,
+          mc[1] + Math.sin(a) * R * 0.6,
+          a + 0.7,
+          R * (0.48 + 0.08 * hash(i, 9)),
+          R * 0.34,
+          S.maneIn,
+          { ao: 0.5 },
+          false,
         );
       }
     });
     for (const side of [-1, 1]) {
-      const ex = hc[0] + side * 0.64 * R * (1 - 0.25 * aT) - T * 8;
+      const e = [
+        hc[0] + side * 0.66 * R * (1 - 0.25 * aT) - T * 0.1 * R,
+        hc[1] - 0.68 * R,
+      ];
       g.merge(() => {
-        const ear = g.circle(ex, hc[1] - 0.68 * R, 0.25 * R, S.body);
-        g.circle(ex, hc[1] - 0.66 * R, 0.13 * R, S.ear, {
-          clip: ear,
-          clipMode: 2,
-          ol: 0,
-          shade: 0,
-        });
+        const ear = g.circle(e[0], e[1], 0.21 * R, S.body, { ao: 0.6 });
+        g.ellipse(
+          e[0] + side * 0.02 * R,
+          e[1] + 0.02 * R,
+          0.11 * R,
+          0.1 * R,
+          S.ear,
+          {
+            clip: ear,
+            clipMode: 2,
+            fx: 0,
+          },
+        );
       });
     }
-    g.merge(() => {
-      g.ellipse(hc[0], hc[1], R * (1 - 0.04 * aT), R * 0.9, S.body, { rim: 1 });
-      // fluffy cheeks
-      for (const side of [-1, 1])
-        g.circle(
-          hc[0] + side * 0.78 * R * (1 - 0.2 * aT) + fx * 0.3,
-          hc[1] + 0.32 * R,
-          0.24 * R,
-          S.body,
-        );
-    });
-    const mz = [hc[0] + fx * 1.12, hc[1] + 0.36 * R];
+    g.merge(() =>
+      shape(
+        g,
+        hc[0],
+        hc[1],
+        R,
+        LION_FACE,
+        S.body,
+        { ao: 1, gloss: 0.18 },
+        1 - 0.05 * aT,
+      ),
+    );
+    const mz = [hc[0] + fx * 1.15, hc[1] + 0.4 * R];
     g.merge(() => {
       for (const side of [-1, 1])
         g.ellipse(
           mz[0] + side * 0.15 * R * (1 - 0.25 * aT),
           mz[1],
-          0.21 * R,
-          0.16 * R,
-          S.belly,
-          { ol: 2 },
+          0.2 * R,
+          0.15 * R,
+          S.muzzle,
+          {
+            ao: 0.5,
+          },
         );
-      g.ellipse(mz[0], mz[1] + 0.13 * R, 0.13 * R, 0.1 * R, S.belly, { ol: 2 });
+      g.ellipse(mz[0], mz[1] + 0.16 * R, 0.12 * R, 0.08 * R, S.muzzle);
     });
-    for (const side of [-1, 1])
-      for (const [u, v] of [
-        [0.18, -0.02],
-        [0.26, 0.04],
-        [0.17, 0.08],
-      ])
-        g.circle(mz[0] + side * u * R, mz[1] + v * R, 0.022 * R, S.freckle, {
-          ol: 0,
-          shade: 0,
-        });
     drawEyes(g, P, hc, R, {
-      eyeY: -0.06,
+      eyeY: -0.08,
       skin: S.body,
+      iris: S.iris,
       brow: S.brow,
       line: S.line,
-      blushY: 0.26,
     });
+    const F = faceOf(P.face);
     if (isOpenMouth(P.face))
-      drawMouth(g, P.face, mz[0], mz[1] + 0.13 * R, 0.13 * R, S.line, R);
-    else if ((FACES[P.face] || {}).mouth === "frown")
+      drawMouth(g, P.face, mz[0], mz[1] + 0.14 * R, 0.13 * R, S.line, R, 0);
+    else if (F.mouth === "frown")
       g.arc(
         mz[0],
-        mz[1] + 0.22 * R,
+        mz[1] + 0.25 * R,
         0.09 * R,
         Math.PI + 0.5,
         TAU - 0.5,
-        0.03 * R,
+        0.026 * R,
         S.line,
       );
-    else
+    else {
+      g.capsule(
+        mz[0],
+        mz[1] - 0.02 * R,
+        mz[0],
+        mz[1] + 0.06 * R,
+        0.022 * R,
+        0.022 * R,
+        S.line,
+        {
+          shade: 0,
+        },
+      );
       for (const side of [-1, 1])
         g.arc(
           mz[0] + side * 0.075 * R,
           mz[1] + 0.02 * R,
           0.075 * R,
-          0.25,
-          Math.PI - 0.25,
-          0.028 * R,
+          side < 0 ? 0.35 : 0.2,
+          Math.PI - (side < 0 ? 0.2 : 0.35),
+          0.024 * R,
           S.line,
         );
-    // nose
-    g.path(
-      [
-        [mz[0] - 0.12 * R, mz[1] - 0.13 * R],
-        [mz[0] + 0.12 * R, mz[1] - 0.13 * R],
-        [mz[0] + 0.02 * R, mz[1] + 0.02 * R],
-        [mz[0] - 0.02 * R, mz[1] + 0.02 * R],
-      ],
-      S.nose,
-      { ol: 1.6, shade: 0.4 },
-    );
-    g.ellipse(
-      mz[0] - 0.035 * R,
-      mz[1] - 0.1 * R,
-      0.035 * R,
-      0.018 * R,
-      "#ffffff",
-      {
-        ol: 0,
-        shade: 0,
-        alpha: 0.65,
-      },
+    }
+    g.merge(() =>
+      g.path(
+        [
+          [mz[0] - 0.13 * R, mz[1] - 0.15 * R],
+          [mz[0] + 0.13 * R, mz[1] - 0.15 * R],
+          [mz[0] + 0.03 * R, mz[1] + 0.01 * R],
+          [mz[0] - 0.03 * R, mz[1] + 0.01 * R],
+        ],
+        S.nose,
+        { gloss: 0.7, ao: 0.6 },
+      ),
     );
   },
   lou(g, P, S, hc) {
@@ -1198,233 +1354,262 @@ const HEADS = {
       R = S.headR,
       aT = Math.abs(T),
       fx = T * 0.42 * R;
-    // short curved horns
+    // crescent horns
     for (const side of [-1, 1]) {
-      const bx = hc[0] + side * 0.42 * R * (1 - 0.3 * aT) - T * 8;
-      const m1 = [bx + side * 0.2 * R, hc[1] - 0.92 * R];
-      g.merge(() => {
-        g.capsule(bx, hc[1] - 0.6 * R, m1[0], m1[1], 0.13 * R, 0.1 * R, S.horn);
-        g.capsule(
-          m1[0],
-          m1[1],
-          m1[0] - side * 0.02 * R,
-          hc[1] - 1.08 * R,
-          0.1 * R,
-          0.05 * R,
+      const bx = hc[0] - T * 0.2 * R;
+      const sx = side * (1 - 0.25 * aT);
+      g.merge(() =>
+        g.path(
+          [
+            [bx + sx * 0.36 * R, hc[1] - 0.6 * R],
+            [bx + sx * 0.62 * R, hc[1] - 0.74 * R],
+            [bx + sx * 0.84 * R, hc[1] - 0.84 * R],
+            [bx + sx * 0.96 * R, hc[1] - 1.12 * R, 1],
+            [bx + sx * 0.78 * R, hc[1] - 0.98 * R],
+            [bx + sx * 0.58 * R, hc[1] - 0.92 * R],
+            [bx + sx * 0.4 * R, hc[1] - 0.86 * R],
+          ],
           S.horn,
-        );
-      });
+          { gloss: 0.4 },
+        ),
+      );
     }
-    // floppy ears
     for (const side of [-1, 1]) {
       const near = side === (T >= 0 ? 1 : -1) || aT < 0.05;
-      const ex =
-        hc[0] +
-        side * 0.94 * R * (near ? 1 - 0.15 * aT : 1 - 0.45 * aT) -
-        T * 6;
+      const ex = hc[0] - T * 0.12 * R;
+      const k = near ? 1 - 0.15 * aT : 1 - 0.45 * aT;
       g.merge(() => {
-        const ear = g.ellipse(
-          ex,
-          hc[1] - 0.16 * R,
-          0.32 * R,
-          0.15 * R,
+        const ear = g.path(
+          [
+            [ex + side * 0.8 * R * k, hc[1] - 0.36 * R],
+            [ex + side * 1.18 * R * k, hc[1] - 0.4 * R],
+            [ex + side * 1.42 * R * k, hc[1] - 0.24 * R, 1],
+            [ex + side * 1.16 * R * k, hc[1] - 0.06 * R],
+            [ex + side * 0.8 * R * k, hc[1] - 0.1 * R],
+          ],
           S.body,
-          { ang: side * 0.38 },
+          { ao: 0.6 },
         );
         g.ellipse(
-          ex + side * 0.03 * R,
-          hc[1] - 0.15 * R,
-          0.2 * R,
+          ex + side * 1.1 * R * k,
+          hc[1] - 0.22 * R,
+          0.2 * R * k,
           0.07 * R,
           S.ear,
           {
-            ang: side * 0.38,
             clip: ear,
             clipMode: 2,
-            ol: 0,
-            shade: 0,
+            fx: 0,
+            ang: side * 0.15,
           },
         );
       });
     }
     let head;
     g.merge(() => {
-      head = g.ellipse(hc[0], hc[1], R * (1 - 0.04 * aT), R * 0.88, S.body, {
-        rim: 1,
-      });
+      head = shape(
+        g,
+        hc[0],
+        hc[1],
+        R,
+        OX_FACE,
+        S.body,
+        { ao: 1, gloss: 0.15 },
+        1 - 0.05 * aT,
+      );
+      g.path(
+        [
+          [hc[0] + fx * 0.6, hc[1] - 0.92 * R],
+          [hc[0] + fx * 0.6 + 0.16 * R, hc[1] - 0.62 * R],
+          [hc[0] + fx * 0.8 + 0.07 * R, hc[1] - 0.28 * R],
+          [hc[0] + fx * 0.85, hc[1] - 0.16 * R, 1],
+          [hc[0] + fx * 0.8 - 0.07 * R, hc[1] - 0.28 * R],
+          [hc[0] + fx * 0.6 - 0.16 * R, hc[1] - 0.62 * R],
+        ],
+        S.belly,
+        { clip: head, clipMode: 2, fx: 0 },
+      );
     });
-    const inHead = { clip: head, clipMode: 2, ol: 0, shade: 0 };
-    // a pale blaze down the forehead
-    g.path(
-      [
-        [hc[0] + fx * 0.6 - 0.17 * R, hc[1] - 0.95 * R],
-        [hc[0] + fx * 0.6 + 0.17 * R, hc[1] - 0.95 * R],
-        [hc[0] + fx * 0.8 + 0.12 * R, hc[1] - 0.42 * R],
-        [hc[0] + fx * 0.85, hc[1] - 0.18 * R],
-        [hc[0] + fx * 0.8 - 0.12 * R, hc[1] - 0.42 * R],
-      ],
-      S.belly,
-      inHead,
-    );
-    // tuft of hair
     g.merge(() => {
-      for (const [dx, dy, r] of [
-        [-0.14, -0.86, 0.15],
-        [0.04, -0.94, 0.17],
-        [0.2, -0.84, 0.13],
+      for (const [da, l] of [
+        [-0.55, 0.32],
+        [-0.2, 0.38],
+        [0.15, 0.36],
+        [0.5, 0.3],
       ])
-        g.circle(
-          hc[0] + fx * 0.5 + dx * R - T * 4,
-          hc[1] + dy * R,
-          r * R,
+        feather(
+          g,
+          hc[0] + fx * 0.5 - T * 0.05 * R + da * 0.12 * R,
+          hc[1] - 0.8 * R,
+          -Math.PI / 2 + da + 0.25,
+          l * R,
+          0.12 * R,
           S.tuft,
+          { ao: 0.5 },
         );
     });
     drawEyes(g, P, hc, R, {
-      eyeY: -0.12,
-      eyeX: 0.37,
+      eyeY: -0.16,
+      eyeX: 0.39,
       skin: S.body,
+      iris: S.iris,
       brow: S.brow,
       line: S.line,
-      blushX: 0.62,
-      blushY: 0.28,
     });
-    // big soft muzzle
-    const mz = [hc[0] + fx * 1.15, hc[1] + 0.44 * R];
-    g.merge(() => {
-      g.ellipse(mz[0], mz[1], 0.6 * R * (1 - 0.18 * aT), 0.36 * R, S.muzzle, {
-        ol: 2.4,
-        rim: 0.6,
-      });
-    });
+    const mz = [hc[0] + fx * 1.15, hc[1] + 0.48 * R];
+    g.merge(() =>
+      g.ellipse(mz[0], mz[1], 0.62 * R * (1 - 0.18 * aT), 0.38 * R, S.muzzle, {
+        ao: 0.8,
+        gloss: 0.2,
+      }),
+    );
     for (const side of [-1, 1]) {
       const near = side === (T >= 0 ? 1 : -1) || aT < 0.05;
       g.ellipse(
-        mz[0] + side * 0.24 * R * (near ? 1 : 0.6),
-        mz[1] - 0.08 * R,
-        0.06 * R,
+        mz[0] + side * 0.25 * R * (near ? 1 : 0.6),
+        mz[1] - 0.1 * R,
+        0.055 * R,
         0.085 * R,
         S.nostril,
         {
-          ol: 0,
-          shade: 0,
-          ang: side * 0.35,
+          fx: 0,
+          ang: side * 0.4,
         },
       );
     }
-    drawMouth(g, P.face, mz[0], mz[1] + 0.16 * R, 0.17 * R, S.line, R);
+    drawMouth(g, P.face, mz[0], mz[1] + 0.18 * R, 0.17 * R, S.line, R);
   },
   juno(g, P, S, hc) {
     const T = P.turn,
       R = S.headR,
       aT = Math.abs(T),
       fx = T * 0.42 * R;
-    // white feathered head: crest, round head and a ruff, one silhouette
+    const sg = T >= 0 ? 1 : -1;
+    // swept-back crest
     g.merge(() => {
       for (const [dx, a, l] of [
-        [-0.24, -2.1, 0.5],
-        [-0.02, -1.72, 0.62],
-        [0.2, -1.36, 0.46],
+        [-0.2, -2.15, 0.62],
+        [0.0, -1.85, 0.7],
+        [0.18, -1.55, 0.6],
       ])
-        g.tri(
-          hc[0] - T * 0.24 * R + dx * R,
-          hc[1] - 0.68 * R,
+        feather(
+          g,
+          hc[0] - T * 0.3 * R + dx * R,
+          hc[1] - 0.55 * R,
+          a - T * 0.5,
           l * R,
-          0.15 * R,
-          0.05 * R,
+          0.16 * R,
           S.head,
-          {
-            ang: a - T * 0.5,
-          },
         );
-      g.circle(hc[0], hc[1], R, S.head, { rim: 0.5 });
+    });
+    // neck feathers over the body
+    g.merge(() => {
       for (let i = 0; i < 7; i++) {
-        const a = 0.35 + (i / 6) * (Math.PI - 0.7);
-        g.circle(
-          hc[0] + Math.cos(a) * 0.86 * R,
-          hc[1] + Math.sin(a) * 0.86 * R,
-          0.24 * R,
+        const a = Math.PI * (0.22 + (i / 6) * 0.56);
+        feather(
+          g,
+          hc[0] + Math.cos(a) * 0.5 * R,
+          hc[1] + Math.sin(a) * 0.5 * R,
+          a,
+          0.62 * R,
+          0.2 * R,
           S.head,
+          { ao: 0.8 },
         );
       }
     });
+    g.merge(() =>
+      shape(
+        g,
+        hc[0],
+        hc[1],
+        R,
+        ROUND_FACE,
+        S.head,
+        { ao: 0.6, gloss: 0.15 },
+        1 - 0.04 * aT,
+      ),
+    );
     drawEyes(g, P, hc, R, {
       eyeY: -0.12,
-      eyeX: 0.37,
+      eyeX: 0.39,
       skin: S.head,
+      iris: S.iris,
       brow: S.brow,
       line: S.line,
-      blushY: 0.24,
-      blushX: 0.62,
+      ridge: true,
+      browGap: 0.1,
     });
     // hooked beak, morphing from front view to profile with the turn
     const open = isOpenMouth(P.face);
     const bx = hc[0] + fx * 1.25,
-      by = hc[1] + 0.12 * R;
-    const sg = T >= 0 ? 1 : -1;
+      by = hc[1] + 0.1 * R;
     const u = clamp(aT * 1.4);
     const front = [
       [-0.3, -0.08],
-      [-0.14, -0.17],
-      [0.14, -0.17],
+      [-0.14, -0.18],
+      [0.14, -0.18],
       [0.3, -0.08],
-      [0.22, 0.12],
-      [0.06, 0.3],
-      [0, 0.37, 1],
-      [-0.06, 0.3],
-      [-0.22, 0.12],
+      [0.22, 0.14],
+      [0.07, 0.34],
+      [0, 0.44, 1],
+      [-0.07, 0.34],
+      [-0.22, 0.14],
     ];
     const side = [
       [-0.14, -0.06],
-      [-0.02, -0.18],
-      [0.26, -0.17],
-      [0.48, -0.04],
-      [0.53, 0.16],
-      [0.47, 0.3],
-      [0.41, 0.34, 1],
-      [0.37, 0.18],
-      [-0.08, 0.14],
+      [-0.02, -0.19],
+      [0.28, -0.18],
+      [0.52, -0.04],
+      [0.56, 0.18],
+      [0.48, 0.34],
+      [0.42, 0.38, 1],
+      [0.38, 0.2],
+      [-0.08, 0.15],
     ];
     const jx = bx + sg * u * 0.2 * R;
-    if (open) {
-      const m = g.ellipse(jx, by + 0.2 * R, 0.2 * R, 0.2 * R, MOUTH, {
-        ol: 2,
-        shade: 0,
-      });
-      g.ellipse(jx, by + 0.32 * R, 0.12 * R, 0.08 * R, TONGUE, {
-        ol: 0,
-        shade: 0,
-        clip: m,
-        clipMode: 2,
-      });
-      g.ellipse(jx, by + 0.38 * R, 0.17 * R, 0.07 * R, "#eaa21e", { ol: 2 });
-    } else
-      g.ellipse(jx, by + 0.24 * R, 0.17 * R, 0.08 * R, "#eaa21e", { ol: 2 });
-    g.path(
-      front.map((f, i) => [
-        bx + lerp(f[0] * sg, side[i][0] * sg, u) * R * 1.12,
-        by + lerp(f[1], side[i][1], u) * R * 1.12,
-        f[2],
-      ]),
-      S.beak,
-      { ol: 2.4, rim: 0.8 },
+    g.merge(() => {
+      if (open) {
+        const m = g.ellipse(jx, by + 0.22 * R, 0.19 * R, 0.19 * R, MOUTH, {
+          shade: 0,
+        });
+        g.ellipse(jx, by + 0.34 * R, 0.11 * R, 0.07 * R, TONGUE, {
+          shade: 0,
+          clip: m,
+          clipMode: 2,
+        });
+        g.ellipse(jx, by + 0.4 * R, 0.16 * R, 0.07 * R, "#e09a1e", {});
+      } else g.ellipse(jx, by + 0.25 * R, 0.16 * R, 0.07 * R, "#e09a1e", {});
+    });
+    g.merge(() =>
+      g.path(
+        front.map((f, i) => [
+          bx + lerp(f[0] * sg, side[i][0] * sg, u) * R * 1.12,
+          by + lerp(f[1], side[i][1], u) * R * 1.12,
+          f[2],
+        ]),
+        S.beak,
+        { gloss: 0.6, ao: 0.8 },
+      ),
     );
     g.ellipse(
-      bx + sg * u * 0.1 * R - 0.06 * R * (1 - u),
+      bx + sg * u * 0.12 * R - 0.06 * R * (1 - u),
       by - 0.04 * R,
-      0.025 * R,
-      0.035 * R,
-      "#b8741a",
-      { ol: 0, shade: 0 },
+      0.022 * R,
+      0.032 * R,
+      "#9a5f12",
+      {
+        shade: 0,
+      },
     );
-    if (!open && (FACES[P.face] || {}).mouth === "frown")
+    if (!open && faceOf(P.face).mouth === "frown")
       g.arc(
         bx,
-        by + 0.44 * R,
+        by + 0.48 * R,
         0.08 * R,
         Math.PI + 0.5,
         TAU - 0.5,
-        0.03 * R,
+        0.026 * R,
         S.line,
       );
   },
@@ -1433,105 +1618,98 @@ const HEADS = {
       R = S.headR,
       aT = Math.abs(T),
       fx = T * 0.42 * R;
-    // curly hair behind the face, one silhouette
+    // curls behind the face
     g.merge(() => {
-      const n = 12;
+      const n = 15;
       for (let i = 0; i < n; i++) {
-        const a = Math.PI * 0.82 + (i / (n - 1)) * Math.PI * 1.36;
-        const wob = 0.92 + 0.14 * hash(i, 3);
+        const a = Math.PI * 0.78 + (i / (n - 1)) * Math.PI * 1.44;
+        const wob = 0.9 + 0.2 * hash(i, 3);
         g.circle(
-          hc[0] - T * 6 + Math.cos(a) * R * 0.92,
-          hc[1] - 0.06 * R + Math.sin(a) * R * 0.9,
-          R * 0.3 * wob,
+          hc[0] - T * 0.15 * R + Math.cos(a) * R * 0.86,
+          hc[1] - 0.1 * R + Math.sin(a) * R * 0.84,
+          R * 0.27 * wob,
           S.hair,
-          { line: S.line },
         );
       }
     });
     for (const side of [-1, 1]) {
       const near = side === (T >= 0 ? 1 : -1) || aT < 0.05;
       if (!near && aT > 0.5) continue;
-      g.circle(
-        hc[0] + side * 0.9 * R * (near ? 1 - 0.1 * aT : 0.7) - T * 4,
-        hc[1] + 0.12 * R,
-        0.15 * R,
-        S.skin,
-        {
-          line: S.skinLine,
-        },
+      g.merge(() =>
+        g.ellipse(
+          hc[0] + side * 0.88 * R * (near ? 1 - 0.1 * aT : 0.7) - T * 0.1 * R,
+          hc[1] + 0.12 * R,
+          0.12 * R,
+          0.16 * R,
+          S.skin,
+          {
+            ao: 0.5,
+          },
+        ),
       );
     }
-    g.merge(() => {
-      g.ellipse(hc[0], hc[1], R * 0.9 * (1 - 0.03 * aT), R * 0.92, S.skin, {
-        line: S.skinLine,
-        rim: 0.8,
-      });
-    });
-    // curls over the forehead
+    g.merge(() =>
+      shape(
+        g,
+        hc[0],
+        hc[1],
+        R,
+        HUMAN_FACE,
+        S.skin,
+        { ao: 1, gloss: 0.12 },
+        1 - 0.04 * aT,
+      ),
+    );
+    // curls along the hairline
     g.merge(() => {
       for (const [dx, dy, r] of [
-        [-0.62, -0.42, 0.2],
-        [-0.42, -0.66, 0.25],
-        [-0.12, -0.8, 0.27],
-        [0.2, -0.78, 0.26],
-        [0.48, -0.62, 0.24],
-        [0.68, -0.38, 0.18],
+        [-0.7, -0.5, 0.2],
+        [-0.48, -0.72, 0.24],
+        [-0.18, -0.86, 0.26],
+        [0.14, -0.86, 0.25],
+        [0.44, -0.74, 0.24],
+        [0.68, -0.52, 0.2],
       ])
         g.circle(
           hc[0] + fx * 0.4 + dx * R * (1 - 0.1 * aT),
           hc[1] + dy * R,
           r * R,
           S.hair,
-          { line: S.line },
+          { ao: 0.7 },
         );
     });
-    for (const [dx, dy] of [
-      [-0.42, -0.68],
-      [-0.12, -0.84],
-      [0.22, -0.8],
-      [0.5, -0.64],
-    ])
-      g.arc(
-        hc[0] + fx * 0.4 + dx * R,
-        hc[1] + dy * R,
-        0.11 * R,
-        Math.PI * 0.9,
-        Math.PI * 1.7,
-        0.025 * R,
-        S.hairHi,
-      );
     drawEyes(g, P, hc, R, {
       eyeY: 0.04,
-      eyeX: 0.34,
+      eyeX: 0.37,
+      w: 0.19,
+      h: 0.13,
       skin: S.skin,
+      iris: S.iris,
       brow: S.brow,
       line: S.line,
-      blushY: 0.3,
-      blushX: 0.55,
+      browGap: 0.11,
     });
-    g.ellipse(
-      hc[0] + fx * 1.2,
-      hc[1] + 0.24 * R,
-      0.06 * R,
-      0.045 * R,
-      "#e9a07a",
-      { ol: 0, shade: 0 },
+    g.merge(() =>
+      g.ellipse(
+        hc[0] + fx * 1.25,
+        hc[1] + 0.3 * R,
+        0.07 * R,
+        0.06 * R,
+        S.skin,
+        { ao: 0.6 },
+      ),
     );
     drawMouth(
       g,
       P.face,
       hc[0] + fx * 1.15,
-      hc[1] + 0.48 * R,
-      0.15 * R,
+      hc[1] + 0.56 * R,
+      0.17 * R,
       S.line,
       R,
     );
     const hb = Math.sin(P.t * 2.2) * 2;
-    g.ring(hc[0] + fx * 0.15, hc[1] - R - 18 + hb, 30, 8, 3.8, S.halo, {
-      ol: 2,
-      shade: 0.5,
-      line: "#9a6a1a",
-    });
+    g.ring(hc[0] + fx * 0.15, hc[1] - R - 20 + hb, 28, 7, 2.8, GOLD, {});
   },
 };
 
@@ -1542,44 +1720,41 @@ export function drawCharacter(g, kind, P, report) {
     aT = Math.abs(T),
     sg = T >= 0 ? 1 : -1;
   const k = P.k ?? 1;
-  const prevLine = g.line;
   // a soft contact shadow that stays on the ground through a hop
   g.save();
   g.apply(M.mul(M.tr(P.x, P.y), M.sc(k, k)));
   const up = clamp(P.lift / (70 * k));
-  g.soft(T * 4, -1, 48 * (1 - 0.35 * up), 8 * (1 - 0.35 * up), "#140a20", {
-    alpha: 0.28 * (1 - 0.6 * up),
-    core: 0.4,
+  g.soft(T * 4, -1, 42 * (1 - 0.35 * up), 7 * (1 - 0.35 * up), "#120822", {
+    alpha: 0.32 * (1 - 0.6 * up),
+    core: 0.35,
   });
   g.restore();
   g.save();
   g.apply(rootMatrix(P));
-  g.line = S.line;
   if (S.wings) drawWings(g, P, S);
   drawTail(g, P, S, kind);
   const arm = (side) => P.arms[side < 0 ? "L" : "R"];
   const turned = aT > 0.3;
-  if (turned) g.merge(() => drawArm(g, P, S, kind, -sg, arm(-sg), report));
-  if (kind === "lou" || kind === "mattie") drawFeet(g, P, S, kind);
+  if (turned) drawArm(g, P, S, kind, -sg, arm(-sg), report);
+  drawLegs(g, P, S, kind);
+  drawBody(g, P, S, kind);
   if (kind === "mattie")
-    g.capsule(
-      S.neck[0] + T * 3,
-      S.neck[1] + P.sit * S.sitDrop + P.bob,
-      S.neck[0] + T * 3,
-      S.neck[1] + 14 + P.sit * S.sitDrop + P.bob,
-      7,
-      7,
-      S.skin,
-      {
-        line: S.skinLine,
-      },
+    g.merge(() =>
+      g.capsule(
+        S.neck[0] + T * 3,
+        S.neck[1] + P.sit * S.sitDrop + P.bob,
+        S.neck[0] + T * 3,
+        S.neck[1] + 10 + P.sit * S.sitDrop + P.bob,
+        6,
+        6.5,
+        S.skin,
+        {
+          fx: 0,
+        },
+      ),
     );
-  g.merge(() => {
-    drawBody(g, P, S, kind);
-    if (!turned) drawArm(g, P, S, kind, -sg, arm(-sg), report);
-    drawArm(g, P, S, kind, sg, arm(sg), report);
-  });
-  if (kind === "leo" || kind === "juno") drawFeet(g, P, S, kind);
+  if (!turned) drawArm(g, P, S, kind, -sg, arm(-sg), report);
+  drawArm(g, P, S, kind, sg, arm(sg), report);
   const neck = [S.neck[0] + T * 3, S.neck[1] + P.sit * S.sitDrop + P.bob];
   const hc = [S.headC[0] + T * 4, S.headC[1] + P.sit * S.sitDrop + P.bob];
   g.save();
@@ -1588,7 +1763,6 @@ export function drawCharacter(g, kind, P, report) {
   g.apply(M.tr(-neck[0], -neck[1]));
   HEADS[kind](g, P, S, hc);
   g.restore();
-  g.line = prevLine;
   if (P.effects) drawEmotes(g, P);
   g.restore();
 }
@@ -1603,10 +1777,11 @@ function drawEmotes(g, P) {
     g.save();
     g.apply(M.tr(Math.sin(i * 2.7 + phase * 0.5) * 78, -96 - drift * 110));
     g.apply(M.rot(phase * 2 + i));
-    g.scallop(0, 0, 2.5 * a, 9 * a, 4, 0, i % 2 ? "#b4a3e4" : "#ecc965", {
-      ol: 1.6,
-      shade: 0.3,
-    });
+    g.merge(() =>
+      g.scallop(0, 0, 2.5 * a, 9 * a, 4, 0, i % 2 ? "#c9b8ff" : GOLD, {
+        gloss: 0.5,
+      }),
+    );
     g.restore();
   }
   for (let i = 0; i < 3 && hearts > 0.02; i++) {
@@ -1616,10 +1791,9 @@ function drawEmotes(g, P) {
     const x = Math.sin(i * 2.1 + phase * 0.6) * 60;
     const y = -120 - drift * 80;
     g.merge(() => {
-      g.circle(x - 4 * a, y, 5 * a, "#ef8dab", { ol: 1.4 });
-      g.circle(x + 4 * a, y, 5 * a, "#ef8dab", { ol: 1.4 });
-      g.tri(x, y + 2 * a, 10 * a, 8.5 * a, 1.5 * a, "#ef8dab", {
-        ol: 1.4,
+      g.circle(x - 4 * a, y, 5 * a, "#ef7f9f");
+      g.circle(x + 4 * a, y, 5 * a, "#ef7f9f");
+      g.tri(x, y + 2 * a, 10 * a, 8.5 * a, 1.5 * a, "#ef7f9f", {
         ang: Math.PI / 2,
       });
     });
