@@ -1,6 +1,8 @@
 import { categories } from "../data.js";
 import { BookOpen, Church, Sparkles, Cross, Sun, Leaf } from "lucide-react";
 import { CopticCross, InterlaceRing } from "./Ornaments.jsx";
+import { PICK } from "../classic.js";
+
 export const ICONS = {
   book: BookOpen,
   church: Church,
@@ -14,25 +16,43 @@ export function CategoryIcon({ category, size = 24, ...props }) {
   if (category.icon === "cross")
     return <CopticCross size={size} eye={false} {...props} />;
   const Icon = ICONS[category.icon];
-  return <Icon size={size} strokeWidth={1.8} {...props} />;
+  return <Icon size={size} strokeWidth={2} {...props} />;
 }
+
+// The cross panel on the classic wheel: undyed linen with a purple cross.
+export const PICK_SEGMENT = {
+  id: PICK,
+  name: "Your pick",
+  color: "#fbf9f4",
+  ink: "#3d1f4a",
+};
+export const CLASSIC_SEGMENTS = [...categories, PICK_SEGMENT];
+
+// Rotation that brings segment `index` of `count` under the top pointer,
+// after at least `turns` full turns from `from`.
+export function rotationFor(from, index, count, turns = 3) {
+  const seg = 360 / count;
+  const target = (360 - (index * seg + seg / 2)) % 360;
+  return from + (360 - (from % 360)) + turns * 360 + target;
+}
+
 const point = (deg, r) => {
   const a = ((deg - 90) * Math.PI) / 180;
   return [160 + r * Math.cos(a), 160 + r * Math.sin(a)];
 };
 
-// The wheel is a woven roundel: six dyed panels inside an interlace border,
-// with the Coptic cross at its center.
+// A woven roundel: dyed panels inside an interlace border, the Coptic cross at the hub.
 export default function Wheel({
+  segments = categories,
   rotation = 0,
   spinning = false,
-  decorative = false,
-  quick = false,
+  landed = null,
   onSpin = null,
   disabled = false,
+  size,
 }) {
-  // With onSpin the wheel itself is the control: tap, Enter or Space spins it.
   const interactive = typeof onSpin === "function";
+  const seg = 360 / segments.length;
   const press = (e) => {
     if (!interactive || disabled) return;
     if (e.type === "keydown" && e.key !== "Enter" && e.key !== " ") return;
@@ -48,33 +68,34 @@ export default function Wheel({
         onClick: press,
         onKeyDown: press,
       }
-    : { role: "img", "aria-label": "Six-category trivia wheel" };
+    : { role: "img", "aria-label": "Category wheel" };
   return (
     <div
-      className={`wheel-wrap roundel-wheel ${decorative ? "decorative" : ""} ${interactive ? "is-tappable" : ""} ${interactive && disabled ? "is-disabled" : ""}`}
+      className={`wheel ${interactive && !disabled ? "is-tappable" : ""} ${spinning ? "is-spinning" : ""} ${landed !== null ? "has-landed" : ""}`}
+      style={size ? { "--wheel-size": size } : undefined}
       {...control}
     >
-      <div className="wheel-pointer" />
+      <span className="wheel-pointer" aria-hidden="true" />
       <div
-        className={`wheel ${spinning ? "spinning" : ""} ${quick ? "is-quick" : ""}`}
+        className="wheel-disc"
         style={{ transform: `rotate(${rotation}deg)` }}
       >
         <svg viewBox="0 0 320 320" aria-hidden="true">
-          <circle cx="160" cy="160" r="158" className="roundel-ground" />
-          {categories.map((c, i) => {
-            const [ax, ay] = point(i * 60, 128);
-            const [bx, by] = point((i + 1) * 60, 128);
+          <circle cx="160" cy="160" r="158" className="wheel-ground" />
+          {segments.map((c, i) => {
+            const [ax, ay] = point(i * seg, 128);
+            const [bx, by] = point((i + 1) * seg, 128);
             return (
               <path
                 key={c.id}
                 d={`M160 160 L${ax} ${ay} A128 128 0 0 1 ${bx} ${by} Z`}
                 fill={c.color}
-                className="roundel-panel"
+                className={`wheel-panel ${landed === i ? "is-landed" : ""}`}
               />
             );
           })}
-          {categories.map((c, i) => {
-            const [x, y] = point(i * 60, 128);
+          {segments.map((c, i) => {
+            const [x, y] = point(i * seg, 128);
             return (
               <line
                 key={c.id}
@@ -82,7 +103,7 @@ export default function Wheel({
                 y1="160"
                 x2={x}
                 y2={y}
-                className="roundel-seam"
+                className="wheel-seam"
               />
             );
           })}
@@ -90,32 +111,36 @@ export default function Wheel({
             cx="160"
             cy="160"
             r="128"
-            className="roundel-seam"
+            className="wheel-seam"
             fill="none"
           />
           <InterlaceRing radius={143} width={13} crossings={30} />
-          <circle cx="160" cy="160" r="40" className="roundel-hub" />
+          <circle cx="160" cy="160" r="38" className="wheel-hub" />
         </svg>
-        {categories.map((c, i) => {
-          const a = ((i * 60 - 60) * Math.PI) / 180;
+        {segments.map((c, i) => {
+          const a = ((i * seg + seg / 2 - 90) * Math.PI) / 180;
           return (
             <span
               className="wheel-icon"
               key={c.id}
               style={{
-                left: `${50 + 26 * Math.cos(a)}%`,
-                top: `${50 + 26 * Math.sin(a)}%`,
+                left: `${50 + 26.5 * Math.cos(a)}%`,
+                top: `${50 + 26.5 * Math.sin(a)}%`,
                 color: c.ink,
                 transform: `translate(-50%,-50%) rotate(${-rotation}deg)`,
               }}
             >
-              <CategoryIcon category={c} size={28} />
+              {c.id === PICK ? (
+                <CopticCross size="1em" eye={false} />
+              ) : (
+                <CategoryIcon category={c} size="1em" />
+              )}
             </span>
           );
         })}
-        <div className="wheel-center">
-          <CopticCross size={44} />
-        </div>
+        <span className="wheel-center" aria-hidden="true">
+          <CopticCross size="1em" />
+        </span>
       </div>
     </div>
   );

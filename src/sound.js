@@ -17,6 +17,7 @@ const CUES = {
   },
   lock: { notes: [880], step: 0, length: 0.06, type: "triangle", gain: 0.04 },
   tick: { notes: [1175], step: 0, length: 0.04, type: "square", gain: 0.015 },
+  peg: { notes: [1568], step: 0, length: 0.022, type: "square", gain: 0.012 },
   spin: {
     notes: [392, 440, 494, 523],
     step: 0.05,

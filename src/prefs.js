@@ -2,7 +2,25 @@ import { normalizeSettings, readSaved, saveLocal } from "./engine.js";
 
 // What "Play now" uses: the player's name and their last customized settings.
 const KEY = "kinesa-play-prefs";
-export const PRACTICE_BOTS = ["Mina", "Mariam", "Bishoy"];
+export const PRACTICE_BOTS = [
+  "Mina",
+  "Mariam",
+  "Bishoy",
+  "Demiana",
+  "Kirollos",
+  "Marina",
+];
+// Practice bot names for a game, never the player's own name.
+export function botNames(count, exclude = "", random = Math.random) {
+  const pool = PRACTICE_BOTS.filter(
+    (n) => n.toLowerCase() !== exclude.trim().toLowerCase(),
+  );
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
 
 export function loadPrefs() {
   const raw = readSaved(KEY, null);

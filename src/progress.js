@@ -17,6 +17,7 @@ export function blankStats() {
   return {
     version: STATS_VERSION,
     games: 0,
+    wins: 0,
     correct: 0,
     badges: [],
     xp: 0,
@@ -69,6 +70,7 @@ export function migrateStats(raw) {
   return {
     ...base,
     games: raw.games,
+    wins: isCount(raw.wins) ? Math.min(raw.wins, raw.games) : 0,
     correct: raw.correct,
     badges,
     xp: isCount(raw.xp) ? raw.xp : 0,
@@ -141,7 +143,12 @@ export function recordCorrect(stats, category, streak, multiplier = 1) {
 export function recordMatch(stats, { won = false } = {}) {
   const gained = XP.match + (won ? XP.win : 0);
   return {
-    stats: { ...stats, games: stats.games + 1, xp: stats.xp + gained },
+    stats: {
+      ...stats,
+      games: stats.games + 1,
+      wins: (stats.wins || 0) + (won ? 1 : 0),
+      xp: stats.xp + gained,
+    },
     gained,
   };
 }

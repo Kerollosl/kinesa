@@ -1,40 +1,60 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Plus, Shuffle, X } from "lucide-react";
-import Mascot, { MASCOTS } from "./Mascot.jsx";
-import { createGame, readSaved, saveLocal } from "../engine.js";
+import { ArrowLeft, Play, Plus, X } from "lucide-react";
+import { TIERS, readSaved } from "../engine.js";
+import { createClassic } from "../classic.js";
+import { loadPrefs, savePrefs } from "../prefs.js";
 
-const initials = (value) =>
-  value
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((word) => word[0])
-    .join("") || "?";
-const nickname = () => {
-  const saved = readSaved("kinesa-nickname", "");
-  return typeof saved === "string" ? saved.slice(0, 20) : "";
-};
-// Pass-and-play setup: two to four players share this phone. Names are the
-// only setup; there are no rooms or codes because play is local to the device.
 const LEGACY_ROOM_KEY = "kinesa-room-preview";
-export default function Lobby({ onBack, onBegin, initialPlayers }) {
-  const [stage, setStage] = useState("room");
-  const [names, setNames] = useState(
-    initialPlayers?.map((p) => p.name) || [nickname() || "You", "Friend 1"],
+
+export function Segmented({ label, value, options, onChange }) {
+  return (
+    <fieldset className="segmented">
+      <legend>{label}</legend>
+      <div className="segmented-row">
+        {options.map(([id, text, sub]) => (
+          <label key={id} className={value === id ? "is-on" : ""}>
+            <input
+              type="radio"
+              name={label}
+              value={id}
+              checked={value === id}
+              onChange={() => onChange(id)}
+            />
+            <strong>{text}</strong>
+            {sub && <small>{sub}</small>}
+          </label>
+        ))}
+      </div>
+    </fieldset>
   );
-  const [announcement, setAnnouncement] = useState("");
-  const [prepared, setPrepared] = useState(null);
-  const [revealed, setRevealed] = useState(false);
-  const [dealDone, setDealDone] = useState(false);
-  const [justAdded, setJustAdded] = useState(null);
-  const titleRef = useRef(null);
-  const playerInputs = useRef([]);
-  const pendingFocus = useRef(null);
+}
+export const LENGTH_OPTIONS = [
+  ["quick", "Quick", "Win 3"],
+  ["full", "Full", "Win all 6"],
+];
+export const TIER_OPTIONS = Object.entries(TIERS).map(([id, t]) => [
+  id,
+  t.label,
+  t.seconds ? `${t.seconds}s` : "No clock",
+]);
+
+// Pass-and-play setup: names, length, level. Companions are dealt at random.
+export default function Lobby({ onBack, onBegin, initialPlayers }) {
+  const prefs = loadPrefs();
+  const [names, setNames] = useState(() => {
+    const first = readSaved("kinesa-nickname", "") || "";
+    return initialPlayers?.length >= 2
+      ? initialPlayers.map((p) => p.name)
+      : [typeof first === "string" && first ? first.slice(0, 20) : "", ""];
+  });
+  const [length, setLength] = useState(prefs.settings.length);
+  const [tier, setTier] = useState(prefs.settings.tier);
+  const [status, setStatus] = useState("");
+  const inputs = useRef([]);
+  const focusNext = useRef(null);
+  const title = useRef(null);
   useEffect(() => {
-    titleRef.current?.focus();
-  }, [stage]);
-  useEffect(() => {
-    // The old local "room preview" is gone; drop what it saved.
+    title.current?.focus();
     try {
       localStorage.removeItem(LEGACY_ROOM_KEY);
     } catch {
@@ -42,265 +62,116 @@ export default function Lobby({ onBack, onBegin, initialPlayers }) {
     }
   }, []);
   useEffect(() => {
-    if (pendingFocus.current === null) return;
-    const input = playerInputs.current[pendingFocus.current];
-    input?.focus();
-    input?.select();
-    pendingFocus.current = null;
+    if (focusNext.current === null) return;
+    inputs.current[focusNext.current]?.focus();
+    focusNext.current = null;
   }, [names.length]);
-  useEffect(() => {
-    if (stage !== "reveal") return;
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    const revealTimer = setTimeout(() => setRevealed(true), reduced ? 0 : 250);
-    const readyTimer = setTimeout(() => setDealDone(true), reduced ? 0 : 1550);
-    return () => {
-      clearTimeout(revealTimer);
-      clearTimeout(readyTimer);
-    };
-  }, [stage]);
-  const prepare = () => {
-    const roster = names.map(
-      (n, i) => n.trim() || (i === 0 ? "You" : `Friend ${i}`),
-    );
-    saveLocal("kinesa-nickname", roster[0]);
-    setPrepared(
-      createGame(
+  const add = () => {
+    if (names.length >= 4) return;
+    focusNext.current = names.length;
+    setNames((n) => [...n, ""]);
+    setStatus(`Player ${names.length + 1} added.`);
+  };
+  const remove = (i) => {
+    setNames((n) => n.filter((_, j) => j !== i));
+    setStatus(`Player ${i + 1} removed.`);
+  };
+  const start = () => {
+    const roster = names.map((n, i) => n.trim() || `Player ${i + 1}`);
+    const settings = { ...prefs.settings, length, tier, timed: true };
+    savePrefs({ name: names[0].trim() || prefs.name, settings });
+    onBegin(
+      createClassic(
         roster.map((name) => ({ name })),
         Math.random,
-        { structure: "turns" },
+        { settings },
       ),
-    );
-    setRevealed(false);
-    setDealDone(false);
-    setStage("reveal");
-  };
-  const updateName = (i, value) => {
-    setNames((previous) => previous.map((n, j) => (i === j ? value : n)));
-  };
-  const addFriend = () => {
-    if (names.length >= 4) return;
-    pendingFocus.current = names.length;
-    setJustAdded(names.length);
-    setNames((previous) => [...previous, `Friend ${previous.length}`]);
-    setAnnouncement(`Player ${names.length + 1} added. Enter their name.`);
-  };
-  const removeFriend = (index) => {
-    pendingFocus.current = Math.max(0, index - 1);
-    setJustAdded(null);
-    setNames((previous) => previous.filter((_, i) => i !== index));
-    setAnnouncement(
-      `Player ${index + 1} removed. ${names.length - 1} players in your group.`,
+      "friends",
     );
   };
-  const editSetup = () => {
-    setPrepared(null);
-    setRevealed(false);
-    setDealDone(false);
-    setStage("room");
-  };
-  const setupStep = stage === "reveal" ? 1 : 0;
   return (
-    <div className={`lobby-page lobby-friends lobby-stage-${stage}`}>
-      <span className="lobby-sr-status" role="status">
-        {announcement}
+    <section className="lobby" aria-labelledby="lobby-title">
+      <span className="sr-only" role="status">
+        {status}
       </span>
-      <div className="lobby-top">
-        <button
-          className="lobby-back"
-          onClick={onBack}
-          aria-label="Back to play"
-          title="Back to play"
-        >
-          <ArrowLeft size={22} />
+      <header className="play-top">
+        <button className="icon-btn" onClick={onBack} aria-label="Back">
+          <ArrowLeft size={24} />
         </button>
-        <nav className="setup-dots" aria-label="Game setup progress">
-          <ol>
-            {["Set up", "Meet your companions", "Play"].map((label, i) => (
-              <li
-                key={label}
-                className={
-                  i === setupStep
-                    ? "is-current"
-                    : i < setupStep
-                      ? "is-complete"
-                      : ""
-                }
-                aria-current={i === setupStep ? "step" : undefined}
+        <div className="play-top-main" />
+        <span className="icon-btn-space" aria-hidden="true" />
+      </header>
+      <h1 id="lobby-title" ref={title} tabIndex={-1}>
+        Who’s playing?
+      </h1>
+      <ol className="lobby-list">
+        {names.map((n, i) => (
+          <li key={i} className="lobby-row">
+            <span className="lobby-num" aria-hidden="true">
+              {i + 1}
+            </span>
+            <input
+              ref={(el) => (inputs.current[i] = el)}
+              value={n}
+              placeholder={`Player ${i + 1}`}
+              maxLength={20}
+              aria-label={`Player ${i + 1} name`}
+              autoComplete="off"
+              autoCapitalize="words"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint={i === names.length - 1 ? "done" : "next"}
+              onChange={(e) =>
+                setNames((all) =>
+                  all.map((v, j) => (j === i ? e.target.value : v)),
+                )
+              }
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                const next = inputs.current[i + 1];
+                if (next) next.focus();
+                else e.currentTarget.blur();
+              }}
+            />
+            {i > 1 && (
+              <button
+                className="icon-btn is-small"
+                onClick={() => remove(i)}
+                aria-label={`Remove player ${i + 1}`}
               >
-                <span className="sr-only">{label}</span>
-              </li>
-            ))}
-          </ol>
-        </nav>
+                <X size={20} />
+              </button>
+            )}
+          </li>
+        ))}
+        {names.length < 4 && (
+          <li>
+            <button className="lobby-add" onClick={add}>
+              <Plus size={22} aria-hidden="true" /> Add player
+            </button>
+          </li>
+        )}
+      </ol>
+      <div className="lobby-options">
+        <Segmented
+          label="Game"
+          value={length}
+          options={LENGTH_OPTIONS}
+          onChange={setLength}
+        />
+        <Segmented
+          label="Level"
+          value={tier}
+          options={TIER_OPTIONS}
+          onChange={setTier}
+        />
       </div>
-      <div className="lobby-workspace">
-        <div className="lobby-main">
-          <div className="lobby-heading">
-            <h1 ref={titleRef} tabIndex={-1}>
-              {stage === "reveal" ? "Meet your match." : "Who’s playing?"}
-            </h1>
-          </div>
-          {stage === "room" && (
-            <section className="seat-stage" aria-label="Players">
-              <ul
-                className="seat-list"
-                aria-label={`${names.length} of 4 players`}
-              >
-                {names.map((n, i) => (
-                  <li
-                    className={`seat ${justAdded === i ? "is-new" : ""}`}
-                    key={i}
-                  >
-                    <span className="seat-initial" aria-hidden="true">
-                      {initials(n)}
-                    </span>
-                    <input
-                      value={n}
-                      ref={(element) => {
-                        playerInputs.current[i] = element;
-                      }}
-                      maxLength={20}
-                      enterKeyHint={i === names.length - 1 ? "done" : "next"}
-                      autoComplete="off"
-                      autoCapitalize="words"
-                      autoCorrect="off"
-                      spellCheck={false}
-                      onFocus={(e) => {
-                        const input = e.currentTarget;
-                        // Wait for the keyboard, then keep the row in view.
-                        setTimeout(
-                          () => input.scrollIntoView({ block: "center" }),
-                          320,
-                        );
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key !== "Enter") return;
-                        e.preventDefault();
-                        const next = playerInputs.current[i + 1];
-                        if (next) {
-                          next.focus();
-                          next.select();
-                        } else e.currentTarget.blur();
-                      }}
-                      aria-label={`Player ${i + 1} name`}
-                      onChange={(e) => updateName(i, e.target.value)}
-                      onBlur={(e) => {
-                        if (!e.target.value.trim())
-                          updateName(i, i === 0 ? "You" : `Friend ${i}`);
-                      }}
-                    />
-                    {i > 1 ? (
-                      <button
-                        className="seat-trailing"
-                        aria-label={`Remove player ${i + 1}`}
-                        onClick={() => removeFriend(i)}
-                      >
-                        <X size={18} />
-                      </button>
-                    ) : (
-                      <span
-                        className="seat-trailing is-ready"
-                        role="img"
-                        aria-label="Ready"
-                      >
-                        <Check size={17} />
-                      </span>
-                    )}
-                  </li>
-                ))}
-                {names.length < 4 && (
-                  <li>
-                    <button className="seat-add" onClick={addFriend}>
-                      <Plus size={22} /> Add a friend
-                    </button>
-                  </li>
-                )}
-              </ul>
-              <div className="action-bar">
-                <div className="action-bar-row">
-                  <button className="primary-button" onClick={prepare}>
-                    Deal our companions <Shuffle size={20} />
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
-          {stage === "reveal" && prepared && (
-            <section className="assignment-stage">
-              <div
-                className="assignment-grid"
-                data-player-count={prepared.players.length}
-                style={{ "--player-count": prepared.players.length }}
-              >
-                {prepared.players.map((p, i) => {
-                  const m = MASCOTS.find((m) => m.kind === p.kind);
-                  return (
-                    <div
-                      className={`assignment-slot ${revealed ? "is-revealed" : ""}`}
-                      key={i}
-                      style={{
-                        "--slot-color": m.bg,
-                        "--delay": `${i * 150}ms`,
-                      }}
-                      data-companion={p.kind}
-                    >
-                      <div className="assignment-card">
-                        <div className="assignment-back" aria-hidden="true">
-                          <Shuffle size={40} />
-                          <span>WHO WILL IT BE?</span>
-                          <strong>?</strong>
-                        </div>
-                        <div
-                          className="assignment-front"
-                          aria-hidden={!revealed}
-                        >
-                          <span className="assigned-player" title={p.name}>
-                            <span className="assigned-player-name">
-                              {p.name}
-                            </span>
-                            {p.isBot && <small>BOT</small>}
-                          </span>
-                          <div className="assignment-art" aria-hidden="true">
-                            <Mascot
-                              kind={p.kind}
-                              mood="celebrate"
-                              softSurface={false}
-                              aria-hidden="true"
-                            />
-                          </div>
-                          <div className="assignment-identity">
-                            <h2>{m.name}</h2>
-                            <span className="gospel-label">{m.gospel}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="assignment-ready-message" role="status">
-                {dealDone ? "Ready to play" : "Dealing your companions…"}
-              </p>
-              <div className="action-bar">
-                <div className="action-bar-row assignment-actions">
-                  <button className="secondary-button" onClick={editSetup}>
-                    Edit players
-                  </button>
-                  <button
-                    className="primary-button"
-                    disabled={!dealDone}
-                    onClick={() => onBegin(prepared, "friends")}
-                  >
-                    Game on <ArrowRight size={22} />
-                  </button>
-                </div>
-              </div>
-            </section>
-          )}
-        </div>
+      <div className="play-actions">
+        <button className="btn btn-go btn-xl btn-block" onClick={start}>
+          <Play size={22} fill="currentColor" aria-hidden="true" /> Start
+        </button>
       </div>
-    </div>
+    </section>
   );
 }

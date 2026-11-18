@@ -1,34 +1,36 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  ArrowRight,
   Check,
   CloudOff,
-  Compass,
-  Gamepad2,
+  Flame,
+  Home as HomeIcon,
   HelpCircle,
-  Shuffle,
-  Sparkles,
+  LayoutGrid,
+  Settings as SettingsIcon,
   Trophy,
-  Users,
-  Volume2,
-  VolumeX,
   X,
 } from "lucide-react";
-import Mascot, { MASCOTS } from "./components/Mascot.jsx";
 import Home from "./components/Home.jsx";
-import { loadMatch, persistMatch } from "./session.js";
-import { CategoryIcon } from "./components/Wheel.jsx";
 import Game from "./components/Game.jsx";
+import ClassicGame from "./components/play/ClassicGame.jsx";
 import Lobby from "./components/Lobby.jsx";
 import Discover from "./components/Discover.jsx";
 import Collection from "./components/Collection.jsx";
+import Settings from "./components/Settings.jsx";
+import {
+  HelpDialog,
+  CategoryDialog,
+  ReplaceDialog,
+} from "./components/Dialogs.jsx";
+import { rotationFor } from "./components/Wheel.jsx";
+import { CopticCross } from "./components/Ornaments.jsx";
+import { loadMatch, persistMatch } from "./session.js";
 import { categories, questions } from "./data.js";
 import {
   TIMEOUT,
   activeIndex,
   answerQuestion,
   createGame,
-  currentRound,
   getQuestion,
   getWinners,
   isSimultaneous,
@@ -37,20 +39,29 @@ import {
   readSaved,
   recordAnswer,
   revealAnswers,
-  roundCount,
   saveLocal,
 } from "./engine.js";
 import {
+  WHEEL,
+  answerClassic,
+  choosePick,
+  classicWinners,
+  createClassic,
+  isClassic,
+  landOn,
+  nextStep,
+  spinIndex,
+  fiftyFifty,
+} from "./classic.js";
+import {
+  levelInfo,
   loadStats,
   recordCorrect,
   recordMatch,
   saveStats,
 } from "./progress.js";
 import { createSound } from "./sound.js";
-import { PRACTICE_BOTS, loadPrefs, savePrefs } from "./prefs.js";
-import { CopticCross } from "./components/Ornaments.jsx";
-import PlaySheet from "./components/PlaySheet.jsx";
-import AboutLinks from "./components/AboutLinks.jsx";
+import { botNames, loadPrefs } from "./prefs.js";
 import {
   DAILY_LENGTH,
   SPOTLIGHT_MULTIPLIER,
@@ -63,17 +74,21 @@ import { dayKey } from "./calendar.js";
 
 const reducedMotion = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const SPIN_MS = 2200;
-// Practice and daily rounds spin themselves, so the beat is short.
-const SPIN_QUICK_MS = 1000;
+// Classic spins are a real moment; quick rounds only flash the wheel.
+const SPIN_MS = 2400;
+const LAND_MS = 750;
+const SPIN_QUICK_MS = 900;
 // A short beat after everyone locks in, so the reveal lands as one moment.
 const LOCK_BEAT_MS = 650;
+const TOPIC_LENGTH = 10;
+const PAGES = ["home", "categories", "collection", "lobby", "game"];
 
 const matchBaseline = (stats) => ({
   xpStart: stats.xp,
   badgesStart: [...stats.badges],
   categoryStart: { ...stats.categoryCorrect },
 });
+
 export default function App() {
   const [savedMatch] = useState(loadMatch);
   const [matchMode, setMatchMode] = useState(savedMatch?.mode || "random");
@@ -88,12 +103,17 @@ export default function App() {
     if (next && !modal) modalTrigger.current = document.activeElement;
     setModalState(next);
   };
-  const [mode, setMode] = useState("random");
   const [lobbyKey, setLobbyKey] = useState(0);
   const [rematchPlayers, setRematchPlayers] = useState(null);
   const [game, setGame] = useState(savedMatch?.game || null);
-  const [rotation, setRotation] = useState(0);
+  const [rotation, setRotationState] = useState(0);
+  const rotationRef = useRef(0);
+  const setRotation = (value) => {
+    rotationRef.current = value;
+    setRotationState(value);
+  };
   const [spinning, setSpinning] = useState(false);
+  const [landed, setLanded] = useState(null);
   const [sound, setSound] = useState(
     () => readSaved("kinesa-sound", false) === true,
   );
@@ -113,6 +133,7 @@ export default function App() {
   gameRef.current = game;
   const spinningRef = useRef(false);
   const mainRef = useRef(null);
+  const phaseHeading = useRef(null);
   const [toast, setToastText] = useState("");
   const [toastTone, setToastTone] = useState("ok");
   const setToast = (text, tone = "ok") => {
@@ -125,12 +146,10 @@ export default function App() {
   function warnStorage() {
     if (storageWarned.current) return;
     storageWarned.current = true;
-    setToast(
-      "Storage is full or blocked, so progress won’t be kept after you close Kinesa.",
-      "warn",
-    );
+    setToast("Storage is blocked, so progress won’t be kept.", "warn");
   }
   const spinTimer = useRef(null);
+  const pegTimers = useRef([]);
   const revealTimer = useRef(null);
   const soundRef = useRef(sound);
   soundRef.current = sound;
@@ -157,8 +176,11 @@ export default function App() {
   }, [matchMeta]);
   const cancelSpin = () => {
     clearTimeout(spinTimer.current);
+    pegTimers.current.forEach(clearTimeout);
+    pegTimers.current = [];
     spinningRef.current = false;
     setSpinning(false);
+    setLanded(null);
   };
   const updateGame = (next) => {
     gameRef.current = next;
@@ -175,10 +197,7 @@ export default function App() {
     const back = (event) => {
       const target = event.state?.kinesaPage || location.hash.slice(1);
       const next =
-        ["home", "categories", "collection", "lobby", "game"].includes(
-          target,
-        ) &&
-        (target !== "game" || gameRef.current)
+        PAGES.includes(target) && (target !== "game" || gameRef.current)
           ? target
           : "home";
       cancelSpin();
@@ -195,6 +214,12 @@ export default function App() {
     title?.setAttribute("tabindex", "-1");
     title?.focus({ preventScroll: true });
   }, [page]);
+  // Each new play screen moves focus to its heading.
+  useEffect(() => {
+    if (page !== "game" || ["question", "reveal"].includes(game?.phase)) return;
+    phaseHeading.current?.focus({ preventScroll: true });
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [page, game?.phase, game?.turn]);
   useEffect(() => {
     if (modal) cancelSpin();
   }, [modal]);
@@ -214,20 +239,55 @@ export default function App() {
     );
     return () => clearTimeout(timer);
   }, [toast, toastTone]);
-  // Practice play starts in one tap with the saved name and settings.
-  const playNow = (overrides = {}) => {
+
+  // ---- Starting games -------------------------------------------------
+  const startPrepared = (prepared, nextMode) => {
+    cancelSpin();
+    clearTimeout(revealTimer.current);
+    setModal(null);
+    setRotation(0);
+    updateGame(prepared);
+    setMatchMeta(matchBaseline(statsRef.current));
+    setMatchMode(nextMode);
+    play("start");
+    navigate("game");
+  };
+  const begin = (prepared, nextMode) => {
+    const current = gameRef.current;
+    if (current && current.phase !== "finished") {
+      setModal({ type: "replace-match", prepared, nextMode });
+      return;
+    }
+    startPrepared(prepared, nextMode);
+  };
+  // Play: a classic game against one practice bot, in one tap.
+  const playNow = () => {
     const prefs = loadPrefs();
-    const { name = prefs.name, ...settings } = overrides;
+    begin(
+      createClassic(
+        [
+          { name: prefs.name || "You" },
+          { name: botNames(1, prefs.name)[0], isBot: true },
+        ],
+        Math.random,
+        { settings: { ...prefs.settings, category: null } },
+      ),
+      "random",
+    );
+  };
+  // Ten questions from one category, against practice bots.
+  const playTopic = (category) => {
+    const prefs = loadPrefs();
     begin(
       createGame(
         [
-          { name: name || "You" },
-          ...PRACTICE_BOTS.map((bot) => ({ name: bot, isBot: true })),
+          { name: prefs.name || "You" },
+          ...botNames(3, prefs.name).map((bot) => ({ name: bot, isBot: true })),
         ],
         Math.random,
         {
           structure: "simultaneous",
-          settings: { ...prefs.settings, ...settings },
+          settings: { ...prefs.settings, category, questions: TOPIC_LENGTH },
         },
       ),
       "random",
@@ -235,7 +295,10 @@ export default function App() {
   };
   // Today's five: solo, timed, the same questions for everyone on this date.
   const playDaily = () => {
-    if (dailyStatus(statsRef.current).done) return;
+    if (dailyStatus(statsRef.current).done) {
+      setToast("Done for today. New five tomorrow!");
+      return;
+    }
     const prefs = loadPrefs();
     begin(
       createGame([{ name: prefs.name || "You" }], Math.random, {
@@ -250,54 +313,33 @@ export default function App() {
       "daily",
     );
   };
-  const openLobby = (nextMode, players = null) => {
-    if (nextMode === "random") {
-      playNow();
-      return;
-    }
+  const openFriends = (players = null) => {
     cancelSpin();
-    setMode(nextMode);
     setRematchPlayers(players);
     setLobbyKey((n) => n + 1);
     setModal(null);
     navigate("lobby");
   };
-  const startPrepared = (prepared, nextMode) => {
-    cancelSpin();
-    clearTimeout(revealTimer.current);
-    setModal(null);
-    setRotation(0);
-    updateGame(prepared);
-    setMatchMeta(matchBaseline(statsRef.current));
-    setMode(nextMode);
-    setMatchMode(nextMode);
-    play("start");
-    navigate("game");
-  };
-  const begin = (prepared, nextMode) => {
-    const current = gameRef.current;
-    if (current && current.phase !== "finished") {
-      setModal({ type: "replace-match", prepared, nextMode });
-      return;
-    }
-    startPrepared(prepared, nextMode);
-  };
-  // One-tap rematch: same players and settings, a fresh companion deal.
-  const rematch = (category) => {
+  // Same players and settings, a fresh companion deal.
+  const rematch = () => {
     const current = gameRef.current;
     if (!current) return;
-    const settings =
-      category === undefined
-        ? current.settings
-        : { ...current.settings, category };
+    const players = current.players.map((p) => ({
+      name: p.name,
+      isBot: p.isBot,
+    }));
     startPrepared(
-      createGame(current.players, Math.random, {
-        structure: current.structure,
-        settings,
-      }),
+      isClassic(current)
+        ? createClassic(players, Math.random, { settings: current.settings })
+        : createGame(players, Math.random, {
+            structure: current.structure,
+            settings: current.settings,
+          }),
       matchMode,
     );
   };
+
+  // ---- Spinning ---------------------------------------------------------
   const drawQuestion = (current, categoryId) => {
     const planned = current.settings?.plan?.[current.turn];
     const q = planned
@@ -317,30 +359,65 @@ export default function App() {
     });
   };
   const spin = () => {
-    if (spinningRef.current || gameRef.current?.phase !== "spin") return;
+    const current = gameRef.current;
+    if (spinningRef.current || current?.phase !== "spin") return;
     spinningRef.current = true;
-    const quick = isSimultaneous(gameRef.current);
-    const index = Math.floor(Math.random() * categories.length);
-    const target = (360 - (index * 60 + 30)) % 360;
-    setRotation((r) => r + (360 - (r % 360)) + (quick ? 720 : 1080) + target);
+    const classic = isClassic(current);
+    const quick = !classic && isSimultaneous(current);
+    const count = classic ? WHEEL.length : categories.length;
+    const index = classic
+      ? spinIndex()
+      : Math.floor(Math.random() * categories.length);
+    const from = rotationRef.current;
+    const to = rotationFor(from, index, count, quick ? 2 : 4);
+    setRotation(to);
     setSpinning(true);
     play("spin");
-    spinTimer.current = setTimeout(
-      () => {
-        const current = gameRef.current;
-        if (current?.phase === "spin")
-          drawQuestion(current, categories[index].id);
+    const ms = reducedMotion() ? 150 : quick ? SPIN_QUICK_MS : SPIN_MS;
+    // A soft click each time a panel passes the pointer, slowing with the wheel.
+    if (!reducedMotion() && soundRef.current) {
+      const seg = 360 / count;
+      const total = to - from;
+      for (let k = 1; k * seg < total && k < 40; k++) {
+        const at = ms * (1 - Math.cbrt(1 - (k * seg) / total));
+        pegTimers.current.push(setTimeout(() => play("peg"), at));
+      }
+    }
+    spinTimer.current = setTimeout(() => {
+      setSpinning(false);
+      if (!classic) {
+        const g = gameRef.current;
+        if (g?.phase === "spin") drawQuestion(g, categories[index].id);
         spinningRef.current = false;
-        setSpinning(false);
-      },
-      reducedMotion() ? 150 : quick ? SPIN_QUICK_MS : SPIN_MS,
-    );
+        return;
+      }
+      // Classic: show where it landed for a beat, then ask.
+      pegTimers.current = [];
+      setLanded(index);
+      play("lock");
+      navigator.vibrate?.(soundRef.current ? 12 : 0);
+      spinTimer.current = setTimeout(
+        () => {
+          const g = gameRef.current;
+          if (g?.phase === "spin") updateGame(landOn(g, index));
+          setLanded(null);
+          spinningRef.current = false;
+        },
+        reducedMotion() ? 300 : LAND_MS,
+      );
+    }, ms);
+  };
+  const pick = (categoryId) => {
+    const current = gameRef.current;
+    if (!isClassic(current)) return;
+    updateGame(choosePick(current, categoryId));
   };
 
-  // Question clock: elapsed time pauses with dialogs, hidden tabs and navigation.
+  // ---- Question clock ---------------------------------------------------
+  // Elapsed time pauses with dialogs, hidden tabs and navigation.
   const questionKey =
     game?.phase === "question" && game.question
-      ? `${game.turn}:${game.question.id}`
+      ? `${game.used.length}:${game.question.id}`
       : null;
   const clockRunning = !!questionKey && page === "game" && tabActive && !modal;
   const clock = useRef({ key: null, elapsed: 0, since: null });
@@ -363,12 +440,17 @@ export default function App() {
     const s = gameRef.current?.settings;
     return s?.timed ? Math.max(0, s.seconds * 1000 - elapsed()) : 0;
   }, [elapsed]);
+  const msLeftAt = (ms) => {
+    const s = gameRef.current?.settings;
+    return s?.timed ? s.seconds * 1000 - ms : 0;
+  };
   const botPlans = useRef({ key: null, plans: {} });
 
-  // Awards progress for every human answer once the round is revealed.
-  const settle = (before, after) => {
+  // ---- Answers ------------------------------------------------------------
+  // Awards progress for every human answer once it is revealed.
+  const settle = (after) => {
     let next = statsRef.current;
-    const meta = { newBadges: [], newMastery: [] };
+    let unlocked = false;
     after.players.forEach((p, i) => {
       const entry = after.answers[i];
       if (p.isBot || !entry?.correct) return;
@@ -379,21 +461,25 @@ export default function App() {
         after.question.category === spotlight().id ? SPOTLIGHT_MULTIPLIER : 1,
       );
       next = result.stats;
-      if (result.newBadge) meta.newBadges.push(after.question.category);
-      if (result.newMastery) meta.newMastery.push(after.question.category);
+      if (result.newBadge || result.newMastery) unlocked = true;
     });
     if (next !== statsRef.current) setStats(next);
     const focus = after.answers[activeIndex(after)];
     if (focus) {
       play(
-        focus.correct ? (focus.streak >= 3 ? "streak" : "correct") : "wrong",
+        focus.challenge && focus.correct
+          ? "unlock"
+          : focus.correct
+            ? focus.streak >= 3
+              ? "streak"
+              : "correct"
+            : "wrong",
       );
       navigator.vibrate?.(
         soundRef.current ? (focus.correct ? 18 : [12, 60, 12]) : 0,
       );
     }
-    if (meta.newBadges.length || meta.newMastery.length) play("unlock");
-    return before;
+    if (unlocked && !focus?.challenge) play("unlock");
   };
   const reveal = () => {
     clearTimeout(revealTimer.current);
@@ -415,22 +501,26 @@ export default function App() {
     }
     const revealed = revealAnswers(next);
     updateGame(revealed);
-    settle(current, revealed);
-  };
-  const msLeftAt = (ms) => {
-    const s = gameRef.current?.settings;
-    return s?.timed ? s.seconds * 1000 - ms : 0;
+    settle(revealed);
   };
   const answer = (i) => {
     const current = gameRef.current;
     if (current?.phase !== "question" || !Number.isInteger(i) || i < 0 || i > 3)
       return;
+    if (isClassic(current)) {
+      if (current.answers[current.turn]) return;
+      const revealed = answerClassic(current, i, msLeft());
+      if (revealed === current) return;
+      updateGame(revealed);
+      settle(revealed);
+      return;
+    }
     const me = activeIndex(current);
     if (current.answers?.[me]) return;
     if (!isSimultaneous(current)) {
       const revealed = answerQuestion(current, i, msLeft());
       updateGame(revealed);
-      settle(current, revealed);
+      settle(revealed);
       return;
     }
     updateGame(recordAnswer(current, me, i, msLeft()));
@@ -439,6 +529,15 @@ export default function App() {
       reveal,
       reducedMotion() ? 120 : LOCK_BEAT_MS,
     );
+  };
+  const help = () => {
+    const current = gameRef.current;
+    if (!isClassic(current)) return;
+    const next = fiftyFifty(current);
+    if (next !== current) {
+      play("lock");
+      updateGame(next);
+    }
   };
   // A single light tick drives bot thinking time and the countdown.
   useEffect(() => {
@@ -478,11 +577,16 @@ export default function App() {
           play("tick");
         }
         if (left <= 0) {
-          if (isSimultaneous(g)) reveal();
+          if (isClassic(g)) {
+            if (g.answers[g.turn]) return;
+            const revealed = answerClassic(g, TIMEOUT, 0);
+            updateGame(revealed);
+            settle(revealed);
+          } else if (isSimultaneous(g)) reveal();
           else {
             const revealed = answerQuestion(g, TIMEOUT, 0);
             updateGame(revealed);
-            settle(g, revealed);
+            settle(revealed);
           }
         }
       }
@@ -490,10 +594,11 @@ export default function App() {
     const timer = setInterval(tick, 150);
     return () => clearInterval(timer);
   }, [clockRunning, questionKey]);
-  // Category-locked and planned (daily) matches skip the wheel.
+  // Category-locked and planned (daily) rounds skip the wheel.
   useEffect(() => {
     if (
       page !== "game" ||
+      isClassic(game) ||
       game?.phase !== "spin" ||
       !(game.settings?.category || game.settings?.plan)
     )
@@ -502,11 +607,10 @@ export default function App() {
       const current = gameRef.current;
       if (current?.phase === "spin")
         drawQuestion(current, current.settings.category);
-    }, 200);
+    }, 350);
     return () => clearTimeout(timer);
   }, [game?.phase, game?.turn, page]);
-  // Practice and daily rounds spin the wheel themselves: Play now is one tap
-  // and the question follows. Friends keep the tap, so each player spins.
+  // Older mixed practice rounds spin the wheel themselves.
   useEffect(() => {
     if (
       page !== "game" ||
@@ -522,37 +626,53 @@ export default function App() {
     const timer = setTimeout(spin, game.turn === 0 ? 200 : 450);
     return () => clearTimeout(timer);
   }, [game?.phase, game?.turn, page, spinning, modal, tabActive]);
+
+  // ---- Moving on ----------------------------------------------------------
+  const finishMatch = (next) => {
+    updateGame(next);
+    const humans = next.players.filter((p) => !p.isBot);
+    const human = humans[0];
+    const winners = isClassic(next)
+      ? classicWinners(next)
+      : getWinners(next.players);
+    const won =
+      matchMode !== "daily" &&
+      humans.length === 1 &&
+      next.players.length > 1 &&
+      winners.length === 1 &&
+      winners[0] === human;
+    let nextStats = recordMatch(statsRef.current, { won }).stats;
+    if (matchMode === "daily" && human) {
+      const outcome = recordDaily(nextStats, {
+        correct: human.correct,
+        total: next.settings.questions,
+        score: human.score,
+      });
+      nextStats = outcome.stats;
+      setMatchMeta((meta) => ({
+        ...meta,
+        dailyOutcome: {
+          usedFreeze: outcome.usedFreeze,
+          earnedFreeze: outcome.earnedFreeze,
+        },
+      }));
+    }
+    setStats(nextStats);
+    play("finish");
+  };
   const advance = () => {
     const current = gameRef.current;
-    if (current?.phase !== "reveal") return;
-    const next = nextTurn(current);
-    if (next.phase === "finished") {
+    if (isClassic(current)) {
+      if (!["reveal", "rival"].includes(current.phase)) return;
+      const next = nextStep(current);
+      if (next.phase === "finished") return finishMatch(next);
+      if (next.phase === "pick") play("unlock");
       updateGame(next);
-      const human = next.players.find((p) => !p.isBot);
-      const won =
-        matchMode === "random" &&
-        !!human &&
-        getWinners(next.players).includes(human);
-      let nextStats = recordMatch(statsRef.current, { won }).stats;
-      if (matchMode === "daily" && human) {
-        const outcome = recordDaily(nextStats, {
-          correct: human.correct,
-          total: next.settings.questions,
-          score: human.score,
-        });
-        nextStats = outcome.stats;
-        setMatchMeta((meta) => ({
-          ...meta,
-          dailyOutcome: {
-            usedFreeze: outcome.usedFreeze,
-            earnedFreeze: outcome.earnedFreeze,
-          },
-        }));
-      }
-      setStats(nextStats);
-      play("finish");
       return;
     }
+    if (current?.phase !== "reveal") return;
+    const next = nextTurn(current);
+    if (next.phase === "finished") return finishMatch(next);
     if (matchMode === "friends" && next.phase === "spin") {
       const rotationDone = next.turn % next.players.length === 0;
       updateGame({ ...next, phase: rotationDone ? "standings" : "handoff" });
@@ -567,6 +687,7 @@ export default function App() {
       !tabActive ||
       modal ||
       !game ||
+      isClassic(game) ||
       isSimultaneous(game) ||
       !game.players[activeIndex(game)]?.isBot ||
       game.phase === "finished"
@@ -581,106 +702,126 @@ export default function App() {
         if (current?.phase !== "question") return;
         const revealed = answerQuestion(current, plan.choice, 0);
         updateGame(revealed);
-        settle(current, revealed);
+        settle(revealed);
       }, 1300);
     return () => clearTimeout(timer);
   }, [game?.phase, game?.turn, page, spinning, modal, tabActive]);
+
+  const gameProps = {
+    game,
+    mode: matchMode,
+    rotation,
+    spinning,
+    clock: { running: clockRunning, key: questionKey, msLeft, elapsed },
+    stats,
+    matchMeta,
+    headingRef: phaseHeading,
+    onExit: () => navigate("home"),
+    onRules: () => setModal({ type: "help" }),
+    onRematch: rematch,
+    onPlay: playNow,
+    onEditPlayers: () =>
+      openFriends(game?.players.filter((p) => !p.isBot) || null),
+    onToast: setToast,
+    onReady: () => {
+      const current = gameRef.current;
+      if (current?.phase === "handoff")
+        updateGame({ ...current, phase: "spin" });
+    },
+  };
+  const daily = dailyStatus(stats);
+  const level = levelInfo(stats.xp).level;
+  const inPlay = ["game", "lobby"].includes(page);
+  const navItems = [
+    ["home", HomeIcon, "Home"],
+    ["categories", LayoutGrid, "Categories"],
+    ["collection", Trophy, "Trophies"],
+  ];
   return (
-    <div
-      className={`app-shell ${page === "game" ? "in-match" : page === "lobby" ? "in-lobby" : ""}`}
-    >
+    <div className={`app ${inPlay ? "is-playing" : ""}`} data-page={page}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
-      <header className="app-header" inert={!!modal}>
-        <button
-          className="brand"
-          onClick={() => navigate("home")}
-          aria-label="Kinesa home"
-        >
-          <span className="brand-emblem">
-            <CopticCross size={22} />
-          </span>
-          <span className="brand-word">kinesa</span>
-        </button>
-        <nav className="main-nav" aria-label="Main navigation">
-          <span
-            className="nav-indicator"
-            aria-hidden="true"
-            style={{
-              "--i": page === "categories" ? 1 : page === "collection" ? 2 : 0,
-            }}
-          />
-          {[
-            ["home", Gamepad2, "Play"],
-            ["categories", Compass, "Discover"],
-            ["collection", Trophy, "Collection"],
-          ].map(([id, Icon, label]) => (
+      {!inPlay && (
+        <header className="app-header" inert={!!modal}>
+          <button
+            className="brand"
+            onClick={() => navigate("home")}
+            aria-label="Kinesa home"
+          >
+            <span className="brand-mark">
+              <CopticCross size={22} />
+            </span>
+            <span className="brand-word">kinesa</span>
+          </button>
+          <nav className="tabs" aria-label="Main">
+            {navItems.map(([id, Icon, label]) => (
+              <button
+                key={id}
+                onClick={() => navigate(id)}
+                className={page === id ? "is-active" : ""}
+                aria-current={page === id ? "page" : undefined}
+              >
+                <Icon size={22} aria-hidden="true" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </nav>
+          <div className="header-tools">
             <button
-              key={id}
-              onClick={() => navigate(id)}
-              className={
-                page === id ||
-                (id === "home" && ["game", "lobby"].includes(page))
-                  ? "active"
-                  : ""
-              }
-              aria-label={label}
-              aria-current={
-                page === id ||
-                (id === "home" && ["game", "lobby"].includes(page))
-                  ? "page"
-                  : undefined
-              }
+              className="level-pill"
+              onClick={() => navigate("collection")}
+              aria-label={`Level ${level}. See trophies`}
+              title="Your level"
             >
-              <Icon size={19} />
-              {label}
+              {level}
             </button>
-          ))}
-        </nav>
-        <div className="header-tools">
-          <button
-            className="icon-button"
-            aria-label={sound ? "Turn sound off" : "Turn sound on"}
-            aria-pressed={sound}
-            onClick={() => {
-              setSound((s) => !s);
-              setToast(sound ? "Sound off" : "Sound on");
-            }}
-          >
-            {sound ? <Volume2 size={20} /> : <VolumeX size={20} />}
-          </button>
-          <button
-            className="icon-button help-button"
-            aria-label="How to play"
-            onClick={() => setModal({ type: "help" })}
-          >
-            <HelpCircle size={20} />
-          </button>
-        </div>
-      </header>
+            <span
+              className={`streak-pill ${daily.streak ? "is-lit" : ""}`}
+              role="img"
+              aria-label={`${daily.streak}-day streak`}
+              title="Daily streak"
+            >
+              <Flame size={18} aria-hidden="true" />
+              {daily.streak}
+            </span>
+            <button
+              className="icon-btn"
+              aria-label="How to play"
+              onClick={() => setModal({ type: "help" })}
+            >
+              <HelpCircle size={22} />
+            </button>
+            <button
+              className="icon-btn"
+              aria-label="Settings"
+              onClick={() => setModal({ type: "settings" })}
+            >
+              <SettingsIcon size={22} />
+            </button>
+          </div>
+        </header>
+      )}
       <main
         id="main-content"
         ref={mainRef}
         tabIndex={-1}
         inert={!!modal}
-        className={`main-content page-${page}`}
+        className={`main page-${page}`}
       >
         {page === "home" && (
           <Home
             game={game}
-            navigate={navigate}
-            openLobby={openLobby}
-            playNow={playNow}
-            playDaily={playDaily}
             stats={stats}
-            setModal={setModal}
+            onResume={() => navigate("game")}
+            onPlay={playNow}
+            onFriends={() => openFriends()}
+            onDaily={playDaily}
           />
         )}
         {page === "lobby" && (
           <Lobby
             key={lobbyKey}
-            mode={mode}
             onBack={() => navigate("home")}
             onBegin={begin}
             initialPlayers={rematchPlayers}
@@ -688,58 +829,73 @@ export default function App() {
         )}
         {page === "categories" && (
           <Discover
-            setModal={setModal}
-            openLobby={openLobby}
-            onQuiz={(category) => playNow({ category })}
-          />
-        )}
-        {page === "collection" && (
-          <Collection stats={stats} setModal={setModal} openLobby={openLobby} />
-        )}
-        {page === "game" && game && (
-          <Game
-            game={game}
-            mode={matchMode}
-            savedLocally={canSave}
-            rotation={rotation}
-            spinning={spinning}
-            spin={spin}
-            answer={answer}
-            advance={advance}
-            clock={{ running: clockRunning, key: questionKey, msLeft, elapsed }}
             stats={stats}
-            matchMeta={matchMeta}
-            onExit={() => navigate("home")}
-            onRematch={rematch}
-            onPractice={() => playNow()}
-            onEditPlayers={() => openLobby(matchMode, game.players)}
-            onHelp={() => setModal({ type: "help" })}
-            onInspectPlayer={(player) => setModal({ type: "player", player })}
-            onReady={() => {
-              const current = gameRef.current;
-              if (current?.phase === "handoff")
-                updateGame({ ...current, phase: "spin" });
-            }}
-            onContinue={() => {
-              const current = gameRef.current;
-              if (current?.phase === "standings")
-                updateGame({ ...current, phase: "handoff" });
-            }}
-            onToast={setToast}
+            onOpen={(category) => setModal({ type: "category", category })}
           />
+        )}
+        {page === "collection" && <Collection stats={stats} onPlay={playNow} />}
+        {page === "game" &&
+          game &&
+          (isClassic(game) ? (
+            <ClassicGame
+              {...gameProps}
+              landed={landed}
+              onSpin={spin}
+              onPick={pick}
+              onAnswer={answer}
+              onHelp={help}
+              onNext={advance}
+            />
+          ) : (
+            <Game
+              {...gameProps}
+              spin={spin}
+              answer={answer}
+              advance={advance}
+              onContinue={() => {
+                const current = gameRef.current;
+                if (current?.phase === "standings")
+                  updateGame({ ...current, phase: "handoff" });
+              }}
+            />
+          ))}
+        {page === "game" && game && !canSave && (
+          <span
+            className="save-warning"
+            role="img"
+            aria-label="This game isn’t being saved"
+            title="This game isn’t being saved"
+          >
+            <CloudOff size={16} />
+          </span>
         )}
       </main>
+      {!inPlay && (
+        <nav className="bottom-tabs" aria-label="Main" inert={!!modal}>
+          {navItems.map(([id, Icon, label]) => (
+            <button
+              key={id}
+              onClick={() => navigate(id)}
+              className={page === id ? "is-active" : ""}
+              aria-current={page === id ? "page" : undefined}
+            >
+              <Icon size={24} aria-hidden="true" />
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+      )}
       <div
-        className={`app-toast ${toast ? "is-visible" : ""} ${toastTone === "warn" ? "is-warn" : ""}`}
+        className={`toast ${toast ? "is-visible" : ""} ${toastTone === "warn" ? "is-warn" : ""}`}
         role="status"
         aria-live="polite"
       >
         {toast && (
           <>
             {toastTone === "warn" ? (
-              <CloudOff size={16} />
+              <CloudOff size={18} aria-hidden="true" />
             ) : (
-              <Check size={16} />
+              <Check size={18} aria-hidden="true" />
             )}
             {toast}
           </>
@@ -749,191 +905,42 @@ export default function App() {
         <Modal
           onClose={() => setModal(null)}
           returnFocus={modalTrigger.current}
-          variant={modal.type === "play-sheet" ? "sheet" : "dialog"}
         >
-          {modal.type === "play-sheet" && (
-            <PlaySheet
-              onPlay={(choice) => {
-                savePrefs(choice);
-                playNow({ name: choice.name, ...choice.settings });
-              }}
+          {modal.type === "settings" && (
+            <Settings
+              sound={sound}
+              onSound={(on) => setSound(on)}
+              onHelp={() => setModal({ type: "help" })}
+              onDone={() => setModal(null)}
             />
           )}
           {modal.type === "help" && (
-            <>
-              <span className="modal-sticker">
-                <Gamepad2 size={36} />
-              </span>
-              <h2 id="modal-title">
-                Easy to play.
-                <br />
-                Hard to put down.
-              </h2>
-              <div className="steps">
-                {[
-                  [
-                    "Find your people",
-                    "Tap Play now for a practice match against clearly labeled bots, or pass one phone around with two to four friends.",
-                  ],
-                  [
-                    "Meet your companion",
-                    "We shuffle the lion, ox, eagle, and human. Each player gets one. No choosing, no duplicates.",
-                  ],
-                  [
-                    "Spin. Answer. Celebrate.",
-                    "The wheel picks the category, then a 20-second clock starts. Correct answers earn 100 points, streaks of three or more multiply them, and fast answers add a bonus. Easy and relaxed play have no clock.",
-                  ],
-                ].map(([title, copy], i) => (
-                  <div key={title}>
-                    <span>{i + 1}</span>
-                    <div>
-                      <h3>{title}</h3>
-                      <p>{copy}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                className="primary-button full"
-                onClick={() => setModal(null)}
-              >
-                Got it <ArrowRight size={20} />
-              </button>
-              <p className="modal-about">
-                <AboutLinks />
-              </p>
-            </>
-          )}
-          {modal.type === "squad" && (
-            <>
-              <h2 id="modal-title">Who’s your game-day self?</h2>
-              <p className="modal-lead">
-                You’ll find out when the game deals your companion. Every player
-                gets a different one.
-              </p>
-              <div className="squad-grid">
-                {MASCOTS.map((m) => (
-                  <div style={{ background: m.bg }} key={m.kind}>
-                    <Mascot kind={m.kind} />
-                    <h3>{m.name}</h3>
-                    <p>
-                      {m.kind} · {m.gospel}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <button className="primary-button full" onClick={() => playNow()}>
-                Let fate decide <Shuffle size={20} />
-              </button>
-            </>
-          )}
-          {modal.type === "player" &&
-            (() => {
-              const m = MASCOTS.find((m) => m.kind === modal.player.kind);
-              return (
-                <div className="player-detail">
-                  <h2 id="modal-title">Meet {m.name}.</h2>
-                  <div
-                    className="player-detail-art"
-                    style={{ "--companion-bg": m.bg }}
-                  >
-                    <Mascot kind={m.kind} />
-                  </div>
-                  <p className="modal-lead">
-                    {modal.player.name}’s companion · the {m.kind} · Gospel of{" "}
-                    {m.gospel}
-                  </p>
-                  <p className="companion-personality">{m.personality}</p>
-                  <div className="player-detail-stats">
-                    <span>
-                      <strong>{modal.player.score}</strong> points
-                    </span>
-                    <span>
-                      <strong>{modal.player.badges.length}</strong> categories
-                      earned
-                    </span>
-                  </div>
-                  <p className="player-detail-note">
-                    Randomly dealt for this match. A different companion for
-                    every player.
-                  </p>
-                  <button
-                    className="primary-button full"
-                    onClick={() => setModal(null)}
-                  >
-                    Back to game <ArrowRight size={18} />
-                  </button>
-                </div>
-              );
-            })()}
-          {modal.type === "replace-match" && (
-            <>
-              <span className="modal-sticker">
-                <Gamepad2 size={32} />
-              </span>
-              <h2 id="modal-title">Start a fresh game?</h2>
-              <p className="modal-lead">
-                Starting this match replaces the current game on this device,
-                including its scores and companions.
-              </p>
-              <div className="replace-match-summary">
-                <Users size={20} />
-                <span>
-                  {game.players.map((p) => p.name).join(", ")}
-                  <small>
-                    {isSimultaneous(game) ? "Question" : "Round"}{" "}
-                    {currentRound(game)} of {roundCount(game)} ·{" "}
-                    {game.players.length} players
-                  </small>
-                </span>
-              </div>
-              <div className="replace-match-actions">
-                <button
-                  className="secondary-button"
-                  onClick={() => {
-                    setModal(null);
-                    navigate("game");
-                  }}
-                >
-                  Resume current game
-                </button>
-                <button
-                  className="primary-button"
-                  onClick={() => startPrepared(modal.prepared, modal.nextMode)}
-                >
-                  Start new game <ArrowRight size={18} />
-                </button>
-              </div>
-            </>
+            <HelpDialog onDone={() => setModal(null)} />
           )}
           {modal.type === "category" && (
-            <>
-              <span
-                className="modal-sticker"
-                style={{ background: modal.category.color }}
-              >
-                <CategoryIcon category={modal.category} size={36} />
-              </span>
-              <h2 id="modal-title">{modal.category.name}</h2>
-              <p className="modal-lead">{modal.category.detail}</p>
-              <div className="category-example">
-                <Sparkles size={24} />
-                <p>{modal.category.description}</p>
-              </div>
-              <button
-                className="primary-button full"
-                onClick={() => playNow({ category: modal.category.id })}
-              >
-                Play {modal.category.short} questions <ArrowRight size={20} />
-              </button>
-            </>
+            <CategoryDialog
+              category={modal.category}
+              stats={stats}
+              onPlay={() => playTopic(modal.category.id)}
+            />
+          )}
+          {modal.type === "replace-match" && game && (
+            <ReplaceDialog
+              game={game}
+              onResume={() => {
+                setModal(null);
+                navigate("game");
+              }}
+              onReplace={() => startPrepared(modal.prepared, modal.nextMode)}
+            />
           )}
         </Modal>
       )}
     </div>
   );
 }
-function Modal({ children, onClose, returnFocus, variant = "dialog" }) {
+
+function Modal({ children, onClose, returnFocus }) {
   const ref = useRef(null);
   const callback = useRef(onClose);
   callback.current = onClose;
@@ -948,8 +955,8 @@ function Modal({ children, onClose, returnFocus, variant = "dialog" }) {
         const nodes = ref.current.querySelectorAll(
           'button:not(:disabled),input:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]',
         );
-        const first = nodes[0],
-          last = nodes[nodes.length - 1];
+        const first = nodes[0];
+        const last = nodes[nodes.length - 1];
         if (
           e.shiftKey &&
           (document.activeElement === first ||
@@ -973,13 +980,13 @@ function Modal({ children, onClose, returnFocus, variant = "dialog" }) {
   }, []);
   return (
     <div
-      className={`modal-backdrop is-${variant}`}
+      className="modal-backdrop"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <section
-        className={`modal is-${variant}`}
+        className="modal"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
@@ -987,9 +994,9 @@ function Modal({ children, onClose, returnFocus, variant = "dialog" }) {
         ref={ref}
       >
         <button
-          className="modal-close icon-button"
+          className="icon-btn modal-close"
           onClick={onClose}
-          aria-label="Close dialog"
+          aria-label="Close"
         >
           <X size={22} />
         </button>

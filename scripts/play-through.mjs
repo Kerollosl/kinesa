@@ -1,4 +1,4 @@
-// Plays complete Random and Friends matches on phone and desktop viewports,
+// Plays complete classic, friends, daily and topic games on phone and desktop,
 // saves a screenshot at every phase, probes small-phone layout, and exits
 // non-zero on any console error. Starts its own Vite server.
 //
@@ -103,154 +103,120 @@ const visible = (locator) =>
 const main = (page) => page.locator("main");
 const button = (page, name) => main(page).getByRole("button", { name }).first();
 
-// Advances whatever the current match phase asks for until results appear.
-async function playMatch(page, shot, { friends }) {
+// Advances whatever the current screen asks for until results appear.
+// Answers follow a right, right, wrong pattern so every state shows up.
+async function playMatch(page, shot) {
   let answered = 0;
-  for (let i = 0; i < 400; i++) {
-    if (
-      (await visible(page.locator("[data-phase='finished']"))) ||
-      (await visible(
-        main(page).getByRole("button", { name: /^(One more round|Rematch)/i }),
-      ))
-    ) {
-      await page.waitForTimeout(1600);
+  for (let i = 0; i < 600; i++) {
+    if (await visible(page.locator(".results"))) {
+      await page.waitForTimeout(1800);
       await shot("results");
       await shot("results-full", { full: true });
       return answered;
     }
-    const interstitial = button(page, /^(Next round|Continue|Keep going)/i);
-    if (await visible(interstitial)) {
-      await shot("standings");
-      await interstitial.click();
+    if (await visible(page.locator(".rival"))) {
+      await page.waitForTimeout(2200);
+      await shot("rival");
+      await page.locator(".rival .btn-go").click();
       continue;
     }
-    const ready = button(page, /^I.m .+ let.s play/i);
-    if (await visible(ready)) {
+    if (await visible(page.locator(".handoff"))) {
       await shot("handoff");
-      await ready.click();
+      await page.locator(".handoff .btn-go").click();
       continue;
     }
-    const spin = button(page, /^Spin( the wheel)?$/i);
-    if ((await visible(spin)) && (await spin.isEnabled().catch(() => false))) {
+    if (await visible(page.locator(".pick"))) {
+      await shot("pick");
+      await page.locator(".pick-tile:not([disabled])").first().click();
+      continue;
+    }
+    const spin = page.locator(".board .btn-go:not([disabled])");
+    if (await visible(spin)) {
       await shot("spin");
-      // Practice and daily rounds spin themselves; friends rounds wait for a tap.
-      await spin.click({ timeout: 1500 }).catch(() => {});
-      await page.waitForTimeout(500);
-      await shot("spinning");
-      continue;
-    }
-    const options = page.locator(".answer-option:not([disabled])");
-    if (
-      (await visible(options)) &&
-      !(await visible(page.locator(".answer-reveal")))
-    ) {
-      await shot("question");
-      answered++;
-      // Alternate right and wrong answers so both feedback states appear.
-      const correct = await page.evaluate(
-        () => window.__kinesaCorrectIndex ?? null,
-      );
-      const count = await options.count();
-      const pick =
-        correct !== null && answered % 2
-          ? correct
-          : correct === null
-            ? answered % count
-            : (correct + 1) % count;
-      await options.nth(Math.min(pick, count - 1)).click();
+      await spin.click();
       await page.waitForTimeout(700);
-      await shot(answered % 2 ? "feedback-a" : "feedback-b");
+      await shot("spinning");
+      await page.waitForTimeout(2600);
       continue;
     }
-    const next = button(
-      page,
-      /^(Watch|Pass to|See the results|Next question|Next|See results)/i,
-    );
-    if (await visible(next)) {
-      await next.click();
+    const sheet = page.locator(".sheet .btn");
+    if (await visible(sheet)) {
+      await sheet.click();
       continue;
     }
-    await page.waitForTimeout(400);
+    const options = page.locator(".qv .answer:not([disabled])");
+    if (await visible(options)) {
+      await shot("question");
+      const correct = await page.evaluate(
+        () => JSON.parse(localStorage.getItem("kinesa-match"))?.game?.question?.correct ?? 0,
+      );
+      const right = answered % 3 !== 2;
+      const hidden = await page.evaluate(
+        () => JSON.parse(localStorage.getItem("kinesa-match"))?.game?.hidden || [],
+      );
+      const wrong = [0, 1, 2, 3].find((n) => n !== correct && !hidden.includes(n));
+      await page.locator(".qv .answer").nth(right ? correct : wrong).click();
+      answered++;
+      await page.waitForTimeout(1100);
+      await shot(right ? "feedback-right" : "feedback-wrong");
+      continue;
+    }
+    await page.waitForTimeout(200);
   }
-  throw new Error(
-    `match did not finish (${friends ? "friends" : "random"}), answered ${answered}`,
-  );
+  throw new Error(`match did not finish, answered ${answered}`);
 }
 
-async function startRandom(page, shot) {
-  await shot("home");
-  await shot("home-full", { full: true });
-  const playNow = button(page, /^Play now/i);
-  if (await visible(playNow)) await playNow.click();
-  else await button(page, /Random game/i).click();
-  const name = page.getByLabel(/What should we call you/i);
-  if (await visible(name)) {
-    await shot("setup");
-    await name.fill("Kero");
-    await button(page, /Find a game/i).click();
-  }
-  const gameOn = button(page, /^Game on/i);
-  if (
-    await gameOn
-      .waitFor({ timeout: 4000 })
-      .then(() => true)
-      .catch(() => false)
-  ) {
-    await page.waitForTimeout(1700);
-    await shot("reveal");
-    await gameOn.click();
-  }
-}
-
-async function startFriends(page, shot) {
-  await button(page, /Play with friends/i).click();
-  const name = page.getByLabel(/What should we call you/i);
-  if (await visible(name)) await name.fill("Kero");
-  const create = button(page, /^Create room$/i);
-  if (await visible(create)) await create.click();
-  const add = button(page, /Add a friend|Add player/i);
-  while (
-    (await page.locator(".friend-seat input").count()) < 3 &&
-    (await visible(add))
-  )
-    await add.click();
-  const names = ["Kero", "Marina", "Abanoub", "Sara"];
-  const seats = page.locator(".friend-seat input");
-  for (let i = 0; i < (await seats.count()); i++)
-    await seats.nth(i).fill(names[i]);
-  await shot("setup");
-  await button(page, /Deal our companions/i).click();
-  const gameOn = button(page, /^Game on/i);
-  await gameOn.waitFor({ timeout: 6000 });
-  await page.waitForTimeout(1700);
-  await shot("reveal");
-  await gameOn.click();
+async function chooseQuick(page, shot) {
+  await page.getByRole("button", { name: "Settings" }).click();
+  await page.getByRole("radio", { name: /^Quick/ }).check();
+  await shot("settings");
+  await page.getByRole("button", { name: "Done" }).click();
 }
 
 for (const [device, options] of Object.entries(VIEWPORTS)) {
-  await session(`${device}-random`, options, async (page, shot) => {
-    await startRandom(page, shot);
-    await playMatch(page, shot, { friends: false });
+  await session(`${device}-classic`, options, async (page, shot) => {
+    await shot("home");
+    await chooseQuick(page, shot);
+    await page.getByRole("button", { name: "Play", exact: true }).click();
+    await playMatch(page, shot);
+    await page.getByRole("button", { name: "Home" }).click();
+    await shot("home-after");
   });
   await session(`${device}-friends`, options, async (page, shot) => {
-    await startFriends(page, shot);
-    await playMatch(page, shot, { friends: true });
+    await page.getByRole("button", { name: /Friends/ }).click();
+    await page.getByRole("button", { name: /Add player/ }).click();
+    for (const [n, name] of ["Kero", "Marina", "Abanoub"].entries())
+      await page.getByLabel(`Player ${n + 1} name`).fill(name);
+    await page.getByRole("radio", { name: /^Quick/ }).check();
+    await shot("setup");
+    await page.getByRole("button", { name: "Start" }).click();
+    await playMatch(page, shot);
   });
   await session(`${device}-daily`, options, async (page, shot) => {
-    await button(page, /^Play today/i).click();
-    await playMatch(page, shot, { friends: false });
+    await page.getByRole("button", { name: /today’s five/i }).click();
+    await playMatch(page, shot);
     await page.goto(base, { waitUntil: "networkidle" });
     await shot("home-after");
+  });
+  await session(`${device}-topic`, options, async (page, shot) => {
+    await page.goto(base + "#categories", { waitUntil: "networkidle" });
+    await page.locator(".cat-tile").nth(1).click();
+    await shot("dialog");
+    await page.getByRole("button", { name: /Play 10 questions/ }).click();
+    await playMatch(page, shot);
   });
   await session(`${device}-pages`, options, async (page, shot) => {
     for (const hash of ["#categories", "#collection"]) {
       await page.goto(base + hash, { waitUntil: "networkidle" });
       await shot(hash.slice(1));
     }
+    await page.goto(base, { waitUntil: "networkidle" });
+    await page.getByRole("button", { name: "How to play" }).first().click();
+    await shot("help");
   });
 }
 
-// Small-phone layout probe: no horizontal scroll, no sub-12px text, AA contrast on solid text.
+// Small-phone layout probe: no horizontal scroll and no text under 13px.
 for (const width of [360, 390]) {
   await session(
     `probe-${width}`,
@@ -271,7 +237,7 @@ for (const width of [360, 390]) {
               .filter((n) => n.nodeType === 3)
               .map((n) => n.textContent.trim())
               .join("");
-            if (text && parseFloat(getComputedStyle(el).fontSize) < 12)
+            if (text && parseFloat(getComputedStyle(el).fontSize) < 13)
               tiny.push(
                 `${getComputedStyle(el).fontSize} "${text.slice(0, 24)}"`,
               );
@@ -287,7 +253,7 @@ for (const width of [360, 390]) {
           );
         if (report.tiny.length)
           summary.push(
-            `probe ${width}px ${hash || "#home"} sub-12px text: ${report.tiny.join(", ")}`,
+            `probe ${width}px ${hash || "#home"} sub-13px text: ${report.tiny.join(", ")}`,
           );
       }
     },

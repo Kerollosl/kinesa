@@ -1,249 +1,117 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  BookOpen,
-  Check,
-  Flame,
-  LockKeyhole,
-  Medal,
-  Sparkles,
-  Trophy,
-  Zap,
-} from "lucide-react";
+import { Check, Flame, Gamepad2, Play, Trophy, Zap } from "lucide-react";
 import { categories } from "../data.js";
 import { CategoryIcon } from "./Wheel.jsx";
-import Mascot from "./Mascot.jsx";
-import { levelInfo, masteryFor, nextMastery } from "../progress.js";
+import { MASTERY, levelInfo, masteryFor, nextMastery } from "../progress.js";
 import { dailyStatus } from "../daily.js";
 import AboutLinks from "./AboutLinks.jsx";
 
-export default function Collection({ stats, setModal, openLobby }) {
-  const badges = categories.filter((c) => stats.badges.includes(c.id));
-  const [selectedId, setSelectedId] = useState(null);
-  const selected = categories.find((c) => c.id === selectedId);
-  const detailRef = useRef(null);
-  useEffect(() => {
-    if (!selectedId) return;
-    detailRef.current?.focus({ preventScroll: true });
-    detailRef.current?.scrollIntoView({
-      block: "nearest",
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-        ? "instant"
-        : "smooth",
-    });
-  }, [selectedId]);
-  const completed = badges.length === categories.length;
-  const remaining = categories.length - badges.length;
-  const next = categories.find((c) => !stats.badges.includes(c.id));
+// Level, a few numbers, and Bronze → Silver → Gold in every category.
+export default function Collection({ stats, onPlay }) {
   const level = levelInfo(stats.xp);
   const daily = dailyStatus(stats);
-  const masteryLine = (id) => {
-    const count = stats.categoryCorrect[id] || 0;
-    const tier = masteryFor(count);
-    const upcoming = nextMastery(count);
-    return `${count} correct${tier ? ` · ${tier.label}` : ""}${
-      upcoming
-        ? ` · ${upcoming.min - count} more for ${upcoming.label}`
-        : " · fully mastered"
-    }`;
-  };
-
+  const gold = MASTERY[0].min;
   return (
-    <div className="le-page le-collection">
-      <h1 className="sr-only">The trophy shelf.</h1>
-
-      <section
-        className="shelf-summary"
-        aria-labelledby="collection-progress-heading"
-      >
-        <div className="shelf-ring">
-          <svg
-            viewBox="0 0 200 200"
-            role="img"
-            aria-label={`${badges.length} of 6 category badges earned`}
+    <div className="page trophies">
+      <h1>Trophies</h1>
+      <section className="level-card" aria-label={`Level ${level.level}`}>
+        <span className="level-medal is-big" aria-hidden="true">
+          {level.level}
+        </span>
+        <div className="level-card-body">
+          <strong>Level {level.level}</strong>
+          <span
+            className="level-bar"
+            role="progressbar"
+            aria-label="Progress to the next level"
+            aria-valuemin={0}
+            aria-valuemax={level.span}
+            aria-valuenow={level.into}
           >
-            <circle className="shelf-ring-track" cx="100" cy="100" r="88" />
-            <circle
-              className="shelf-ring-fill"
-              cx="100"
-              cy="100"
-              r="88"
-              pathLength="100"
-              strokeDasharray={`${(badges.length / 6) * 100} 100`}
-              transform="rotate(-90 100 100)"
-            />
-          </svg>
-          <span className="shelf-ring-character" aria-hidden="true">
-            <Mascot kind="lion" portrait />
+            <i style={{ transform: `scaleX(${level.progress})` }} />
+          </span>
+          <span className="level-note">
+            {level.next - stats.xp} XP to level {level.level + 1}
           </span>
         </div>
-        <div className="shelf-copy">
-          <h2 id="collection-progress-heading">
-            {completed
-              ? "You’ve explored every side."
-              : badges.length
-                ? `${remaining} more ${remaining === 1 ? "discovery" : "discoveries"} to go.`
-                : "Start your collection."}
-          </h2>
-          <p>
-            {completed
-              ? "All six categories, all yours."
-              : "Correct answers unlock category badges."}
-          </p>
-        </div>
-        <button className="le-solid-action" onClick={() => openLobby("random")}>
-          {badges.length ? "Keep collecting" : "Play your first game"}
-          <ArrowRight size={17} />
-        </button>
       </section>
-
-      <div className="shelf-stats" aria-label="Your game statistics">
+      <ul className="stat-grid" aria-label="Your numbers">
         {[
-          [Trophy, stats.games, "Games"],
-          [Zap, stats.correct, "Correct"],
-          [Medal, `${badges.length} / 6`, "Badges"],
-          [Flame, daily.streak, "Streak"],
+          [Gamepad2, stats.games, "Games"],
+          [Trophy, stats.wins, "Wins"],
+          [Zap, stats.correct, "Right answers"],
+          [Flame, daily.streak, "Day streak"],
         ].map(([Icon, value, label]) => (
-          <div className="shelf-stat" key={label}>
-            <Icon size={20} aria-hidden="true" />
+          <li key={label}>
+            <Icon size={22} aria-hidden="true" />
             <strong>{value}</strong>
             <span>{label}</span>
-          </div>
+          </li>
         ))}
-      </div>
-
-      <div
-        className="shelf-level"
-        role="progressbar"
-        aria-label={`Level ${level.level} progress`}
-        aria-valuemin={0}
-        aria-valuemax={level.span}
-        aria-valuenow={level.into}
-      >
-        <span className="shelf-level-text">
-          <strong className="shelf-level-name">Level {level.level}</strong> ·{" "}
-          <strong>{stats.xp} XP</strong> · {level.next - stats.xp} to level{" "}
-          {level.level + 1}
-          {daily.best > 0 && ` · best daily streak ${daily.best}`}
-        </span>
-        <span className="shelf-level-bar" aria-hidden="true">
-          <i style={{ transform: `scaleX(${level.progress})` }} />
-        </span>
-      </div>
-
-      <section
-        className="le-shelf-section"
-        aria-labelledby="badge-shelf-heading"
-      >
-        <div className="le-section-heading">
-          <div>
-            <h2 id="badge-shelf-heading">Your category badges</h2>
-          </div>
-        </div>
-        <div className="le-badge-grid">
-          {categories.map((c) => {
-            const earned = stats.badges.includes(c.id);
-            const tier = masteryFor(stats.categoryCorrect[c.id] || 0);
-            return (
-              <button
-                className={`le-badge-card ${earned ? "le-badge-earned" : ""} ${selectedId === c.id ? "le-badge-selected" : ""} ${tier ? `is-${tier.id}` : ""}`}
-                style={{ "--le-accent": c.color, "--le-pale": c.pale }}
-                key={c.id}
-                aria-pressed={selectedId === c.id}
-                onClick={() => setSelectedId(c.id)}
-              >
-                <span className="le-badge-medallion">
-                  <CategoryIcon category={c} size={37} />
-                  <span className="le-badge-status">
-                    {earned ? <Check size={12} /> : <LockKeyhole size={11} />}
-                  </span>
-                </span>
-                <h3>{c.name}</h3>
-                {tier && <span className="le-mastery-tag">{tier.label}</span>}
-                <span className="le-badge-label sr-only">
-                  {earned ? "In your collection" : "Ready to discover"}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div
-          className="le-badge-detail"
-          aria-live="polite"
-          ref={detailRef}
-          tabIndex={-1}
-        >
-          {selected ? (
-            <>
-              <span
-                className="le-detail-icon"
-                style={{
-                  "--le-pale": selected.pale,
-                  "--le-accent": selected.color,
-                }}
-              >
-                <CategoryIcon category={selected} size={25} />
+      </ul>
+      <h2>Category medals</h2>
+      <ul className="medal-list">
+        {categories.map((c) => {
+          const count = stats.categoryCorrect[c.id] || 0;
+          const tier = masteryFor(count);
+          const next = nextMastery(count);
+          return (
+            <li
+              key={c.id}
+              style={{ "--cat": c.color, "--cat-ink": c.ink }}
+              className={tier ? `is-${tier.id}` : ""}
+            >
+              <span className="medal-icon" aria-hidden="true">
+                <CategoryIcon category={c} size={24} />
               </span>
-              <div>
-                <strong>
-                  {selected.name}
-                  {stats.badges.includes(selected.id) && (
-                    <span className="le-earned-label">
-                      <Check size={12} /> Earned
-                    </span>
-                  )}
-                </strong>
-                <p className="le-mastery-line">{masteryLine(selected.id)}</p>
-                <p>
-                  {stats.badges.includes(selected.id)
-                    ? "Keep answering here to climb from Bronze (5) to Silver (15) and Gold (30)."
-                    : `Answer a question in ${selected.name} correctly during a game to add this badge to your collection.`}
-                </p>
-              </div>
-              <button
-                className="le-text-action"
-                onClick={() =>
-                  setModal({ type: "category", category: selected })
-                }
-              >
-                Explore the category
-                <ArrowUpRight size={16} />
-              </button>
-            </>
-          ) : (
-            <>
-              <span className="le-detail-icon">
-                <Sparkles size={24} />
+              <span className="medal-body">
+                <strong>{c.name}</strong>
+                <span
+                  className="medal-bar"
+                  role="progressbar"
+                  aria-label={`${c.name}: ${count} right`}
+                  aria-valuemin={0}
+                  aria-valuemax={gold}
+                  aria-valuenow={Math.min(count, gold)}
+                >
+                  <i
+                    style={{
+                      transform: `scaleX(${Math.min(1, count / gold)})`,
+                    }}
+                  />
+                  {MASTERY.map((m) => (
+                    <b
+                      key={m.id}
+                      className={count >= m.min ? "is-hit" : ""}
+                      style={{ left: `${(m.min / gold) * 100}%` }}
+                    />
+                  ))}
+                </span>
+                <span className="medal-note">
+                  {next
+                    ? `${next.min - count} more for ${next.label}`
+                    : "All gold!"}
+                </span>
               </span>
-              <div>
-                <strong>
-                  {completed
-                    ? "A full set. A lovely sight."
-                    : badges.length
-                      ? `Next up? ${next.name}.`
-                      : "Make room for your first badge."}
-                </strong>
-                <p>
-                  {completed
-                    ? "Select any badge to revisit the category behind it."
-                    : "Every correct answer counts. The wheel decides which category comes next."}
-                </p>
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
-      <div className="le-local-note">
-        <BookOpen size={15} />
-        <p>
-          Progress stays on this device. Discover samples don’t earn badges.
-        </p>
-      </div>
-      <p className="le-about">
-        <AboutLinks />
+              <span className="medal-tag">
+                {tier ? (
+                  tier.label
+                ) : (
+                  <span className="medal-count">{count}</span>
+                )}
+                {tier?.id === "gold" && <Check size={14} aria-hidden="true" />}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {stats.games === 0 && (
+        <button className="btn btn-go btn-block" onClick={onPlay}>
+          <Play size={20} fill="currentColor" aria-hidden="true" /> Play your
+          first game
+        </button>
+      )}
+      <p className="fine about">
+        Saved on this device. <AboutLinks />
       </p>
     </div>
   );

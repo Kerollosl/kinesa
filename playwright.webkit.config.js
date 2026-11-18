@@ -3,7 +3,7 @@ import base from "./playwright.config.js";
 
 export default defineConfig({
   ...base,
-  testMatch: "assignment-layout.spec.js",
+  testMatch: "layout.spec.js",
   outputDir: "test-results/webkit",
   use: {
     ...base.use,

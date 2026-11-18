@@ -2,9 +2,11 @@ Live UI playground: https://kinesa-playground.kerollos-lowandy.chatgpt.site
 
 # Kinesa ✦
 
-A Coptic and Bible trivia game for teens and adults: solo against practice bots, a daily challenge, or up to four players on one phone. Its look is woven from Coptic tapestry.
+A Coptic and Bible trivia game for teens and adults. Spin the wheel, keep going while you're right, and win all six categories: against a practice bot, with up to four friends on one phone, or in a daily five. Its look is woven from Coptic tapestry.
 
-![Kinesa home: the tapestry roundel wheel and Play now](docs/redesign/after/desktop-random-home.jpg)
+| Home                               | Spin                                 | Question                                   | Reveal                                       | Results                                  |
+| ---------------------------------- | ------------------------------------ | ------------------------------------------ | -------------------------------------------- | ---------------------------------------- |
+| ![Home](docs/redesign/v2/home.jpg) | ![Board](docs/redesign/v2/board.jpg) | ![Question](docs/redesign/v2/question.jpg) | ![Reveal](docs/redesign/v2/reveal-right.jpg) | ![Results](docs/redesign/v2/results.jpg) |
 
 [Watch the companion performance close-up](docs/kinesa-companions-motion.webm) · [See the character detail](docs/kinesa-performance.png)
 
@@ -24,24 +26,26 @@ npm run build
 npm run preview
 ```
 
-Deploy `dist/` to any static host at the origin root. The app uses hash navigation and needs no routing rewrites or API keys. Discover and Collection support direct links; unfinished matches can be resumed from the home screen.
+Deploy `dist/` to any static host at the origin root. The app uses hash navigation and needs no routing rewrites or API keys. Categories (`#categories`) and Trophies (`#collection`) support direct links; unfinished games resume from Home.
 
 ## The experience
 
-- **Play now:** one tap starts ten questions against three clearly labeled practice bots. Everyone answers the same question at once: bots think, lock in, and cheer or droop on the reveal. **Customize** (a bottom sheet) sets your name, a category or the mixed wheel, Easy / Medium / Hard, 5 / 10 / 15 questions, and the clock; Play now remembers it.
-- **Game feel:** a 20-second countdown ring (15 on Hard; Easy and relaxed play have no clock), streak combos (×1.5 at three in a row, ×2 at five) and a speed bonus of up to +50. Correct answers light up in the category's dye with a small burst; every reveal opens a **Did you know?** note with its source.
-- **Play with friends:** two to four players take turns on one phone. A full-screen cover hides each question until the next player is ready, and standings appear after every round.
-- **Today's five:** a daily challenge of five questions from five categories, the same for everyone on a given date. One try a day, a day streak, and streak freezes (earned every seven days, up to two) that cover a missed day.
-- **Coptic calendar:** Home shows today's Coptic date (Era of the Martyrs) and the current fast, feast or season — Great Lent, Holy Week, the Holy Fifty Days, the Apostles' Fast, the Nativity Fast and more — computed from the Orthodox Pascha.
-- **Progression:** XP and levels, per-category mastery (Bronze 5, Silver 15, Gold 30 correct), a weekly spotlight category worth 1.5× XP, and badge and level-up moments on the results screen. Results lead with what you got right, your XP and streak, then one ranked list with your own row highlighted, a one-tap **Rematch** in a bottom bar, another category, and a shareable result image.
-- **Discover:** sample questions per category, then **Quiz me on** that category.
-- **Collection:** games, correct answers, badges, level and day streak, with mastery on each badge.
-- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each match and appear as avatars, on the handoff cover and in the ranked lists. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
-- **Accessible by default:** keyboard answers (A–D or 1–4), visible focus, AA text colors with a 13px floor, 44px touch targets, reduced-motion paths, sound off by default, and vibration only when sound is on.
+- **Play:** one tap starts a game against a practice bot. Spin the seven-panel wheel (six categories plus the cross), answer, and keep your turn while you're right. Every three right answers, or landing on the cross, earns a **pick**: choose a category and answer a harder question to win it. Win all six first (three in **Quick** games). A wrong answer passes the turn; the bot plays instantly and its turn is replayed as a quick summary. Games save and resume from Home.
+- **50/50:** twice a game, remove two wrong answers.
+- **Friends:** 2–4 players on one phone, same rules, with a full-screen pass-the-phone cover between turns. Setup is just names, game length and level.
+- **Today's 5:** five daily questions from five categories, the same for everyone on a date, with a day streak and streak freezes (earned every seven days, up to two).
+- **Categories:** six category cards; each plays ten questions against practice bots.
+- **Trophies:** level and XP, games, wins, right answers, day streak, and Bronze (5) / Silver (15) / Gold (30) per category. One category a week earns 1.5× XP.
+- **Every answer teaches:** the reveal shows a short explanation and its source.
+- **Coptic calendar:** Home shows today's Coptic date and the current or next feast, fast or season.
+- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each game and appear as avatars and in reveal moments. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
+- **Accessible by default:** keyboard answers (A–D or 1–4), visible focus, AA text with a 13px floor, 40px+ touch targets, reduced-motion paths, sound off by default (Settings), vibration only when sound is on.
+
+More screens: [pick a category](docs/redesign/v2/pick.jpg) · [bot turn](docs/redesign/v2/bot-turn.jpg) · [wrong answer](docs/redesign/v2/reveal-wrong.jpg) · [pass the phone](docs/redesign/v2/handoff.jpg) · [friends setup](docs/redesign/v2/friends-setup.jpg) · [categories](docs/redesign/v2/categories.jpg) · [trophies](docs/redesign/v2/trophies.jpg) · [how to play](docs/redesign/v2/how-to-play.jpg) · [daily results](docs/redesign/v2/daily-results.jpg)
 
 ## The look: Akhmim tapestry
 
-The visual world comes from Coptic woven tunics (Akhmim tapestry): purple-dyed fields carrying fine linen thread, six dye panels for the categories (woad, madder, purple, green, weld, ochre), undyed-linen reading panes, a clavus band for progress, a roundel wheel with a twelve-point Coptic cross at its center, and Alexandria lettering. There is no glass and no gold. See `PRODUCT.md` for the audience, tone and content rules.
+The visual world comes from Coptic woven tunics (Akhmim tapestry): a purple-dyed field behind everything, six dyes for the categories (woad, madder, purple, green, weld, ochre) that fill each question screen, white and linen cards for reading, a roundel wheel with a twelve-point Coptic cross at its hub, chunky pressable buttons, and Alexandria lettering. There is no glass and no gold. See `DESIGN.md` for the system and `PRODUCT.md` for the audience, tone and content rules.
 
 ## Questions
 
@@ -51,7 +55,7 @@ Questions that need a subject-matter check wait in `src/content/review-queue.jso
 
 ## Frontend scope
 
-This is a local-first app, not an online service. Practice play uses bots; friends play on one device. There are no accounts, remote rooms or backend. Saved matches (version 2, migrating version 1), progress, preferences and the daily streak live in browser local storage and stay on the device.
+This is a local-first app, not an online service. Practice play uses bots; friends play on one device. There are no accounts, remote rooms or backend. Saved games (version 2: classic games, quick rounds, and older turn-based saves, migrating version 1), progress, preferences and the daily streak live in browser local storage and stay on the device. The classic rules live in `src/classic.js` (pure functions, unit-tested in `tests/classic.test.js`).
 
 ## Verification
 
@@ -59,7 +63,7 @@ This is a local-first app, not an online service. Practice play uses bots; frien
 npm test                      # question validator + unit tests
 npx playwright install chromium
 npm run test:e2e              # browser tests (KINESA_PORT overrides port 5173)
-npm run play-through          # plays Random, Friends and Today's five at 390×844 and 1280×800
+npm run play-through          # plays classic, friends, daily and category games at 390×844 and 1280×800
 npm run build
 ```
 
@@ -71,8 +75,8 @@ npm run build
 
 ## Credits
 
-Original Kinesa artwork and interface; inspired by the friendly category-wheel trivia genre, with no Trivia Crack or Muse assets. React 19, Vite, and Lucide icons (ISC). Alexandria is bundled under the SIL Open Font License in `public/fonts/`.
+Original Kinesa artwork and interface; plays in the friendly category-wheel trivia genre, with no assets, names or art from any existing game. React 19, Vite, and Lucide icons (ISC). Alexandria is bundled under the SIL Open Font License in `public/fonts/`.
 
-Screens: [Phone home](docs/redesign/after/phone-random-home.jpg) · [Question](docs/redesign/after/phone-random-question.jpg) · [Feedback](docs/redesign/after/phone-random-feedback-a.jpg) · [Results](docs/redesign/after/phone-random-results-full.jpg) · [Pass the phone](docs/redesign/after/phone-friends-handoff.jpg) · [Today’s five](docs/redesign/after/phone-daily-results-full.jpg) · [Collection](docs/redesign/after/desktop-pages-collection.jpg) · [Before the redesign](docs/redesign/before/)
+Earlier designs: [first redesign](docs/redesign/after/) · [before the redesigns](docs/redesign/before/)
 
 [Companion performance close-up](docs/kinesa-companions-motion.webm). Regenerate it with `node scripts/capture-companion-performance.mjs` while Vite is running; it enlarges the actual homepage components for a clearer camera view.

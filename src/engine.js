@@ -19,6 +19,7 @@ export const DEFAULT_SETTINGS = Object.freeze({
   questions: 10,
   category: null,
   combo: true,
+  length: "full",
 });
 
 export function normalizeSettings(settings = {}) {
@@ -41,6 +42,8 @@ export function normalizeSettings(settings = {}) {
       : 10,
     category: typeof settings.category === "string" ? settings.category : null,
     combo: settings.combo !== false,
+    // Classic games: "quick" wins with three categories, "full" with all six.
+    length: settings.length === "quick" ? "quick" : "full",
     // A fixed question list (the daily challenge) replaces the wheel.
     plan:
       Array.isArray(settings.plan) && settings.plan.length
@@ -112,12 +115,14 @@ export const currentRound = (game) =>
         roundCount(game),
       );
 export const activeIndex = (game) =>
-  isSimultaneous(game)
-    ? Math.max(
-        0,
-        game.players.findIndex((p) => !p.isBot),
-      )
-    : game.turn % game.players.length;
+  game?.structure === "classic"
+    ? game.turn
+    : isSimultaneous(game)
+      ? Math.max(
+          0,
+          game.players.findIndex((p) => !p.isBot),
+        )
+      : game.turn % game.players.length;
 export const comboFor = (streak) => (streak >= 5 ? 2 : streak >= 3 ? 1.5 : 1);
 
 // Points for one answer. `streak` is the player's streak before this answer.

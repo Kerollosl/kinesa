@@ -24,11 +24,12 @@ Few trivia apps are grounded in Coptic Orthodox tradition: the Coptic calendar, 
 
 ## Operating Context
 
-- **Random game:** solo play against clearly labeled practice bots (no real online players).
-- **Play with friends:** 2–4 players taking turns on one device, with a handoff screen between turns.
-- **Discover:** browse categories and try unscored sample questions.
-- **Collection:** progress and badges stored on this device.
-- **Help:** "How to play" rules are always available.
+- **Play (classic):** you against one clearly labeled practice bot. Spin the wheel, keep your turn while you answer right, earn a pick every three right answers (or by landing on the cross), and answer a harder question to win that category. First to win every category wins (Quick: three). Bots play their turn instantly and it is replayed as a short summary. Games save and resume from Home.
+- **Friends:** the same game for 2–4 players on one device, with a full-screen pass-the-phone cover between turns.
+- **Today's 5:** five daily questions, the same for everyone on a date, with a day streak.
+- **Categories:** six category cards; each plays a 10-question round against practice bots.
+- **Trophies:** level, games, wins, right answers, day streak and Bronze/Silver/Gold per category, stored on this device.
+- **Settings and How to play:** name, level (Easy / Medium / Hard), game length (Quick / Full), sound; four short rules.
 
 Data lives in the browser's localStorage on this device (match, stats, nickname, sound). The app has no accounts, backend, or analytics; there is nothing to sign in to or delete remotely.
 
@@ -43,6 +44,7 @@ Data lives in the browser's localStorage on this device (match, stats, nickname,
 ## Brand Commitments
 
 - **Identity to keep:** the name "kinesa", a warm and friendly voice, and the four illustrated Gospel companions.
+- **Play feel (November 2026, second pass):** plays like a casual category-wheel trivia game (spin, keep going while right, win all the categories), with original Coptic art and no borrowed assets, names or layouts from any existing game.
 - **Look and feel (November 2026 direction):** less playful and kid-like, more recognizably Coptic, for teens and adults first. The companions stay, but in a smaller supporting role: in-game avatar and reveal moments, not the center of every screen.
 - **Hard limits for the Coptic look:**
   - not somber or churchy; it should feel like a game teens want to open, with real energy in the timer, streaks and reveals;
@@ -63,7 +65,7 @@ Data lives in the browser's localStorage on this device (match, stats, nickname,
 
 1. **Accuracy over volume.** Every fact has a source. If in doubt, it goes to the review queue, not into the app.
 2. **The explanation is the reward.** Feedback should make players want to read the "Did you know?"
-3. **Zero-friction play.** One tap from opening the app to the first question; customization stays optional.
+3. **Zero-friction play.** One tap from opening the app to the wheel; customization stays optional and copy stays short.
 4. **Come back tomorrow.** Daily challenge, streaks, and mastery give a reason to return without guilt-tripping.
 5. **Everyone at the table.** Pass-and-play must be clear, fair, and private for every player in turn.
 

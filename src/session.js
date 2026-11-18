@@ -1,4 +1,5 @@
 import { categories, questions } from "./data.js";
+import { HELPS, LENGTHS, METER_MAX } from "./classic.js";
 import {
   COMPANION_KINDS,
   ROUNDS,
@@ -63,6 +64,7 @@ export function restoreMatch(value) {
     g.players.length > 4
   )
     return null;
+  if (g.structure === "classic") return restoreClassic(value.mode, g);
   const structure = g.structure === "simultaneous" ? "simultaneous" : "turns";
   const savedSettings =
     g.settings && typeof g.settings === "object" ? g.settings : {};
@@ -152,6 +154,124 @@ export function restoreMatch(value) {
     },
   };
 }
+const CLASSIC_PHASES = [
+  "spin",
+  "question",
+  "reveal",
+  "pick",
+  "handoff",
+  "rival",
+];
+// Classic games: categories won, the pick meter and 50/50 helps per player.
+function restoreClassic(mode, g) {
+  if (!["friends", "random"].includes(mode)) return null;
+  const settings = normalizeSettings(g.settings || {});
+  const { rounds } = LENGTHS[settings.length];
+  const asked = Array.isArray(g.used) ? g.used.length : 0;
+  const most = asked + 1;
+  const okPlayer = (p) =>
+    p &&
+    typeof p.name === "string" &&
+    p.name.trim() &&
+    p.name.length <= 20 &&
+    COMPANION_KINDS.includes(p.kind) &&
+    isCount(p.score, most * 250) &&
+    isCount(p.correct, most) &&
+    isCount(p.streak, most) &&
+    isCount(p.bestStreak, most) &&
+    Array.isArray(p.badges) &&
+    p.badges.every(validCategory) &&
+    Array.isArray(p.won) &&
+    p.won.every(validCategory) &&
+    new Set(p.won).size === p.won.length &&
+    isCount(p.meter, METER_MAX) &&
+    isCount(p.helps, HELPS);
+  if (!g.players.every(okPlayer)) return null;
+  if (new Set(g.players.map((p) => p.kind)).size !== g.players.length)
+    return null;
+  if (!isCount(g.turn, g.players.length - 1)) return null;
+  if (!Number.isInteger(g.round) || g.round < 1 || g.round > rounds)
+    return null;
+  if (!CLASSIC_PHASES.includes(g.phase)) return null;
+  const question = questions.find((q) => q.id === g.question?.id) || null;
+  const asking = ["question", "reveal"].includes(g.phase);
+  if (asking && !question) return null;
+  const challenge =
+    asking && validCategory(g.challenge) && g.challenge === question.category
+      ? g.challenge
+      : null;
+  const hidden =
+    g.phase === "question" &&
+    Array.isArray(g.hidden) &&
+    g.hidden.length === 2 &&
+    g.hidden.every(
+      (i) => Number.isInteger(i) && i >= 0 && i <= 3 && i !== question.correct,
+    )
+      ? [...new Set(g.hidden)]
+      : [];
+  let answers = {};
+  let selected = null;
+  if (g.phase === "reveal") {
+    const entry = g.answers?.[g.turn];
+    const choice = entry?.choice;
+    if (!Number.isInteger(choice) || choice < TIMEOUT || choice > 3)
+      return null;
+    selected = choice;
+    answers = {
+      [g.turn]: {
+        choice,
+        correct: choice === question.correct,
+        points: isCount(entry.points, 250) ? entry.points : 0,
+        streak: isCount(entry.streak, most) ? entry.streak : 0,
+        challenge: !!challenge,
+      },
+    };
+  }
+  const steps = Array.isArray(g.rival?.steps)
+    ? g.rival.steps
+        .filter((s) => s && validCategory(s.category))
+        .slice(0, 10)
+        .map((s) => ({
+          category: s.category,
+          correct: s.correct === true,
+          challenge: s.challenge === true,
+        }))
+    : [];
+  if (g.phase === "rival" && !g.players[g.turn].isBot) return null;
+  return {
+    mode,
+    game: {
+      structure: "classic",
+      settings,
+      players: g.players.map((p) => ({
+        name: p.name,
+        kind: p.kind,
+        isBot: p.isBot === true,
+        score: p.score,
+        correct: p.correct,
+        streak: p.streak,
+        bestStreak: p.bestStreak,
+        badges: [...new Set(p.badges)],
+        won: [...p.won],
+        meter: p.meter,
+        helps: p.helps,
+      })),
+      turn: g.turn,
+      round: g.round,
+      phase: g.phase,
+      used: Array.isArray(g.used)
+        ? g.used.filter((id) => questions.some((q) => q.id === id))
+        : [],
+      question: asking ? question : null,
+      challenge,
+      hidden,
+      answers,
+      selected,
+      rival: g.phase === "rival" ? { player: g.turn, steps } : null,
+    },
+  };
+}
+
 export const loadMatch = () => restoreMatch(readSaved(KEY, null));
 export function persistMatch(game, mode) {
   return saveLocal(

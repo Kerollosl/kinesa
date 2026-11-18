@@ -108,40 +108,28 @@ spacing:
   lg: "22px"
   xl: "34px"
 components:
-  button-primary:
-    backgroundColor: "{colors.dye-madder-600}"
-    textColor: "{colors.linen-50}"
-    rounded: "{rounded.md}"
-    height: "52px"
-    padding: "0 22px"
-  button-primary-hover:
-    backgroundColor: "{colors.dye-madder-700}"
-  button-primary-on-purple:
-    backgroundColor: "{colors.linen-50}"
-    textColor: "{colors.dye-purple-700}"
-    rounded: "{rounded.md}"
-    height: "52px"
-  button-daily:
+  button-go:
     backgroundColor: "{colors.dye-weld-300}"
     textColor: "{colors.dye-purple-900}"
-    rounded: "{rounded.md}"
-    height: "52px"
-  button-secondary:
+    rounded: "{rounded.card}"
+    height: "54px"
+    padding: "0 22px"
+  button-soft:
     backgroundColor: "{colors.linen-50}"
     textColor: "{colors.dye-purple-700}"
-    rounded: "{rounded.md}"
-    height: "52px"
+    rounded: "{rounded.card}"
+    height: "54px"
   answer-option:
     backgroundColor: "#ffffff"
     textColor: "{colors.ink-900}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.lg}"
     height: "60px"
   answer-option-correct:
     backgroundColor: "{colors.dye-green-600}"
     textColor: "#ffffff"
   answer-option-incorrect:
-    backgroundColor: "{colors.dye-madder-200}"
-    textColor: "{colors.ink-900}"
+    backgroundColor: "{colors.dye-madder-600}"
+    textColor: "#ffffff"
   reading-pane:
     backgroundColor: "{colors.linen-50}"
     textColor: "{colors.ink-900}"
@@ -163,173 +151,84 @@ components:
 
 ## Overview
 
-**Creative North Star: "The Woven Tunic"**
+**Creative North Star: "The Woven Tunic, played like a casual game."**
 
-Kinesa is dressed like a Coptic tunic from Akhmim. Purple-dyed wool carries the structure of every screen: the header band, the progress clavus, the handoff cover, the results hero and the daily card. Fine linen "flying thread" runs across that purple as interlace, lozenges and seams: an interlace ring frames the results emblem and the companion on the pass-the-phone cover, and interlace bands cross the results hero and that cover. Where people read, the cloth turns to undyed linen. The six categories are six dyes, so a question's category sets the color of its band, its letter tabs, its "Did you know?" pane and its timer ring.
+Kinesa plays like a category-wheel trivia game and is dressed like a Coptic tunic from Akhmim. The whole app sits on a purple-dyed woven field; every question floods the screen with its category's dye; reading happens on white and linen cards. Buttons are chunky and pressable, the wheel is the centre of play, and the six categories are six dyes.
 
-The world is warm and energetic without being churchy. Daylight linen grounds keep it from going somber, and saturated dyes (madder red, woad blue, weld yellow, green, ochre, purple) keep the game loud enough for teens. Coptic forms are drawn from exact geometry: the twelve-point cross (three points on each arm) and the interlace ring of the roundel wheel. They are never clip-art. The painted Gospel companions stay as avatars and reveal moments, not as the centerpiece.
+Energy comes from the loop, not from noise: spin, a big question card, four fat answers, a burst of colour on a right answer, a "Did you know?" note with its source, and the next step always in the same place at the bottom. Coptic forms are drawn from exact geometry: the twelve-point cross (three points on each arm) and the interlace ring. The painted Gospel companions are avatars and reveal moments.
 
-What this system rejects: liquid glass and backdrop blur, gold leaf and ornate frames, cream-parchment "church app" styling, and neon quiz-show darkness.
+What this system rejects: liquid glass and backdrop blur, gold leaf and ornate frames, cream-parchment "church app" styling, neon quiz-show darkness, and walls of text.
 
-**Key Characteristics:**
+**Key characteristics:**
 
-- Purple woven fields for structure; linen panes for reading.
-- Six dye colors, one per category, used as whole fields rather than thin accents.
-- A twelve-point Coptic cross and an interlace roundel as the only ornaments.
-- Alexandria throughout, bold and slightly tight.
-- Press feedback (scale 0.97) on everything tappable; hover never moves a hit area.
+- Purple woven field behind everything; the question screen is the category's dye, full-bleed.
+- White question card, four white answer slabs, one weld-yellow action per screen.
+- Chunky buttons: a solid darker lower edge that sinks on press (4px).
+- A seven-panel roundel wheel: six category dyes plus an undyed-linen panel with the purple cross ("your pick").
+- Alexandria throughout, heavy (800–900) for game text.
 
 ## Colors
 
-A committed palette: purple carries structure and the six category dyes carry meaning. Undyed linen and a purple-black ink handle everything that has to be read.
+- **Tyrian purple** (dye-purple-700/800/900): the app ground (a soft radial gradient with weave texture), the bottom tab bar, number badges and rule icons.
+- **Weld yellow** (dye-weld-300, lower edge #b3861a): the one primary action ("Play", "Spin", "Spin again", "Continue"), the wheel pointer and hub cross, the pick meter, the level medal. Text on weld is deep purple. Never text on linen.
+- **Category dyes**: Bible woad, Coptic History madder, Saints purple, Church Traditions green, Feasts weld, Signs & Symbols ochre. A dye always means its category: question fields, wheel panels, pick tiles, category tiles, pips and letter squares. Weld takes dark ink; the others take white.
+- **Green / madder** for right / wrong answers, each with a 3px white ring so they read on any dye (including green Traditions and madder History).
+- **Linen and white** for cards and anything read at length; ink-900 / ink-700 text on them.
 
-### Primary
-
-- **Tyrian Purple Weave** (dye-purple-700): the woven field. Header band, mobile bottom bar, clavus progress band, the score chip of the player whose turn it is (or "you" in practice play), the pass-the-phone cover, the results hero, the daily card and the level medal. Deeper steps (800, 900) for wells inside the field; 600 and 500 for links, focus and selected states on linen.
-
-### Secondary
-
-- **Madder Red** (dye-madder-600): the single primary action on linen, such as Play now, Rematch, Next question and Quiz me. Darker madder (700) on hover. Pale madder (200) marks a wrong pick.
-- **Weld Yellow** (dye-weld-300): the accent that sits on purple: the cross emblem, the filled progress cells, the streak flame, the level number and the daily button (weld-200 on hover). Never used as text on linen. On pale weld, text uses **Weld Ink** (weld-ink).
-
-### Tertiary
-
-- **Category dyes** (category-woad, category-madder, category-purple, category-green, category-weld, category-ochre): Bible, Coptic History, Saints & Heroes, Church Traditions, Feasts & Fasts, Signs & Symbols, in that order. Each has a pale tint for panes and letter tabs. Weld is the only dye that takes dark ink; the others take white.
-- **Dye Green** (dye-green-600): correct answers, the clock switch when on, XP gained and locked-in ticks.
-- **Mastery tints** (mastery-bronze, mastery-silver, with dye-weld-300 for Gold): the mastery tags on badges and the third-place podium block.
-
-### Neutral
-
-- **Undyed Linen** (linen-50 panes; linen-100 is the greige, undyed-flax page ground with a faint weave, deliberately not cream; linen-200 hairlines; linen-300 input and button strokes).
-- **Flying Thread** (thread): linen-colored text and line work on purple.
-- **Purple-Black Ink** (ink-900 headings and body, ink-700 secondary text at AA on linen, ink-600 tertiary).
-
-### Named Rules
-
-**The Woven Field Rule.** Purple appears as whole fields carrying weave texture (weft ribs over warp threads), never as a thin border or accent line on linen.
-
-**The Dye Means Category Rule.** A category color always means that category. Don't reuse a dye for decoration or for unrelated states (green, which doubles as "correct", is the one shared exception).
-
-**The No Gold Rule.** Weld yellow is a matte dye. Never use metallic gradients, gold foil or glowing edges.
+**The Dye Means Category Rule** and **The No Gold Rule** (matte weld, no metallic gradients or glows) still hold.
 
 ## Typography
 
-**Display Font:** Alexandria (self-hosted variable woff2, Latin subset plus the Arabic letters of كنيسة), with system-ui as the fallback.
-**Body Font:** Alexandria.
-
-**Character:** a geometric Egyptian sans named for St. Mark's see. It is set heavy (700) and slightly tight for headings, and regular for reading.
-
-### Hierarchy
-
-- **Display** (700, clamp 36–56px, 1.02): the Home hero and full-screen moments (the handoff name).
-- **Headline** (700, clamp 24–32px, 1.25): question text, which is always the largest thing on the question screen.
-- **Title** (700, 22px): section headings, feedback headings and the Today card.
-- **Body** (400, 15–17px, 1.5–1.6, max 65ch): explanations, leads and "Did you know?".
-- **Headline small** (700, 26px): the wordmark and big numbers (day streak).
-- **Title small** (700, 18px): strip and card titles (Play with friends).
-- **Body large / small** (16px / 14px): leads and short helper lines; meta and links.
-- **Label / Caption** (700 13px / 600 13px): chips, tabs, tags, nav labels. Nothing informative is smaller than 13px.
-
-### Named Rules
-
-**The Question Leads Rule.** On the question screen, the question outranks every other element in size and weight.
-
-**The Thirteen Pixel Rule.** No informative or interactive text below 13px, including BOT tags, tab labels and stat labels. Scores, timers and counts use tabular numerals.
+Alexandria, self-hosted. Questions 21–28px/800 on the white card; screen titles 26–54px/800–900; answers 17px/700; body 15–16px. Nothing informative below 13px; numbers use tabular figures.
 
 ## Layout
 
-The layout is a single centered column (max 1120px on Home; question panes up to 760px). Home stacks the hero (copy plus roundel, side by side on desktop and roundel-first on phones; Play now, Customize and the friends strip sit together in it), the Today card, a friends strip, a category grid (6 columns, then 3, then 2 at 380px) and the companions panel. Spacing steps are 8, 12, 16, 22 and 34px, with more space above a section heading than below it. Below 760px the main tabs move into a fixed bottom bar with safe-area padding, and content gets matching bottom padding. In matches and setup the app header and the bottom bar are hidden; a woven purple band the height of the top safe area keeps the status bar legible. On phones every flow screen is one top row, the content, and a primary action anchored at the bottom in an **action bar** (Rematch, Next round, Deal our companions, Game on). Tablets and desktops letterbox results, standings and setup into a 600px column. Layouts are verified from 360px to 1024px with no horizontal scroll.
+- Phones first: one centred column (560px max for play, 640px for pages). Desktop letterboxes the same column with the tabs in the header.
+- **Home:** header (brand, level badge, streak, rules, settings), then the wheel, one huge **Play** button, and two tiles: **Friends** and **Today's 5**. An unfinished game appears first as a "Your game" card with everyone's category pips and **Continue**. Today's Coptic date sits at the bottom in small type.
+- **Play screens** (board, pick, bot turn, pass-the-phone, results, friends setup) hide the header and tabs. One top row (back, a centre tag, rules), content, and the main action anchored at the bottom.
+- **Board:** scoreboard (two players side by side with "vs"; three or four as rows), the wheel, the turn line, the pick meter, **Spin**.
+- **Question:** top row (back, player chip with meter or progress and score chips, timer number), a draining timer bar, the category pill, the question card, four answers, then 50/50. After the reveal only the right answer (and a wrong pick) stay, and the reveal sheet rises at the bottom.
+- Bottom tab bar on phones: **Home · Categories · Trophies**.
+- Verified at 360×640 through 1024×768 with no sideways scroll and 40px+ targets (see `tests/e2e/layout.spec.js`).
 
 ## Elevation & Depth
 
-Depth comes mostly from material contrast: purple fields against linen, and linen panes on a linen ground. A surface takes one elevation: a single soft edge shadow (a hairline plus a long, low blur) lifts reading panes and chips off the ground, with no border on top of it; buttons and podium blocks take a slightly deeper version of it. There are no inset button lips, glass, blur or glow.
-
-### Shadow Vocabulary
-
-- **Edge** (`0 1px 0 rgba(34,22,42,.05), 0 10px 24px -14px rgba(34,22,42,.35)`): panes, chips, the friends strip and category tiles.
-- **Tab edge** (`0 1px 0 rgba(34,22,42,.06), 0 8px 18px -12px rgba(34,22,42,.45)`): primary buttons and podium blocks.
+Depth is a solid lower edge, like a pressed tile: `0 5px 0` in a darker shade of the surface (buttons, answers, tiles, cards), plus a soft drop shadow on big buttons. Pressing translates the element down and shrinks the edge. No glass, blur or glow.
 
 ## Shapes
 
-Shapes are soft rectangles like folded cloth: 3px for progress cells and bars, 6px for small tags, 8px for letter tabs and nav tabs, 12px for small controls, answers, chips and inputs, 16px for cards, rows, tiles and primary buttons, and 18px for dialogs, panes and the woven fields. Circles are reserved for the roundel wheel, the level medal, the cross emblem and companion portraits. Borders are 1–1.5px linen strokes; a selected state swaps to purple. The clavus band (linen lozenges on a dyed strip) is the recurring edge motif: under the header and across the top of each question pane in the category's dye.
+Generous rounding: 16–18px for buttons and answers, 22–24px for cards, tiles and the question card, 28px for dialogs and sheets, full pills for chips and tags. Circles for the wheel, avatars, pips, meter and medals.
 
 ## Components
 
-### Buttons
+- **Buttons:** `btn-go` (weld) is the single primary; `btn-soft` (linen) is secondary; `icon-btn` for 44px icon actions. `btn-mega` is Home's Play.
+- **Wheel:** seven panels in classic play (quick rounds use six), linen seams, interlace ring, weld cross at the hub, weld pointer that wobbles while spinning. On landing, the other panels dim and the category name pops in a pill of its dye.
+- **Pips:** six small category medallions per player; dyed when won.
+- **Pick meter:** three circles that fill weld with a tick, followed by the cross: three right answers (or the cross panel) earn a pick.
+- **Answer slabs:** white, lettered A–D in a dye square. Locked (waiting for bots) turns purple. Right floods green; a wrong pick turns madder and shakes.
+- **Reveal sheet:** companion, a one- or two-word verdict ("Correct!", "Not quite", "Time's up", "You won it!"), the explanation on the category's pale tint with its source, and the next step.
+- **Pick screen:** six dye tiles, won ones faded with a check.
+- **Bot turn:** the bot's companion, its answers as a row of category circles with right/wrong marks (picks ringed in weld), one summary line, the scoreboard, **Your turn**.
+- **Pass the phone:** full-screen cover with the next player's companion in an interlace ring, their pips and meter, and "I'm {name}".
+- **Results:** winner's companion, the headline, a ranked list (pips in classic play, scores in quick rounds), the level bar and up to three unlock chips.
+- **Dialogs:** bottom sheets on phones, centred cards on desktop: How to play (four short rules), Settings (name, level, game length, sound), a category card, and "Start a new game?".
 
-- **Shape:** gently rounded tabs (12px), at least 52px tall.
-- **Primary:** flat madder fill with linen text and the soft tab edge. One primary per view.
-- **On purple fields:** linen fill with purple text (handoff cover); weld fill with deep purple text (the daily card).
-- **Secondary:** linen fill, purple text, 1.5px linen-300 stroke that turns purple on hover.
-- **Press:** scale 0.97 at 140ms with a strong ease-out. Hover changes color only.
+## Motion
 
-### Answer options
-
-Answers are white tabs with a pale category letter square. A picked answer (while waiting for the others) turns pale purple with a purple stroke. On reveal, the correct answer floods dye green with white text and a small burst; a wrong pick turns pale madder with a short shake. The rest dim to 60%. In practice play, initials of everyone who chose an option sit on it.
-
-### Match top row and avatar rail
-
-In a match there is one top row: back, an avatar rail and the rules button, with the progress as a thin segmented line beneath it (no bar, no box). The rail holds one round portrait over a tabular score per player; the current player's chip (or yours, in practice play) becomes a purple woven field. Live states: thinking dots, a green locked-in tick, then a "+points" or "Missed" bubble on reveal (pale madder with dark text, AA). The streak flame sits on the chip corner and pops once each time the streak grows.
-
-### Question stage and inline reveal
-
-The question sits flat on the page, not in a card: a category-dye clavus band, the category pill and timer, the question in the free space, and the four answers anchored at the thumb. On reveal nothing overlays: the answers stay visible with the right and wrong rows marked, the category-tinted "Did you know?" pane and its one-line source follow in the flow, and Next is sticky at the bottom.
-
-### Action bar
-
-The primary action of a flow screen sits in a bar anchored at the bottom of the screen (safe-area aware) with up to three icon buttons beside it (Results: Different category, Share result, Change players). Icon buttons carry accessible names and titles.
-
-### Ranked rows
-
-Results and the between-round standings share one list: rank (a trophy for the leader), round portrait, name (a BOT tag for practice bots), a check and the correct count, and the score in tabular numerals. The player's own row is a purple woven field. There is no separate podium. Results lead with three icon figures (correct, XP, streak) and the level bar.
-
-### Topic tiles and the shelf
-
-Discover leads with six tall topic tiles filled with their dye, a check on the selected one, then a "Try a sample" toggle and the Quiz action. Collection opens with a short summary (progress ring around a companion portrait, one line, one action), the four-across ledger, the level bar and badges as medallions three across.
-
-### Inputs and controls
-
-Inputs are white with a 1.5px linen-300 stroke, 12px radius and 48px height. The Customize sheet uses radio tiles (category chips fill with their dye; difficulty and question-count tiles fill purple) and a green switch for the clock.
-
-### Navigation
-
-Desktop tabs sit inside the header band; the active tab is a linen tab with purple text. On phones, a fixed purple bottom bar shows icon and label tabs (54px tall).
-
-### Roundel wheel (signature)
-
-Six dye panels inside a purple ground, separated by linen seams, ringed by a two-thread interlace band, with the twelve-point Coptic cross in weld yellow at the hub. On Home it turns slowly (90s a revolution; still under reduced motion) while the icons and cross stay upright.
-
-### Category icons
-
-Lucide line icons for five categories; Church Traditions uses the twelve-point Coptic cross itself, never a generic plus.
-
-### Ledger strip
-
-Collection figures (games, correct answers, badges, day streak) read as one row of four, each an icon over a tabular number over a short label, divided by 1px hairlines, not as separate cards. The level and XP bar follow on their own labelled row.
-
-### Clavus progress
-
-Match progress is a thin segmented line, one cell per question (per round in pass-and-play); answered cells fill weld yellow.
-
-### Motion
-
-Motion is quiet and one-shot, under 350ms, with a strong ease-out; only transform, opacity and colour animate. Press feedback is scale 0.97. The few authored moments: the wheel's category landing on the question, the streak flame pop, the results emblem spring and the figures counting up, a new friend row easing in, the Today dots filling, and the tab bar's pill sliding between tabs. Nothing loops except the timer and the 90-second turn of the Home wheel. Under reduced motion, movement is removed (the pill snaps, numbers show their final value) while colour and state changes stay. Vibration follows the sound toggle.
+Short and springy: answers rise in with a 45ms stagger, the right answer pops, a wrong one shakes, the sheet slides up, pips and meter cells pop when earned. The wheel spins 2.4s on a long ease-out with optional soft clicks per panel (sound on only). Home's wheel turns once every 90s. Under reduced motion, movement goes (the timer bar hides, spins snap) while colour and state changes stay. Vibration follows the sound toggle.
 
 ## Do's and Don'ts
 
 ### Do:
 
-- **Do** put structure on purple woven fields and reading text on linen panes.
-- **Do** color a question's band, letter tabs, "Did you know?" pane and timer with its category dye.
-- **Do** draw Coptic forms from exact geometry, and describe Coptic practice as Coptic tradition.
-- **Do** keep one madder primary action per view, with press feedback at scale 0.97.
-- **Do** keep secondary text at ink-700 or darker on linen, and nothing below 13px.
+- **Do** keep one weld action per screen, in the same place (bottom) on every play screen.
+- **Do** keep copy to a few words; put rules in How to play, not on screens.
+- **Do** fill question screens with the category's dye, and use dyes only for their categories.
+- **Do** draw Coptic forms from exact geometry and describe Coptic practice as Coptic tradition.
 
 ### Don't:
 
-- **Don't** use glass, backdrop blur, glows or neon.
-- **Don't** use gold leaf, metallic gradients or ornate icon-style frames.
+- **Don't** use glass, blur, glows, neon, gold leaf or metallic gradients.
 - **Don't** fall back to cream parchment and serif "church app" styling.
-- **Don't** set weld yellow as text on linen, or use a category dye for anything but its category.
-- **Don't** lift or translate a button on hover; it must not move out from under the pointer.
-- **Don't** put the companions at the center of a screen; they are avatars and moments.
+- **Don't** set weld as text on linen, or text below 13px.
+- **Don't** put the companions at the centre of a screen except the pass-the-phone and results moments.

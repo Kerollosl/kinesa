@@ -1,31 +1,71 @@
-import { useEffect, useRef } from "react";
-import { ArrowLeft, Check, CloudOff, HelpCircle, X } from "lucide-react";
-import Mascot from "./Mascot.jsx";
-import Wheel, { CategoryIcon } from "./Wheel.jsx";
+import { useRef } from "react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import Wheel from "./Wheel.jsx";
 import { categories } from "../data.js";
 import {
+  TIMEOUT,
   activeIndex,
   currentRound,
   isSimultaneous,
   matchLength,
   roundCount,
 } from "../engine.js";
-import QuestionTimer from "./game/QuestionTimer.jsx";
-import ScoreChips from "./game/ScoreChips.jsx";
-import AnswerFeedback from "./game/AnswerFeedback.jsx";
-import HandoffCover from "./game/HandoffCover.jsx";
-import Standings from "./game/Standings.jsx";
-import Results from "./game/Results.jsx";
-import { burst } from "./game/burst.js";
+import QuestionView, { RevealSheet, Timer } from "./play/QuestionView.jsx";
+import Handoff from "./play/Handoff.jsx";
+import Results from "./play/Results.jsx";
+import { Avatar, BotTag, PlayTop } from "./play/Parts.jsx";
 
-const reduced = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const initial = (name) => name.trim().charAt(0).toUpperCase() || "?";
+const names = (list) =>
+  list.length <= 2
+    ? list.join(" and ")
+    : `${list.slice(0, -1).join(", ")} and ${list.at(-1)}`;
 
+// What the rest of the table did, in one line.
+function rivalsLine(game, focus) {
+  const others = game.players.filter((_, i) => i !== focus);
+  if (!others.length) return null;
+  const right = others
+    .filter((p) => game.answers?.[game.players.indexOf(p)]?.correct)
+    .map((p) => p.name);
+  const mine = game.answers?.[focus]?.correct;
+  if (right.length === others.length)
+    return mine ? "Everyone got it." : `${names(right)} got it.`;
+  if (!right.length) return mine ? "Only you got it!" : "Nobody got it.";
+  return `${names(right)} got it${mine ? " too" : ""}.`;
+}
+
+// Score chips for quick rounds against practice bots.
+function Chips({ game, focus }) {
+  if (game.players.length < 2) return null;
+  const revealed = game.phase === "reveal";
+  return (
+    <ol className="chips" aria-label="Scores">
+      {game.players.map((p, i) => {
+        const entry = game.answers?.[i];
+        const waiting =
+          game.phase === "question" && isSimultaneous(game) && !entry;
+        return (
+          <li
+            key={p.kind}
+            className={`chip ${i === focus ? "is-me" : ""} ${revealed && entry ? (entry.correct ? "is-right" : "is-miss") : ""}`}
+            aria-label={`${p.name}${p.isBot ? " (bot)" : ""}: ${p.score} points${waiting ? ", thinking" : entry && !revealed ? ", locked in" : ""}`}
+          >
+            <Avatar kind={p.kind} size="xs" />
+            <strong>{p.score}</strong>
+            {!waiting && entry && !revealed && (
+              <i className="chip-dot" aria-hidden="true" />
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+// Quick rounds (Today's five, topic practice) and older pass-and-play saves.
 export default function Game({
   game,
   mode,
-  savedLocally,
   rotation,
   spinning,
   spin,
@@ -36,358 +76,218 @@ export default function Game({
   matchMeta,
   onExit,
   onRematch,
-  onPractice,
+  onPlay,
   onEditPlayers,
   onReady,
   onContinue,
-  onHelp,
-  onInspectPlayer,
+  onRules,
   onToast,
+  headingRef,
 }) {
+  const sheetRef = useRef(null);
   const simultaneous = isSimultaneous(game);
   const focus = activeIndex(game);
   const player = game.players[focus];
-  const q = game.question;
-  const cat = q ? categories.find((c) => c.id === q.category) : null;
-  const finished = game.phase === "finished";
   const total = matchLength(game);
   const round = currentRound(game);
   const rounds = roundCount(game);
-  const answered = Math.min(
-    game.turn + (game.phase === "reveal" ? 1 : 0),
-    total,
-  );
-  const myAnswer = game.answers?.[focus];
-  const locked = game.phase === "question" && !!myAnswer;
+
+  if (game.phase === "finished")
+    return (
+      <Results
+        ref={headingRef}
+        game={game}
+        mode={mode}
+        stats={stats}
+        matchMeta={matchMeta}
+        onRematch={() => onRematch()}
+        onPlay={onPlay}
+        onHome={onExit}
+        onEditPlayers={onEditPlayers}
+        onToast={onToast}
+      />
+    );
+  if (game.phase === "handoff")
+    return (
+      <Handoff
+        ref={headingRef}
+        player={player}
+        showProgress={false}
+        note={`Round ${round} of ${rounds} · ${player.score} points`}
+        onReady={onReady}
+      />
+    );
+  if (game.phase === "standings") {
+    const sorted = [...game.players].sort((a, b) => b.score - a.score);
+    return (
+      <section className="standings" aria-labelledby="standings-title">
+        <PlayTop onExit={onExit} onRules={onRules} />
+        <h1 id="standings-title" ref={headingRef} tabIndex={-1}>
+          Round {round - 1} done
+        </h1>
+        <ol className="results-table">
+          {sorted.map((p, i) => (
+            <li key={p.kind} style={{ "--row": i }}>
+              <span className="results-rank">{i + 1}</span>
+              <Avatar kind={p.kind} size="sm" />
+              <span className="results-name">
+                <strong>{p.name}</strong>
+                {p.isBot && <BotTag />}
+              </span>
+              <span className="results-score">{p.score}</span>
+            </li>
+          ))}
+        </ol>
+        <div className="play-actions">
+          <button className="btn btn-go btn-xl btn-block" onClick={onContinue}>
+            Next round <ArrowRight size={22} aria-hidden="true" />
+          </button>
+        </div>
+      </section>
+    );
+  }
+  if (game.phase === "spin") {
+    const auto =
+      simultaneous || !!game.settings?.category || !!game.settings?.plan;
+    return (
+      <section className="board is-quick" aria-labelledby="spin-title">
+        <PlayTop onExit={onExit} onRules={onRules}>
+          <span className="round-tag">
+            {simultaneous ? "Question" : "Round"} {round} of {rounds}
+          </span>
+        </PlayTop>
+        <div className="board-wheel">
+          <Wheel
+            rotation={rotation}
+            spinning={spinning}
+            onSpin={auto || player.isBot ? null : spin}
+            disabled={spinning}
+          />
+        </div>
+        <div className="board-foot">
+          <h1
+            id="spin-title"
+            ref={headingRef}
+            tabIndex={-1}
+            className="board-status"
+          >
+            {auto
+              ? "Get ready…"
+              : player.isBot
+                ? `${player.name}’s turn`
+                : `${player.name}’s turn`}
+          </h1>
+          {!auto && !player.isBot && (
+            <button
+              className="btn btn-go btn-xl btn-block"
+              onClick={spin}
+              disabled={spinning}
+            >
+              Spin
+            </button>
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  const q = game.question;
+  const cat = categories.find((c) => c.id === q.category);
+  const entry = game.answers?.[focus];
+  const revealed = game.phase === "reveal";
+  const locked = game.phase === "question" && !!entry;
+  const answered = Math.min(game.turn + (revealed ? 1 : 0), total);
   const nextPlayer = game.players[(game.turn + 1) % game.players.length];
-  const phaseHeading = useRef(null);
-  const feedbackRef = useRef(null);
-  const optionRefs = useRef([]);
-
-  useEffect(() => {
-    if (game.phase === "reveal") {
-      feedbackRef.current?.focus({ preventScroll: true });
-      // Phones keep the score chips in view; the Next button is sticky.
-      if (!window.matchMedia("(max-width: 760px)").matches)
-        feedbackRef.current?.scrollIntoView({
-          block: "nearest",
-          behavior: reduced() ? "instant" : "smooth",
-        });
-      const entry = game.answers?.[focus];
-      if (entry?.correct && !player.isBot)
-        burst(optionRefs.current[q.correct], [
-          cat.color,
-          "#ffcf4d",
-          "#6955d9",
-          "#40c9a2",
-        ]);
-    } else {
-      phaseHeading.current?.focus({ preventScroll: true });
-      window.scrollTo({ top: 0, behavior: "instant" });
-    }
-  }, [game.phase]);
-
-  useEffect(() => {
-    const key = (e) => {
-      if (
-        e.repeat ||
-        e.altKey ||
-        e.ctrlKey ||
-        e.metaKey ||
-        document.querySelector('[role="dialog"]') ||
-        (e.target instanceof HTMLElement &&
-          e.target.closest(
-            'input,textarea,select,a,button:not(.answer-option),[contenteditable="true"]',
-          ))
-      )
-        return;
-      const index =
-        "1234".indexOf(e.key) >= 0
-          ? "1234".indexOf(e.key)
-          : "abcd".indexOf(e.key.toLowerCase());
-      if (
-        game.phase === "question" &&
-        !player.isBot &&
-        !myAnswer &&
-        index >= 0 &&
-        document.activeElement?.closest(".question-stage")
-      ) {
-        e.preventDefault();
-        answer(index);
-      }
-    };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [game.phase, game.turn, player.isBot, myAnswer, answer]);
-
-  const nextLabel =
+  const action =
     game.turn + 1 >= total
-      ? "See the results"
+      ? "See results"
       : simultaneous
         ? "Next question"
         : nextPlayer.isBot
-          ? `Watch ${nextPlayer.name}’s turn`
+          ? `${nextPlayer.name}’s turn`
           : `Pass to ${nextPlayer.name}`;
-
-  // Who picked what, shown on each option after the reveal (simultaneous rounds).
   const pickers = (i) =>
-    simultaneous && game.phase === "reveal"
+    simultaneous && game.players.length > 1
       ? game.players.filter((_, p) => game.answers?.[p]?.choice === i)
       : [];
-
+  const top = (
+    <>
+      <button
+        className="icon-btn"
+        onClick={onExit}
+        aria-label="Leave game"
+        title="Leave game (it’s saved)"
+      >
+        <ArrowLeft size={24} />
+      </button>
+      <span
+        className="qv-count"
+        role="progressbar"
+        aria-label="Questions answered"
+        aria-valuemin={0}
+        aria-valuemax={total}
+        aria-valuenow={answered}
+      >
+        {simultaneous ? round : game.turn + 1}
+        <small>/{simultaneous ? rounds : total}</small>
+      </span>
+      <Chips game={game} focus={focus} />
+    </>
+  );
+  const timedOut = entry?.choice === TIMEOUT;
   return (
-    <div
-      className="game-page"
-      data-phase={game.phase}
-      data-structure={game.structure}
-    >
-      <div className="game-top">
-        <button
-          className="text-button game-exit"
-          onClick={onExit}
-          aria-label="Back to play"
-          title="Back to play"
-        >
-          <ArrowLeft size={20} />
-        </button>
-        <span className="round-tag sr-only">
-          {finished
-            ? "MATCH COMPLETE"
-            : `${simultaneous ? "Question" : "Round"} ${round} / ${rounds}`}
-        </span>
-        <div
-          className="match-progress"
-          hidden={finished}
-          role="progressbar"
-          aria-label="Questions answered"
-          aria-valuenow={answered}
-          aria-valuemin={0}
-          aria-valuemax={total}
-        >
-          <div className="round-segments">
-            {Array.from({ length: rounds }, (_, i) => {
-              const per = simultaneous ? 1 : game.players.length;
-              return (
-                <span key={i}>
-                  <i
-                    style={{
-                      transform: `scaleX(${Math.max(0, Math.min(1, (answered - i * per) / per))})`,
-                    }}
-                  />
-                </span>
-              );
-            })}
-          </div>
-        </div>
-        {!finished && !["handoff", "standings"].includes(game.phase) && (
-          <ScoreChips
-            game={game}
-            focus={focus}
-            simultaneous={simultaneous}
-            finished={finished}
-            onInspectPlayer={onInspectPlayer}
-          />
-        )}
-        <div className="game-top-tools">
-          {!savedLocally && (
-            <span
-              className="match-save-status"
-              role="img"
-              aria-label="This session only"
-              title="This session only"
-            >
-              <CloudOff size={18} />
-            </span>
-          )}
-          <button
-            className="game-help text-button"
-            onClick={onHelp}
-            aria-label="Game rules"
-          >
-            <HelpCircle size={20} />
-          </button>
-        </div>
-      </div>
-      {game.phase === "handoff" && (
-        <HandoffCover
-          player={player}
-          round={round}
-          rounds={rounds}
-          onReady={onReady}
-          ref={phaseHeading}
-        />
-      )}
-      {game.phase === "standings" && (
-        <Standings
-          game={game}
-          round={round}
-          rounds={rounds}
-          onContinue={onContinue}
-          ref={phaseHeading}
-        />
-      )}
-      {game.phase === "spin" && (
-        <section className="spin-stage">
-          <div className="turn-heading">
-            {!simultaneous && (
-              <div className="turn-companion" aria-hidden="true">
-                <Mascot kind={player.kind} />
-              </div>
-            )}
-            <h1 ref={phaseHeading} tabIndex={-1}>
-              {simultaneous
-                ? `Question ${round} of ${rounds}`
-                : player.isBot
-                  ? `${player.name} is up!`
-                  : `${player.name}, you’re up!`}
-            </h1>
-          </div>
-          <div className="game-wheel-scene">
-            <Wheel
-              rotation={rotation}
-              spinning={spinning}
-              quick={simultaneous}
-              onSpin={spin}
-              disabled={
-                spinning ||
-                player.isBot ||
-                !!game.settings?.category ||
-                !!game.settings?.plan
-              }
-            />
-          </div>
-          <p
-            className={`spin-status ${simultaneous ? "sr-only" : ""}`}
-            role="status"
-          >
-            {game.settings?.plan
-              ? "Drawing today’s next question…"
-              : game.settings?.category
-                ? `Drawing a ${categories.find((c) => c.id === game.settings.category)?.name} question…`
-                : spinning
-                  ? player.isBot
-                    ? `${player.name} is spinning…`
-                    : "Choosing a category…"
-                  : player.isBot
-                    ? "Practice bot’s turn"
-                    : "Tap the wheel"}
+    <QuestionView
+      key={`${game.turn}-${q.id}`}
+      question={q}
+      category={cat}
+      top={top}
+      timer={
+        !revealed && (
+          <Timer settings={game.settings} clock={clock} locked={locked} />
+        )
+      }
+      phase={game.phase}
+      choice={entry ? entry.choice : null}
+      disabled={player.isBot}
+      pickers={pickers}
+      onAnswer={answer}
+      celebrate={!!entry?.correct && !player.isBot}
+      footer={
+        (locked || player.isBot) && (
+          <p className="qv-wait" aria-live="polite">
+            {locked
+              ? "Locked in. Waiting for the others…"
+              : `${player.name} is thinking…`}
           </p>
-        </section>
-      )}
-      {(game.phase === "question" || game.phase === "reveal") && (
-        <section
-          key={`${game.turn}-${q.id}`}
-          className={`question-stage ${locked ? "is-locked" : ""}`}
-          style={{ "--question-color": cat.color, "--question-pale": cat.pale }}
-        >
-          <div className="question-meta">
-            <div className="question-category">
-              <CategoryIcon category={cat} size={18} />
-              {cat.name}
-            </div>
-            {game.phase === "question" && (
-              <QuestionTimer
-                settings={game.settings}
-                clock={clock}
-                locked={locked}
-              />
-            )}
-          </div>
-          <h1 ref={phaseHeading} tabIndex={-1}>
-            {q.text}
-          </h1>
-          <div className="answer-grid">
-            {q.answers.map((text, i) => {
-              const revealed = game.phase === "reveal";
-              const mine = myAnswer?.choice === i;
-              const status =
-                revealed && i === q.correct
-                  ? "correct"
-                  : revealed && mine
-                    ? "incorrect"
-                    : "";
-              const who = pickers(i);
-              return (
-                <button
-                  key={i}
-                  ref={(el) => (optionRefs.current[i] = el)}
-                  className={`answer-option ${status} ${mine && !revealed ? "is-picked" : ""} ${revealed && !status ? "is-dimmed" : ""}`}
-                  disabled={revealed || player.isBot || locked}
-                  aria-label={`${String.fromCharCode(65 + i)}. ${text}${
-                    revealed && i === q.correct
-                      ? ". Correct answer"
-                      : revealed && mine
-                        ? `. ${player.isBot ? `${player.name}’s` : "Your"} answer, incorrect`
-                        : mine
-                          ? ". Locked in"
-                          : ""
-                  }`}
-                  onClick={() => answer(i)}
-                  style={{ "--i": i }}
-                >
-                  <span className="answer-letter">
-                    {String.fromCharCode(65 + i)}
-                  </span>
-                  <span className="answer-text">{text}</span>
-                  {who.length > 0 && (
-                    <span className="answer-pickers" aria-hidden="true">
-                      {who.map((p) => (
-                        <span
-                          key={p.kind}
-                          className={`picker picker-${p.kind}`}
-                          title={p.name}
-                        >
-                          {initial(p.name)}
-                        </span>
-                      ))}
-                    </span>
-                  )}
-                  {status === "correct" ? (
-                    <Check size={22} className="answer-mark" />
-                  ) : status === "incorrect" ? (
-                    <X size={22} className="answer-mark" />
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
-          {game.phase === "question" ? (
-            <p
-              className={`question-hint ${!locked && !player.isBot ? "sr-only" : ""}`}
-              aria-live="polite"
-            >
-              {locked
-                ? "Locked in. Waiting for the others…"
-                : player.isBot
-                  ? `${player.name} is thinking…`
-                  : "Tap an answer"}
-            </p>
-          ) : (
-            <AnswerFeedback
-              ref={feedbackRef}
-              game={game}
-              focus={focus}
-              simultaneous={simultaneous}
-              nextLabel={nextLabel}
-              onNext={advance}
-            />
-          )}
-        </section>
-      )}
-      {finished && (
-        <Results
-          ref={phaseHeading}
-          game={game}
-          mode={mode}
-          stats={stats}
-          matchMeta={matchMeta}
-          onRematch={onRematch}
-          onPractice={onPractice}
-          onEditPlayers={onEditPlayers}
-          onInspectPlayer={onInspectPlayer}
-          onToast={onToast}
-        />
-      )}
-    </div>
+        )
+      }
+      sheet={
+        revealed && (
+          <RevealSheet
+            ref={sheetRef}
+            tone={entry?.correct ? "good" : "bad"}
+            kind={player.kind}
+            question={q}
+            title={
+              entry?.correct ? "Correct!" : timedOut ? "Time’s up" : "Not quite"
+            }
+            note={
+              entry?.correct
+                ? simultaneous
+                  ? rivalsLine(game, focus)
+                  : null
+                : null
+            }
+            badge={
+              entry?.correct ? (
+                <span className="sheet-points">+{entry.points}</span>
+              ) : null
+            }
+            action={action}
+            onAction={advance}
+          />
+        )
+      }
+    />
   );
 }
