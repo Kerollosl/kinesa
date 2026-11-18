@@ -122,7 +122,7 @@ export async function renderShareCard({
     ctx.translate(W / 2 - ((x0 + x1) / 2) * unit, 440 - ((y0 + y1) / 2) * unit);
     ctx.scale(unit, unit);
     const kind = KINDS[companionKind] || "leo";
-    drawCompanion(ctx, kind, poseFor(kind, "cheer", 3, 2.6), unit);
+    drawCompanion(ctx, kind, poseFor(kind, "cheer", 0.42, 0.42), unit);
     ctx.restore();
   }
 
