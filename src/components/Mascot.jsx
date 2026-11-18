@@ -1,6 +1,20 @@
 import { useEffect, useRef } from "react";
 import { FRAMES, drawCompanion } from "../companions/canvas.js";
-import { KINDS, poseFor } from "../companions/motion.js";
+import {
+  KINDS,
+  RIG_INTENT,
+  poseFor,
+  withSprings,
+} from "../companions/motion.js";
+import {
+  advanceCompanion,
+  advanceMotionClock,
+  companionPose,
+  createCompanionState,
+  createMotionClock,
+  retargetCompanion,
+  staticCompanionPose,
+} from "../companions/physics.js";
 
 export const MASCOTS = [
   {
@@ -58,7 +72,7 @@ function subscribe(draw) {
   };
 }
 
-function render(canvas, opts, time) {
+function render(canvas, opts, time, spring) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const { width: w, height: h } = canvas;
@@ -70,8 +84,16 @@ function render(canvas, opts, time) {
   ctx.translate(w / 2 - ((x0 + x1) / 2) * unit, h / 2 - ((y0 + y1) / 2) * unit);
   ctx.scale(unit, unit);
   const kind = KINDS[opts.kind] || "leo";
-  const pose = poseFor(kind, opts.act, time, time - opts.since);
+  const pose = withSprings(
+    poseFor(kind, opts.act, time, time - opts.since),
+    spring,
+    opts.act,
+  );
+  if (opts.look) pose.look = [opts.look.x * 0.8, opts.look.y * 0.6];
   if (opts.portrait) pose.lift = 0;
+  // sparkles and hearts only where there's room for them
+  if (opts.portrait || w / (window.devicePixelRatio || 1) < 120)
+    pose.effects = null;
   drawCompanion(ctx, kind, pose, unit);
 }
 
@@ -113,15 +135,36 @@ export default function Mascot({
     const canvas = ref.current;
     if (!canvas) return undefined;
     const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const s = state.current;
+    let spring = retargetCompanion(
+      createCompanionState({
+        kind: s.kind,
+        portrait: s.portrait,
+        seed: Math.random(),
+      }),
+      { ...RIG_INTENT[s.act], portrait: s.portrait },
+    );
+    let clock = createMotionClock();
     let visible = true;
     let unsubscribe = null;
-    const draw = (time) => render(canvas, state.current, time);
+    const draw = (time) => {
+      clock = advanceMotionClock(clock, time * 1000);
+      spring = advanceCompanion(spring, clock.delta);
+      render(canvas, s, time, companionPose(spring));
+    };
     const still = () =>
-      render(canvas, state.current, state.current.since + 0.6);
+      render(
+        canvas,
+        s,
+        s.since + 0.6,
+        staticCompanionPose({ portrait: s.portrait }),
+      );
     const refresh = () => {
-      const active =
-        visible && !document.hidden && !state.current.paused && !media.matches;
-      if (active && !unsubscribe) unsubscribe = subscribe(draw);
+      const active = visible && !document.hidden && !s.paused && !media.matches;
+      if (active && !unsubscribe) {
+        clock = advanceMotionClock(clock, 0, false);
+        unsubscribe = subscribe(draw);
+      }
       if (!active && unsubscribe) {
         unsubscribe();
         unsubscribe = null;
@@ -139,6 +182,30 @@ export default function Mascot({
       }
       if (!unsubscribe) still();
     };
+    // Companions glance toward a pointer or finger over them.
+    const target = canvas.closest("button") || canvas;
+    const look = (e) => {
+      const b = canvas.getBoundingClientRect();
+      if (!b.width) return;
+      const v = {
+        x: Math.max(
+          -1,
+          Math.min(1, ((e.clientX - b.left) / b.width - 0.5) * 2),
+        ),
+        y: Math.max(
+          -1,
+          Math.min(1, ((e.clientY - b.top) / b.height - 0.5) * 2),
+        ),
+      };
+      s.look = v;
+      spring = retargetCompanion(spring, { look: v });
+    };
+    const unlook = () => {
+      s.look = null;
+      spring = retargetCompanion(spring, { look: { x: 0, y: 0 } });
+    };
+    target.addEventListener("pointermove", look, { passive: true });
+    target.addEventListener("pointerleave", unlook);
     const sizes = new ResizeObserver(resize);
     sizes.observe(canvas);
     const seen = new IntersectionObserver(([entry]) => {
@@ -148,13 +215,21 @@ export default function Mascot({
     seen.observe(canvas);
     document.addEventListener("visibilitychange", refresh);
     media.addEventListener?.("change", refresh);
-    state.current.refresh = refresh;
+    s.refresh = refresh;
+    s.retarget = (act) => {
+      spring = retargetCompanion(spring, {
+        ...RIG_INTENT[act],
+        reaction: performance.now(),
+      });
+    };
     resize();
     refresh();
     return () => {
       unsubscribe?.();
       sizes.disconnect();
       seen.disconnect();
+      target.removeEventListener("pointermove", look);
+      target.removeEventListener("pointerleave", unlook);
       document.removeEventListener("visibilitychange", refresh);
       media.removeEventListener?.("change", refresh);
     };
@@ -162,8 +237,10 @@ export default function Mascot({
 
   useEffect(() => {
     const s = state.current;
-    if (s.act !== resolved) s.since = performance.now() / 1000;
+    const changed = s.act !== resolved;
+    if (changed) s.since = performance.now() / 1000;
     Object.assign(s, { kind, act: resolved, portrait, paused });
+    if (changed) s.retarget?.(resolved);
     s.refresh?.();
   }, [kind, resolved, portrait, paused]);
 

@@ -405,7 +405,7 @@ function drawWings(g, P, S) {
     const back = side === (T >= 0 ? -1 : 1);
     const scale = back ? 1 + 0.08 * Math.abs(T) : 1 - 0.3 * Math.abs(T);
     const rx = side * root[0] - T * 16;
-    const flap = (P.flap + 0.05 * Math.sin(P.t * 2.3 + side)) * side;
+    const flap = P.flap + 0.05 * Math.sin(P.t * 2.3 + side);
     for (const [deg, len, r1, r2] of lobes) {
       const a = (deg * Math.PI) / 180 - flap * 0.6;
       const dir =
@@ -586,15 +586,15 @@ function drawArm(g, P, S, kind, side, spec, front, bodyIdx, report) {
 
 // Faces: dot eyes with white surrounds, simple brows and mouths.
 export const FACES = {
-  happy: { eyes: "open", brow: 0, mouth: "smile" },
+  happy: { eyes: "open", brow: 0.18, mouth: "smile" },
   det: { eyes: "open", brow: 1, mouth: "flat" },
   strain: { eyes: "squeeze", brow: 1.2, mouth: "grit" },
   sad: { eyes: "open", brow: -1, mouth: "frown", lookDown: true },
   pant: { eyes: "half", brow: -0.4, mouth: "o" },
   wow: { eyes: "wide", brow: -0.8, mouth: "o" },
-  joy: { eyes: "happy", brow: -0.4, mouth: "open" },
-  grin: { eyes: "open", brow: -0.3, mouth: "open" },
-  idea: { eyes: "wide", brow: -0.7, mouth: "open" },
+  joy: { eyes: "happy", brow: 0.15, mouth: "beam" },
+  grin: { eyes: "open", brow: 0.22, mouth: "beam" },
+  idea: { eyes: "wide", brow: -0.5, mouth: "open" },
 };
 function drawFace(g, P, S, hc, R, opts = {}) {
   const T = P.turn,
@@ -610,8 +610,8 @@ function drawFace(g, P, S, hc, R, opts = {}) {
     const k = near ? 1 - 0.08 * aT : 1 - 0.36 * aT;
     const ex =
       hc[0] + fx + side * 0.36 * R * (near ? 1 - 0.12 * aT : 1 - 0.5 * aT);
-    const erx = 0.24 * R * k,
-      ery = 0.29 * R;
+    const erx = 0.23 * R * k,
+      ery = 0.27 * R;
     let eyes = F.eyes;
     let blink = P.blink;
     if (eyes === "half") blink = Math.max(blink, 0.45);
@@ -625,7 +625,7 @@ function drawFace(g, P, S, hc, R, opts = {}) {
           ol: 2.2,
           shade: 0.4,
         });
-        const pr = 0.135 * R * (eyes === "wide" ? 0.8 : 1);
+        const pr = 0.165 * R * (eyes === "wide" ? 0.82 : 1);
         const px = ex + look[0] * erx * 0.42,
           py = eyeY + look[1] * wy * 0.4;
         g.circle(px, py, pr, INK, {
@@ -710,6 +710,30 @@ function drawFace(g, P, S, hc, R, opts = {}) {
       shade: 0,
       clip: m,
       clipMode: 2,
+    });
+  } else if (F.mouth === "beam") {
+    // a D-shaped open smile: flat top lip, round bottom
+    const top = my - mw * 0.25;
+    const cut = g.box(mx, top + mw * 0.6, mw * 1.2, mw * 0.6, 0, "#000000", {
+      alpha: 0,
+      ol: 0,
+      shade: 0,
+    });
+    const m = g.ellipse(mx, top, mw * 0.95, mw * 0.85, "#6e1f2b", {
+      ol: 2.2,
+      shade: 0,
+      clip: cut,
+      clipMode: 2,
+    });
+    g.ellipse(mx, top + mw * 0.72, mw * 0.55, mw * 0.32, "#f07b8a", {
+      ol: 0,
+      shade: 0,
+      clip: m,
+      clipMode: 2,
+    });
+    g.capsule(mx - mw * 0.95, top, mx + mw * 0.95, top, 1.2, 1.2, INK, {
+      shade: 0,
+      ol: 0,
     });
   } else if (F.mouth === "grit") {
     g.box(mx, my, mw * 0.95, mw * 0.36, 3, "#ffffff", { ol: 2, shade: 0 });
@@ -1006,10 +1030,43 @@ export function drawCharacter(g, kind, P, report) {
   const neck = [S.neck[0] + T * 3, S.neck[1] + P.sit * S.sitDrop + P.bob];
   const hc = [S.headC[0] + T * 4, S.headC[1] + P.sit * S.sitDrop + P.bob];
   g.save();
-  g.apply(M.tr(neck[0], neck[1]));
+  g.apply(M.tr(neck[0] + (P.headX || 0), neck[1] + (P.headY || 0)));
   g.apply(M.rot(P.headTilt));
   g.apply(M.tr(-neck[0], -neck[1]));
   HEADS[kind](g, P, S, hc);
   g.restore();
+  if (P.effects) drawEmotes(g, P);
   g.restore();
+}
+
+// Little sparkles (celebrating) and hearts (affection) drifting up.
+function drawEmotes(g, P) {
+  const { sparkles = 0, hearts = 0, phase = 0 } = P.effects;
+  for (let i = 0; i < 4 && sparkles > 0.02; i++) {
+    const drift = (phase * 0.34 + i * 0.27) % 1;
+    const a = sparkles * Math.sin(drift * Math.PI);
+    if (a < 0.02) continue;
+    g.save();
+    g.apply(M.tr(Math.sin(i * 2.7 + phase * 0.5) * 78, -96 - drift * 110));
+    g.apply(M.rot(phase * 2 + i));
+    g.scallop(0, 0, 2.5 * a, 9 * a, 4, 0, i % 2 ? "#b4a3e4" : "#ecc965", {
+      ol: 1.6,
+      shade: 0.3,
+    });
+    g.restore();
+  }
+  for (let i = 0; i < 3 && hearts > 0.02; i++) {
+    const drift = (phase * 0.42 + i * 0.33) % 1;
+    const a = hearts * Math.sin(drift * Math.PI);
+    if (a < 0.02) continue;
+    const x = Math.sin(i * 2.1 + phase * 0.6) * 60;
+    const y = -120 - drift * 80;
+    const o = { ol: 1.4, shade: 0.4 };
+    g.circle(x - 4 * a, y, 5 * a, "#ef8dab", o);
+    g.circle(x + 4 * a, y, 5 * a, "#ef8dab", o);
+    g.tri(x, y + 2 * a, 10 * a, 8.5 * a, 1.5 * a, "#ef8dab", {
+      ...o,
+      ang: Math.PI / 2,
+    });
+  }
 }

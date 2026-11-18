@@ -79,3 +79,41 @@ export function poseFor(kind, act, time, since = time) {
   }
   return P;
 }
+
+// The spring engine (physics.js, the motion behind the earlier painted rig)
+// adds the life underneath the acts: weight shifts, breathing, glances,
+// natural blinks, head turns toward the pointer, wing settle and sparkles.
+// Its joints are in degrees and model units; this folds them into a pose.
+export const RIG_INTENT = {
+  idle: { mood: "happy", action: "hello", dancing: false },
+  wave: { mood: "happy", action: "hello", dancing: false },
+  cheer: { mood: "celebrate", action: "celebrate", dancing: false },
+  win: { mood: "celebrate", action: "dance", dancing: true },
+  sad: { mood: "happy", action: "hello", dancing: false },
+};
+const DEG = Math.PI / 180;
+export function withSprings(P, spring, act) {
+  const j = spring.joints;
+  const d = spring.deform;
+  P.x += j.body.x;
+  P.lift += Math.max(0, -j.body.y);
+  P.bob += Math.min(0, j.body.y) * -0.5;
+  P.lean += j.body.r * DEG;
+  P.sx *= j.body.sx;
+  P.sy *= j.body.sy;
+  P.headX = (P.headX || 0) + j.head.x;
+  P.headY = (P.headY || 0) + j.head.y;
+  P.headTilt += j.head.r * DEG;
+  P.turn = clamp(P.turn + d.headTurn * 0.3 + d.turn * 0.15, -0.6, 0.6);
+  P.flap += ((j.wingLeft.r - j.wingRight.r) / 2) * DEG * 1.4;
+  for (const [side, joint] of [
+    ["L", j.armLeft],
+    ["R", j.armRight],
+  ])
+    if (P.arms[side] && "ang" in P.arms[side])
+      P.arms[side].ang += joint.r * DEG;
+  P.blink = Math.max(spring.blink, act === "sad" ? 0.25 : 0);
+  if (act === "idle" && d.smile > 0.35) P.face = "grin";
+  P.effects = spring.effects;
+  return P;
+}
