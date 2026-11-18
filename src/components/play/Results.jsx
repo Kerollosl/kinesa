@@ -13,7 +13,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import Mascot, { MASCOTS } from "../Mascot.jsx";
+import { MASCOTS } from "../Mascot.jsx";
 import Companion from "../Companion.jsx";
 import { CategoryIcon } from "../Wheel.jsx";
 import { InterlaceRing } from "../Ornaments.jsx";
@@ -215,7 +215,6 @@ const Results = forwardRef(function Results(
   const streak = stats.daily?.streak ?? 0;
   const gained = matchMeta ? stats.xp - matchMeta.xpStart : 0;
   const [sharing, setSharing] = useState(false);
-  const shareArt = useRef(null);
   const share = async () => {
     setSharing(true);
     const line = daily
@@ -237,7 +236,7 @@ const Results = forwardRef(function Results(
           : classic
             ? `${winners[0].won.length} of 6 categories on Kinesa`
             : "on Kinesa",
-        companionSvg: shareArt.current?.querySelector("svg"),
+        companionKind: hero.kind,
         companionBg: MASCOTS.find((m) => m.kind === hero.kind)?.bg,
       });
       const result = await shareResult({ blob, text: line });
@@ -411,9 +410,6 @@ const Results = forwardRef(function Results(
             <Share2 size={22} />
           </button>
         </div>
-      </div>
-      <div className="share-art" ref={shareArt} aria-hidden="true">
-        <Mascot kind={hero.kind} portrait softSurface={false} paused />
       </div>
     </section>
   );

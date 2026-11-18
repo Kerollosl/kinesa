@@ -155,7 +155,7 @@ components:
 
 Kinesa plays like a category-wheel trivia game and is dressed like a Coptic tunic from Akhmim. The whole app sits on a purple-dyed woven field; every question floods the screen with its category's dye; reading happens on white and linen cards. Buttons are chunky and pressable, the wheel is the centre of play, and the six categories are six dyes.
 
-Energy comes from the loop, not from noise: spin, a big question card, four fat answers, a burst of colour on a right answer, a "Did you know?" note with its source, and the next step always in the same place at the bottom. Coptic forms are drawn from exact geometry: the twelve-point cross (three points on each arm) and the interlace ring. The painted Gospel companions are avatars and reveal moments.
+Energy comes from the loop, not from noise: spin, a big question card, four fat answers, a burst of colour on a right answer, a "Did you know?" note with its source, and the next step always in the same place at the bottom. Coptic forms are drawn from exact geometry: the twelve-point cross (three points on each arm) and the interlace ring. The Gospel companions are flat 2D cartoon characters (see Companions below) used as avatars and in reveal moments.
 
 What this system rejects: liquid glass and backdrop blur, gold leaf and ornate frames, cream-parchment "church app" styling, neon quiz-show darkness, and walls of text.
 
@@ -211,6 +211,7 @@ Generous rounding: 16–18px for buttons and answers, 22–24px for cards, tiles
 - **Bot turn:** the bot's companion, its answers as a row of category circles with right/wrong marks (picks ringed in weld), one summary line, the scoreboard, **Your turn**.
 - **Pass the phone:** full-screen cover with the next player's companion in an interlace ring, their pips and meter, and "I'm {name}".
 - **Results:** winner's companion, the headline, a ranked list (pips in classic play, scores in quick rounds), the level bar and up to three unlock chips.
+- **Companions:** drawn in code from rounded toy shapes (`src/companions/model.js`): big round heads, dot eyes in white surrounds, short tapered arms with mitten hands, three cel bands lit from the upper left, a thin #2a2230 outline. Limbs start inside the body, so nothing can separate. Screens ask for an act (`idle`, `wave`, `cheer`, `win`, `sad`); `src/companions/motion.js` turns it into a pose for any time t, and `src/companions/canvas.js` draws it on a canvas. Avatars use a head-and-shoulders crop on the companion's pale colour.
 - **Dialogs:** bottom sheets on phones, centred cards on desktop: How to play (four short rules), Settings (name, level, game length, sound), a category card, and "Start a new game?".
 
 ## Motion

@@ -8,7 +8,7 @@ A Coptic and Bible trivia game for teens and adults. Spin the wheel, keep going 
 | ---------------------------------- | ------------------------------------ | ------------------------------------------ | -------------------------------------------- | ---------------------------------------- |
 | ![Home](docs/redesign/v2/home.jpg) | ![Board](docs/redesign/v2/board.jpg) | ![Question](docs/redesign/v2/question.jpg) | ![Reveal](docs/redesign/v2/reveal-right.jpg) | ![Results](docs/redesign/v2/results.jpg) |
 
-[Watch the companion performance close-up](docs/kinesa-companions-motion.webm) · [See the character detail](docs/kinesa-performance.png)
+[The Big Spin](video/), a 30-second film starring the four companions, made with the same character code the app uses.
 
 ## Run locally
 
@@ -38,7 +38,7 @@ Deploy `dist/` to any static host at the origin root. The app uses hash navigati
 - **Trophies:** level and XP, games, wins, right answers, day streak, and Bronze (5) / Silver (15) / Gold (30) per category. One category a week earns 1.5× XP.
 - **Every answer teaches:** the reveal shows a short explanation and its source.
 - **Coptic calendar:** Home shows today's Coptic date and the current or next feast, fast or season.
-- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each game and appear as avatars and in reveal moments. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
+- **Companions:** Leo the lion (Mark), Lou the ox (Luke), Juno the eagle (John) and Mattie the human (Matthew) are dealt at random each game. They are flat 2D cartoon characters drawn in code (`src/companions/`): one-piece shapes with cel shading and a thin outline, so no joint can ever separate. They wave on the pass-the-phone screen, cheer on a right answer, droop on a miss and dance when someone wins. They are fictional companions inspired by the traditional Gospel symbols, not portraits of the evangelists.
 - **Accessible by default:** keyboard answers (A–D or 1–4), visible focus, AA text with a 13px floor, 40px+ touch targets, reduced-motion paths, sound off by default (Settings), vibration only when sound is on.
 
 More screens: [pick a category](docs/redesign/v2/pick.jpg) · [bot turn](docs/redesign/v2/bot-turn.jpg) · [wrong answer](docs/redesign/v2/reveal-wrong.jpg) · [pass the phone](docs/redesign/v2/handoff.jpg) · [friends setup](docs/redesign/v2/friends-setup.jpg) · [categories](docs/redesign/v2/categories.jpg) · [trophies](docs/redesign/v2/trophies.jpg) · [how to play](docs/redesign/v2/how-to-play.jpg) · [daily results](docs/redesign/v2/daily-results.jpg)
@@ -79,4 +79,4 @@ Original Kinesa artwork and interface; plays in the friendly category-wheel triv
 
 Earlier designs: [first redesign](docs/redesign/after/) · [before the redesigns](docs/redesign/before/)
 
-[Companion performance close-up](docs/kinesa-companions-motion.webm). Regenerate it with `node scripts/capture-companion-performance.mjs` while Vite is running; it enlarges the actual homepage components for a clearer camera view.
+The companion film lives in `video/` (see its README); it builds from the same `src/companions/model.js` as the app.

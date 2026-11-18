@@ -53,13 +53,13 @@ Data lives in the browser's localStorage on this device (match, stats, nickname,
 - **Reverence:** be playful about the *game*, never about God, the saints, scripture, or liturgy. No jokes at any denomination's expense.
 - **Neutral framing:** present Coptic Orthodox positions as Coptic tradition, not as the only Christian view, unless the category is explicitly Coptic. Keep broadly Christian content accessible to everyone.
 - **About the companions:** they are fictional characters inspired by the traditional Gospel symbols, not portraits of the evangelists.
-- **Companion direction (November 2026):** flat 2D cartoon characters animated in Rive, lively and bouncy, moving as one piece. The painted rig is a stopgap until new layered art exists; see `docs/companions-brief.md`. Adding the Rive runtime (~222 KB) needs an exception to the dependency-size rule below.
+- **Companion direction (November 2026):** flat 2D cartoon characters, lively and bouncy, moving as one piece. They are drawn in code (`src/companions/`) and shared by the app and the film. `docs/companions-brief.md` describes a possible later pass by a professional animator in Rive (that runtime, ~222 KB, would need an exception to the dependency-size rule below).
 
 ## Evidence on Hand
 
 - **Question bank:** a source-noted bank in `src/content/` (12 original samples plus additions). Questions that haven't been reviewed live in a review queue and do not ship.
 - **Content review:** the project owner reviews all Coptic and church content.
-- **Artwork:** original companion paintings in `public/characters/`; licenses in `public/THIRD-PARTY-NOTICES.txt` and `public/fonts/`.
+- **Artwork:** the companions are original flat 2D characters drawn in code (`src/companions/`), shared by the app and the film in `video/`; font license in `public/fonts/`.
 - **What doesn't exist:** there are no player counts, testimonials, partnerships, or endorsements from any church body. Never claim any.
 
 ## Product Principles
