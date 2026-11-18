@@ -1,0 +1,10 @@
+import { chromium } from "@playwright/test";
+import { writeFile } from "node:fs/promises";
+const browser = await chromium.launch({ args: ["--enable-unsafe-swiftshader"], ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE } : {}) });
+const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });
+page.on("pageerror", (e) => console.log("ERR", String(e)));
+await page.goto(new URL("kinesa-big-spin.html?render", import.meta.url).href);
+await page.evaluate(() => window.KINESA.ready);
+const png = await page.evaluate(() => { window.KINESA.renderSheet(); return document.getElementById("c").toDataURL("image/png"); });
+await writeFile(process.argv[2], Buffer.from(png.split(",")[1], "base64"));
+await browser.close();
