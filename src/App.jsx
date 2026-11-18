@@ -36,6 +36,7 @@ import {
   isSimultaneous,
   nextTurn,
   planBotAnswer,
+  freshCompanion,
   readSaved,
   recordAnswer,
   revealAnswers,
@@ -88,6 +89,8 @@ const matchBaseline = (stats) => ({
   badgesStart: [...stats.badges],
   categoryStart: { ...stats.categoryCorrect },
 });
+
+const LAST_COMPANION = "kinesa-last-companion";
 
 export default function App() {
   const [savedMatch] = useState(loadMatch);
@@ -241,7 +244,9 @@ export default function App() {
   }, [toast, toastTone]);
 
   // ---- Starting games -------------------------------------------------
-  const startPrepared = (prepared, nextMode) => {
+  const startPrepared = (fresh, nextMode) => {
+    const prepared = freshCompanion(fresh, readSaved(LAST_COMPANION, null));
+    saveLocal(LAST_COMPANION, prepared.players[0]?.kind ?? null);
     cancelSpin();
     clearTimeout(revealTimer.current);
     setModal(null);

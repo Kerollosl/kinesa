@@ -238,7 +238,9 @@ function bufferMesh(mesh) {
 }
 
 export function createCompanionSurface(root, kind) {
-  const canvas = root.querySelector("[data-companion-surface]");
+  const canvas = root.parentElement?.querySelector(
+    ":scope > [data-companion-surface]",
+  );
   if (!canvas) return null;
   let painter;
   try {
@@ -258,7 +260,21 @@ export function createCompanionSurface(root, kind) {
   let lost = false;
 
   function resize() {
-    const bounds = root.getBoundingClientRect();
+    // Layout size, not getBoundingClientRect: the pop-in animation scales
+    // the companion, and the canvas already moves with that.
+    const frame = canvas.parentElement;
+    const bounds = { width: frame.offsetWidth, height: frame.offsetHeight };
+    // Lay the canvas over the SVG's 200-unit view box (scaled to fit and
+    // centred, like the SVG itself), widened to the camera's box.
+    const unit = Math.min(bounds.width, bounds.height) / 200;
+    const left = (bounds.width - 200 * unit) / 2 + CAMERA.x * unit;
+    const top = (bounds.height - 200 * unit) / 2 + CAMERA.y * unit;
+    Object.assign(canvas.style, {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${CAMERA.width * unit}px`,
+      height: `${CAMERA.height * unit}px`,
+    });
     const ratio = Math.min(window.devicePixelRatio || 1, 2);
     const density = Math.max(0.5, bounds.width / 200) * ratio;
     const width = Math.round(CAMERA.width * density);
@@ -393,7 +409,7 @@ export function createCompanionSurface(root, kind) {
   canvas.addEventListener("webglcontextrestored", onRestored);
   const resizeObserver =
     typeof ResizeObserver === "function" ? new ResizeObserver(resize) : null;
-  resizeObserver?.observe(root);
+  resizeObserver?.observe(canvas.parentElement);
   resize();
   loadCompanionMaterials(kind)
     .then((loaded) => {

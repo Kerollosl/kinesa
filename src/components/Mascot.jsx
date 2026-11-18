@@ -188,7 +188,8 @@ export default function Mascot({
     "data-joint": name,
     "data-pivot": rig.pivots[name].join(" "),
   });
-  return (
+  const surface = !portrait && softSurface;
+  const art = (
     <svg
       ref={rootRef}
       viewBox={portrait ? "40 28 120 120" : "0 0 200 200"}
@@ -313,23 +314,6 @@ export default function Mascot({
           )}
         </g>
       </g>
-      {!portrait && softSurface && (
-        <foreignObject
-          x="-24"
-          y="-22"
-          width="248"
-          height="244"
-          className="companion-soft-surface"
-          aria-hidden="true"
-          pointerEvents="none"
-        >
-          <canvas
-            xmlns="http://www.w3.org/1999/xhtml"
-            data-companion-surface
-            aria-hidden="true"
-          />
-        </foreignObject>
-      )}
       {!portrait && (
         <g className="companion-emotes" aria-hidden="true" pointerEvents="none">
           {[0, 1, 2].map((index) => (
@@ -361,5 +345,19 @@ export default function Mascot({
         </g>
       )}
     </svg>
+  );
+  if (!surface) return art;
+  // The smoothing canvas sits beside the SVG, not inside it: Safari draws
+  // HTML inside an SVG <foreignObject> without the SVG's scaling, which
+  // left the companion oversized and off-centre on iPhone.
+  return (
+    <span className="mascot-frame">
+      {art}
+      <canvas
+        className="companion-soft-surface"
+        data-companion-surface
+        aria-hidden="true"
+      />
+    </span>
   );
 }

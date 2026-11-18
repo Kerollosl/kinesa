@@ -82,6 +82,22 @@ export function assignCompanions(players, random = Math.random) {
   }));
 }
 
+// The first player never keeps the companion they had last game: they get
+// one of the other three, swapped with whoever held it.
+export function freshCompanion(game, last, random = Math.random) {
+  const first = game.players[0];
+  if (!first || !COMPANION_KINDS.includes(last) || first.kind !== last)
+    return game;
+  const others = COMPANION_KINDS.filter((kind) => kind !== last);
+  const kind = others[Math.floor(random() * others.length)];
+  return {
+    ...game,
+    players: game.players.map((p, i) =>
+      i === 0 ? { ...p, kind } : p.kind === kind ? { ...p, kind: last } : p,
+    ),
+  };
+}
+
 // "turns": one player answers per turn (pass-and-play).
 // "simultaneous": everyone answers the same question together (practice bots).
 export function createGame(players, random = Math.random, options = {}) {

@@ -189,3 +189,14 @@ test("classic games survive a save and reload, and tampering fails closed", () =
   daily.mode = "daily";
   assert.equal(restoreMatch(daily), null);
 });
+
+test("your companion changes from one game to the next", async () => {
+  const { freshCompanion, createGame } = await import("../src/engine.js");
+  for (let i = 0; i < 50; i++) {
+    const game = createGame([{ name: "You" }, { name: "Bot", isBot: true }]);
+    const last = game.players[0].kind;
+    const next = freshCompanion(game, last);
+    assert.notEqual(next.players[0].kind, last);
+    assert.notEqual(next.players[0].kind, next.players[1].kind);
+  }
+});
