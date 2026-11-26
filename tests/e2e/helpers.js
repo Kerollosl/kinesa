@@ -1,6 +1,6 @@
 import { expect } from "@playwright/test";
-import { createClassic } from "../../src/classic.js";
-import { questions } from "../../src/data.js";
+import { createClassic } from "../../src/classic.ts";
+import { questions } from "../../src/data.ts";
 
 export { questions };
 

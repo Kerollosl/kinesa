@@ -11,8 +11,8 @@ import {
   planBotAnswer,
   normalizeSettings,
   TIMEOUT,
-} from "../src/engine.js";
-import { restoreMatch, MATCH_VERSION } from "../src/session.js";
+} from "../src/engine.ts";
+import { restoreMatch, MATCH_VERSION } from "../src/session.ts";
 import {
   migrateStats,
   levelInfo,
@@ -20,8 +20,8 @@ import {
   recordMatch,
   masteryFor,
   xpForLevel,
-} from "../src/progress.js";
-import { questions } from "../src/data.js";
+} from "../src/progress.ts";
+import { questions } from "../src/data.ts";
 
 const q = questions[0];
 const timed = normalizeSettings({ tier: "medium" });
@@ -266,7 +266,7 @@ test("stats migrate from version 1 and progress through levels and mastery", () 
 
 test("the daily challenge deals the same five questions for a date and tracks a streak", async () => {
   const { dailyPlan, recordDaily, dailyStatus, spotlight } =
-    await import("../src/daily.js");
+    await import("../src/daily.ts");
   const day = new Date(2026, 10, 7);
   const plan = dailyPlan(day);
   assert.equal(plan.length, 5);

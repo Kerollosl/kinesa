@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { createGame } from "../../src/engine.js";
+import { createGame } from "../../src/engine.ts";
 import {
   answerRight,
   answerWrong,

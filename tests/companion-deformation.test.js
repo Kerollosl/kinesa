@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   COMPANION_RIGS,
   rigPlacement,
-} from "../src/components/companion-rig.js";
+} from "../src/components/companion-rig.ts";
 import {
   anchorToGround,
   createPartMesh,
@@ -11,7 +11,7 @@ import {
   jointMatrix,
   multiplyMatrices,
   transformPoint,
-} from "../src/components/companion-deformation.js";
+} from "../src/components/companion-deformation.ts";
 
 const names = ["body", "head", "wingLeft", "wingRight", "armLeft", "armRight"];
 const channels = [

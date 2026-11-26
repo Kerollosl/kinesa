@@ -100,8 +100,6 @@ const visible = (locator) =>
     .first()
     .isVisible()
     .catch(() => false);
-const main = (page) => page.locator("main");
-const button = (page, name) => main(page).getByRole("button", { name }).first();
 
 // Advances whatever the current screen asks for until results appear.
 // Answers follow a right, right, wrong pattern so every state shows up.
@@ -148,14 +146,22 @@ async function playMatch(page, shot) {
     if (await visible(options)) {
       await shot("question");
       const correct = await page.evaluate(
-        () => JSON.parse(localStorage.getItem("kinesa-match"))?.game?.question?.correct ?? 0,
+        () =>
+          JSON.parse(localStorage.getItem("kinesa-match"))?.game?.question
+            ?.correct ?? 0,
       );
       const right = answered % 3 !== 2;
       const hidden = await page.evaluate(
-        () => JSON.parse(localStorage.getItem("kinesa-match"))?.game?.hidden || [],
+        () =>
+          JSON.parse(localStorage.getItem("kinesa-match"))?.game?.hidden || [],
       );
-      const wrong = [0, 1, 2, 3].find((n) => n !== correct && !hidden.includes(n));
-      await page.locator(".qv .answer").nth(right ? correct : wrong).click();
+      const wrong = [0, 1, 2, 3].find(
+        (n) => n !== correct && !hidden.includes(n),
+      );
+      await page
+        .locator(".qv .answer")
+        .nth(right ? correct : wrong)
+        .click();
       answered++;
       await page.waitForTimeout(1100);
       await shot(right ? "feedback-right" : "feedback-wrong");

@@ -1,6 +1,6 @@
 // Validates the question bank: run with `npm run validate:questions` (also part of `npm test`).
 import { readFileSync } from "node:fs";
-import { categories } from "../src/data.js";
+import { categories } from "../src/data.ts";
 
 const MIN_PER_CATEGORY = Number(process.env.KINESA_MIN_PER_CATEGORY ?? 20);
 const DIFFICULTIES = ["easy", "medium", "hard"];

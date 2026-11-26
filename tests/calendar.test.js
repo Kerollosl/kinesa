@@ -7,7 +7,7 @@ import {
   churchSeason,
   nextFeast,
   dayKey,
-} from "../src/calendar.js";
+} from "../src/calendar.ts";
 
 const d = (y, m, day) => new Date(y, m - 1, day);
 const ymd = (date) => dayKey(date);

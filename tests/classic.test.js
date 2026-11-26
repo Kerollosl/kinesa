@@ -11,12 +11,11 @@ import {
   createClassic,
   landOn,
   nextStep,
-  playBotTurn,
   fiftyFifty,
-} from "../src/classic.js";
-import { TIMEOUT } from "../src/engine.js";
-import { categories } from "../src/data.js";
-import { restoreMatch } from "../src/session.js";
+} from "../src/classic.ts";
+import { TIMEOUT } from "../src/engine.ts";
+import { categories } from "../src/data.ts";
+import { restoreMatch } from "../src/session.ts";
 
 const friends = (n = 2, settings = {}) =>
   createClassic(
@@ -191,7 +190,7 @@ test("classic games survive a save and reload, and tampering fails closed", () =
 });
 
 test("your companion changes from one game to the next", async () => {
-  const { freshCompanion, createGame } = await import("../src/engine.js");
+  const { freshCompanion, createGame } = await import("../src/engine.ts");
   for (let i = 0; i < 50; i++) {
     const game = createGame([{ name: "You" }, { name: "Bot", isBot: true }]);
     const last = game.players[0].kind;

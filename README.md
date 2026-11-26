@@ -12,7 +12,7 @@ A Coptic and Bible trivia game for teens and adults. Spin the wheel, keep going 
 
 ## Run locally
 
-Node.js 20.19+ or 22.12+ is required; Node.js 24 is recommended.
+Node.js 22.18+ is required (tests and scripts import the TypeScript sources directly through Node's built-in type stripping); Node.js 24 is recommended. `npm run typecheck` runs `tsc --noEmit` and `npm run lint` runs ESLint.
 
 ```sh
 npm ci
@@ -55,7 +55,7 @@ Questions that need a subject-matter check wait in `src/content/review-queue.jso
 
 ## Frontend scope
 
-This is a local-first app, not an online service. Practice play uses bots; friends play on one device. There are no accounts, remote rooms or backend. Saved games (version 2: classic games, quick rounds, and older turn-based saves, migrating version 1), progress, preferences and the daily streak live in browser local storage and stay on the device. The classic rules live in `src/classic.js` (pure functions, unit-tested in `tests/classic.test.js`).
+This is a local-first app, not an online service. Practice play uses bots; friends play on one device. There are no accounts, remote rooms or backend. Saved games (version 2: classic games, quick rounds, and older turn-based saves, migrating version 1), progress, preferences and the daily streak live in browser local storage and stay on the device. The classic rules live in `src/classic.ts` (pure functions, unit-tested in `tests/classic.test.js`).
 
 ## Verification
 
@@ -71,7 +71,7 @@ npm run build
 
 ## App Store
 
-`capacitor.config.ts`, `resources/` (icon and splash sources) and `docs/STORE-CHECKLIST.md` prepare a Capacitor iOS wrapper for "Coptic Trivia". Privacy and support URLs are placeholders in `src/appInfo.js`. Nothing has been built for iOS.
+`capacitor.config.ts`, `resources/` (icon and splash sources) and `docs/STORE-CHECKLIST.md` prepare a Capacitor iOS wrapper for "Coptic Trivia". Privacy and support URLs are placeholders in `src/appInfo.ts`. Nothing has been built for iOS.
 
 ## Credits
 

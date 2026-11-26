@@ -9,8 +9,8 @@ import {
   getWinners,
   getQuestion,
   ROUNDS,
-} from "../src/engine.js";
-import { questions, categories } from "../src/data.js";
+} from "../src/engine.ts";
+import { questions, categories } from "../src/data.ts";
 const players = [
   { kind: "lion", name: "Mina" },
   { kind: "ox", name: "Mary" },
@@ -112,7 +112,7 @@ test("every sample question has valid options, an explanation, and a source note
 });
 
 test("resume validation rejects corrupt state and restores questions from the canonical deck", async () => {
-  const { restoreMatch } = await import("../src/session.js");
+  const { restoreMatch } = await import("../src/session.ts");
   const game = createGame(players);
   assert.equal(restoreMatch({ version: 0, game, mode: "friends" }), null);
   assert.equal(

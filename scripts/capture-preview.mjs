@@ -1,5 +1,5 @@
 import { chromium, expect } from "@playwright/test";
-import { questions } from "../src/data.js";
+import { questions } from "../src/data.ts";
 // Run against `npm run dev` to regenerate the repository's visual previews.
 const browser = await chromium.launch({
   headless: true,

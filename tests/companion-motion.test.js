@@ -12,7 +12,7 @@ import {
   frameDelta,
   retargetCompanion,
   staticCompanionPose,
-} from "../src/components/companion-physics.js";
+} from "../src/components/companion-physics.ts";
 
 test("damped springs preserve their trajectory across frame rates", () => {
   for (const damping of [0.65, 1, 1.4]) {

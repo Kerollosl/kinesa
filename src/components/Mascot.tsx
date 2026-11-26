@@ -1,0 +1,403 @@
+import { useId } from "react";
+import type { CompanionKind } from "../types.ts";
+import useCompanionMotion from "./useCompanionMotion.ts";
+import {
+  COMPANION_RIGS,
+  LID_COVER,
+  LID_SOLID,
+  RIG_ARTWORK,
+  jointFeather,
+  rigPlacement,
+} from "./companion-rig.ts";
+import type {
+  CompanionRig,
+  JointFeather,
+  PartSpec,
+  PivotName,
+} from "./companion-rig.ts";
+import type { LookTarget } from "./companion-physics.ts";
+
+export interface MascotInfo {
+  kind: CompanionKind;
+  name: string;
+  gospel: string;
+  personality: string;
+  color: string;
+  bg: string;
+}
+
+export const MASCOTS: MascotInfo[] = [
+  {
+    kind: "lion",
+    name: "Leo",
+    gospel: "Mark",
+    personality: "Brave heart. Big energy.",
+    color: "#E5A138",
+    bg: "#FFF0CF",
+  },
+  {
+    kind: "ox",
+    name: "Lou",
+    gospel: "Luke",
+    personality: "Steady, kind & surprisingly clever.",
+    color: "#BA7956",
+    bg: "#F9E5DB",
+  },
+  {
+    kind: "eagle",
+    name: "Juno",
+    gospel: "John",
+    personality: "Big ideas. A bird’s-eye view.",
+    color: "#96704F",
+    bg: "#F3E9DB",
+  },
+  {
+    kind: "human",
+    name: "Mattie",
+    gospel: "Matthew",
+    personality: "Curious mind. A little mischief.",
+    color: "#9380BA",
+    bg: "#EDE5F6",
+  },
+];
+
+function RigPart({
+  part,
+  id,
+  feather = null,
+}: {
+  part: PartSpec;
+  id: string;
+  feather?: JointFeather | null;
+}) {
+  const placement = rigPlacement(part);
+  const art = RIG_ARTWORK[part.art || "parts"];
+  const { x, y, width, height } = placement;
+  const clip =
+    part.outline === "ox-head"
+      ? `M${x} ${y}h${width * 0.35}v9h${width * 0.35}v-9H${x + width}v${height}H${x + 4}v${-height * 0.51}H${x}Z`
+      : part.trimCorners
+        ? `M${x + 1.8} ${y}H${x + width}v${height - 7}h${-width * 0.25}v7h${-width * 0.5}v-7H${x + 1.8}Z`
+        : null;
+  return (
+    <g className="companion-painted-part">
+      <defs>
+        <clipPath id={id}>
+          {clip ? (
+            <path d={clip} />
+          ) : (
+            <rect x={x} y={y} width={width} height={height} />
+          )}
+        </clipPath>
+        {feather && (
+          <>
+            <radialGradient
+              id={`${id}-fade`}
+              cx={feather.x}
+              cy={feather.y}
+              r={feather.radius}
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0" stopColor="black" />
+              <stop offset={feather.clear} stopColor="black" />
+              <stop offset="1" stopColor="white" />
+            </radialGradient>
+            <mask
+              id={`${id}-mask`}
+              maskUnits="userSpaceOnUse"
+              x={x - 20}
+              y={y - 20}
+              width={width + 40}
+              height={height + 40}
+            >
+              <rect
+                x={x - 20}
+                y={y - 20}
+                width={width + 40}
+                height={height + 40}
+                fill={`url(#${id}-fade)`}
+              />
+            </mask>
+          </>
+        )}
+      </defs>
+      <g mask={feather ? `url(#${id}-mask)` : undefined}>
+        <image
+          href={art.href}
+          x={placement.imageX}
+          y={placement.imageY}
+          width={art.width * placement.scale}
+          height={art.height * placement.scale}
+          preserveAspectRatio="none"
+          clipPath={`url(#${id})`}
+        />
+      </g>
+    </g>
+  );
+}
+
+function Eyelids({ rig, id }: { rig: CompanionRig; id: string }) {
+  const art = RIG_ARTWORK.eyelids;
+  return rig.eyes.map((eye, index) => {
+    const [sourceX, sourceY] = rig.blink.centers[index];
+    const scale = rig.blink.scale;
+    return (
+      <g key={index}>
+        <defs>
+          <radialGradient id={`${id}-lid-feather-${index}`}>
+            <stop offset="0" stopColor="white" />
+            <stop offset={LID_SOLID} stopColor="white" />
+            <stop offset="1" stopColor="black" />
+          </radialGradient>
+          <mask id={`${id}-lid-mask-${index}`}>
+            <ellipse
+              cx={eye.x}
+              cy={eye.y}
+              rx={eye.rx * LID_COVER}
+              ry={eye.ry * LID_COVER}
+              fill={`url(#${id}-lid-feather-${index})`}
+            />
+          </mask>
+        </defs>
+        <g
+          data-lid
+          data-eye={index}
+          visibility="hidden"
+          data-pivot={`${eye.x} ${eye.y - eye.ry}`}
+          transform={`translate(0 ${eye.y - eye.ry}) scale(1 0) translate(0 ${-eye.y + eye.ry})`}
+        >
+          <image
+            href={art.href}
+            x={eye.x - sourceX * scale}
+            y={eye.y + 3 - sourceY * scale}
+            width={art.width * scale}
+            height={art.height * scale}
+            mask={`url(#${id}-lid-mask-${index})`}
+            preserveAspectRatio="none"
+          />
+        </g>
+      </g>
+    );
+  });
+}
+
+export interface MascotProps extends Omit<
+  React.SVGProps<SVGSVGElement>,
+  "ref" | "look"
+> {
+  kind?: CompanionKind;
+  mood?: string;
+  portrait?: boolean;
+  softSurface?: boolean;
+  paused?: boolean;
+  reaction?: number;
+  action?: string;
+  dancing?: boolean;
+  look?: LookTarget | null;
+}
+
+export default function Mascot({
+  kind = "lion",
+  className = "",
+  mood = "happy",
+  portrait = false,
+  softSurface = true,
+  paused = false,
+  reaction = 0,
+  action = "hello",
+  dancing = false,
+  look = null,
+  ...props
+}: MascotProps) {
+  const id = useId().replaceAll(":", "");
+  const companion =
+    MASCOTS.find((mascot) => mascot.kind === kind) || MASCOTS[0];
+  const rig = COMPANION_RIGS[companion.kind];
+  const rootRef = useCompanionMotion({
+    kind: companion.kind,
+    mood,
+    portrait,
+    softSurface,
+    paused,
+    reaction,
+    action,
+    dancing,
+    look,
+  });
+  const joint = (name: PivotName) => ({
+    "data-joint": name,
+    "data-pivot": rig.pivots[name].join(" "),
+  });
+  const surface = !portrait && softSurface;
+  const art = (
+    <svg
+      ref={rootRef}
+      viewBox={portrait ? "40 28 120 120" : "0 0 200 200"}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label={`${companion.name}, the ${companion.kind} companion of ${companion.gospel}`}
+      className={`mascot mascot-rig mascot-${companion.kind} ${portrait ? "mascot-portrait" : ""} ${className}`}
+      data-renderer="painted"
+      data-mood={mood}
+      data-action={action}
+      data-dancing={dancing}
+      {...props}
+    >
+      {!portrait && (
+        <ellipse
+          className="mascot-shadow"
+          data-contact-shadow
+          data-pivot="100 183"
+          cx="100"
+          cy="183"
+          rx="37"
+          ry="4.2"
+          fill="#705A75"
+          opacity=".12"
+        />
+      )}
+      <g className="mascot-body" data-joint="body" data-pivot="100 181">
+        <g {...joint("wingLeft")}>
+          <RigPart
+            part={rig.wingLeft}
+            id={`${id}-wing-left`}
+            feather={jointFeather(companion.kind, "wingLeft")}
+          />
+        </g>
+        <g {...joint("wingRight")}>
+          <RigPart
+            part={rig.wingRight}
+            id={`${id}-wing-right`}
+            feather={jointFeather(companion.kind, "wingRight")}
+          />
+        </g>
+        <RigPart part={rig.body} id={`${id}-torso`} />
+        <g {...joint("armLeft")}>
+          <RigPart
+            part={rig.armLeft}
+            id={`${id}-arm-left`}
+            feather={jointFeather(companion.kind, "armLeft")}
+          />
+        </g>
+        <g {...joint("armRight")}>
+          <RigPart
+            part={rig.armRight}
+            id={`${id}-arm-right`}
+            feather={jointFeather(companion.kind, "armRight")}
+          />
+        </g>
+        {rig.collar && (
+          <g>
+            <defs>
+              <linearGradient
+                id={`${id}-collar-fade`}
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="1"
+              >
+                <stop offset="0" stopColor="white" />
+                <stop offset=".75" stopColor="white" />
+                <stop offset="1" stopColor="black" />
+              </linearGradient>
+              <mask id={`${id}-collar-mask`}>
+                <rect
+                  x={rig.collar[0]}
+                  y={rig.collar[1]}
+                  width={rig.collar[2]}
+                  height={rig.collar[3]}
+                  fill={`url(#${id}-collar-fade)`}
+                />
+              </mask>
+            </defs>
+            <g mask={`url(#${id}-collar-mask)`}>
+              <RigPart part={rig.body} id={`${id}-collar`} />
+            </g>
+          </g>
+        )}
+        <g {...joint("head")}>
+          <RigPart part={rig.head} id={`${id}-head`} />
+          <Eyelids rig={rig} id={id} />
+          {companion.kind === "human" && (
+            <g data-joint="halo" data-pivot="100 18">
+              <defs>
+                <linearGradient
+                  id={`${id}-halo`}
+                  x1="70"
+                  y1="13"
+                  x2="130"
+                  y2="23"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop stopColor="#FFF1B0" />
+                  <stop offset=".4" stopColor="#E5AE37" />
+                  <stop offset="1" stopColor="#BA7820" />
+                </linearGradient>
+              </defs>
+              <ellipse
+                cx="100"
+                cy="18"
+                rx="27"
+                ry="7"
+                transform="rotate(-8 100 18)"
+                stroke={`url(#${id}-halo)`}
+                strokeWidth="5"
+              />
+              <path
+                d="M75 19Q89 7 121 12"
+                stroke="#FFF1AE"
+                strokeWidth="1.3"
+                strokeLinecap="round"
+              />
+            </g>
+          )}
+        </g>
+      </g>
+      {!portrait && (
+        <g className="companion-emotes" aria-hidden="true" pointerEvents="none">
+          {[0, 1, 2].map((index) => (
+            <g
+              key={`heart-${index}`}
+              data-emote="hearts"
+              data-index={index}
+              opacity="0"
+            >
+              <path
+                d="M0 3C-13-6-13-13-7-14C-3-15 0-12 0-10C1-15 7-16 11-12C17-6 7 0 0 3Z"
+                fill={["#EF8DAB", "#F3A1B7", "#D989B9"][index]}
+              />
+            </g>
+          ))}
+          {[0, 1, 2, 3].map((index) => (
+            <g
+              key={`sparkle-${index}`}
+              data-emote="sparkles"
+              data-index={index}
+              opacity="0"
+            >
+              <path
+                d="M0-7L2-2L7 0L2 2L0 7L-2 2L-7 0L-2-2Z"
+                fill={index % 2 ? "#B4A3E4" : "#EDBC60"}
+              />
+            </g>
+          ))}
+        </g>
+      )}
+    </svg>
+  );
+  if (!surface) return art;
+  // The smoothing canvas sits beside the SVG, not inside it: Safari draws
+  // HTML inside an SVG <foreignObject> without the SVG's scaling, which
+  // left the companion oversized and off-centre on iPhone.
+  return (
+    <span className="mascot-frame">
+      {art}
+      <canvas
+        className="companion-soft-surface"
+        data-companion-surface
+        aria-hidden="true"
+      />
+    </span>
+  );
+}
